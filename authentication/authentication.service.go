@@ -24,7 +24,7 @@ func SetupRoutes(apiBasePath string) {
 func registerHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		// add a new product to the list
+		// add a new user to the list
 		var newUser user.User
 		bodyBytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {

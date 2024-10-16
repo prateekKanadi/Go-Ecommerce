@@ -22,13 +22,35 @@ func hashPassword(password string) (string, error) {
 	return string(hashed), nil
 }
 
-func getUser(email string) (*User, error) {
+func getUserByEmail(email string) (*User, error) {
 	row := database.DbConn.QueryRow(`SELECT 
 	userId, 	
 	email,
 	password	
 	FROM users
 	WHERE email = ?`, email)
+
+	user := &User{}
+	err := row.Scan(
+		&user.UserID,
+		&user.Email,
+		&user.Password)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return user, nil
+}
+
+func getUser(userID int) (*User, error) {
+	row := database.DbConn.QueryRow(`SELECT 
+	userId, 	
+	email,
+	password	
+	FROM users
+	WHERE userId = ?`, userID)
 
 	user := &User{}
 	err := row.Scan(
@@ -113,7 +135,7 @@ func RegisterUser(user User) (int, error) {
 	return insertUser(user)
 }
 func LoginUser(user User) (int, error) {
-	reqUser, err := getUser(user.Email)
+	reqUser, err := getUserByEmail(user.Email)
 	if err != nil {
 		return 0, err
 	}
