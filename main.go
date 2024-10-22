@@ -6,7 +6,10 @@ import (
 	"net/http"
 
 	"github.com/ecommerce/database"
+	"github.com/ecommerce/middleware"
 	"github.com/ecommerce/product"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
 const apiBasePath = "/api"
@@ -14,9 +17,27 @@ const apiBasePath = "/api"
 func main() {
 	fmt.Println("Hello! dev-anand")
 
+	//Creating Mux Router
+	r := mux.NewRouter()
+
+	//register datatbase
 	database.SetupDatabase()
-	product.SetupRoutes(apiBasePath)
+
+	//Registering Middlewares
+	registerMiddleWares(r)
+
+	//Registering routes
+	registerRoutes(r, apiBasePath)
 
 	fmt.Println("Server is running at http://localhost:5000")
-	log.Fatal(http.ListenAndServe(":5000", nil))
+	log.Fatal(http.ListenAndServe(":5000", r))
+}
+
+func registerMiddleWares(r *mux.Router) {
+	r.Use(middleware.CorsMiddleware)
+}
+
+func registerRoutes(r *mux.Router, apiBasePath string) {
+	//Product
+	product.SetupProductRoutes(r, apiBasePath)
 }

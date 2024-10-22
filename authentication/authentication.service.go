@@ -2,24 +2,22 @@ package authentication
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 
-	"github.com/ecommerce/cors"
 	"github.com/ecommerce/user"
 )
 
 const productsBasePath = "authentication"
 
 // SetupRoutes :
-func SetupRoutes(apiBasePath string) {
-	handleLogin := http.HandlerFunc(loginHandler)
-	handleRegister := http.HandlerFunc(registerHandler)
-	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, productsBasePath), cors.Middleware(handleLogin))
-	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, productsBasePath), cors.Middleware(handleRegister))
-}
+// func SetupRoutes(apiBasePath string) {
+// 	handleLogin := http.HandlerFunc(loginHandler)
+// 	handleRegister := http.HandlerFunc(registerHandler)
+// 	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, productsBasePath), cors.Middleware(handleLogin))
+// 	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, productsBasePath), cors.Middleware(handleRegister))
+// }
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {

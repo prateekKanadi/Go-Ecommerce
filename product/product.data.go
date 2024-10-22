@@ -68,7 +68,7 @@ func getProductList() ([]Product, error) {
 func updateProduct(product Product) error {
 	_, err := database.DbConn.Exec(`UPDATE products SET 		 
 		pricePerUnit=CAST(? AS DECIMAL(13,2)), 		 
-		productName=?
+		productName=?,
 		productBrand=?
 		WHERE productId=?`,
 		product.PricePerUnit,
@@ -86,7 +86,7 @@ func insertProduct(product Product) (int, error) {
 	result, err := database.DbConn.Exec(`INSERT INTO products  
 	(pricePerUnit,
 	productName,
-	productBrand) VALUES (?, ?, ?, ?, ?, ?)`,
+	productBrand) VALUES (?, ?, ?)`,
 		product.PricePerUnit,
 		product.ProductName,
 		product.ProductBrand)

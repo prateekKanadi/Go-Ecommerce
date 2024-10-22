@@ -2,25 +2,22 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
-
-	"github.com/ecommerce/cors"
 )
 
 const usersBasePath = "users"
 
 // SetupRoutes :
-func SetupRoutes(apiBasePath string) {
-	handleUsers := http.HandlerFunc(usersHandler)
-	handleUser := http.HandlerFunc(userHandler)
-	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, usersBasePath), cors.Middleware(handleUsers))
-	http.Handle(fmt.Sprintf("%s/%s/", apiBasePath, usersBasePath), cors.Middleware(handleUser))
-}
+// func SetupRoutes(apiBasePath string) {
+// 	handleUsers := http.HandlerFunc(usersHandler)
+// 	handleUser := http.HandlerFunc(userHandler)
+// 	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, usersBasePath), cors.Middleware(handleUsers))
+// 	http.Handle(fmt.Sprintf("%s/%s/", apiBasePath, usersBasePath), cors.Middleware(handleUser))
+// }
 
 func usersHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {

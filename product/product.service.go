@@ -7,19 +7,16 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 
-	"github.com/ecommerce/cors"
+	"github.com/gorilla/mux"
 )
 
 const productsBasePath = "products"
 
 // SetupRoutes :
-func SetupRoutes(apiBasePath string) {
-	handleProducts := http.HandlerFunc(productsHandler)
-	handleProduct := http.HandlerFunc(productHandler)
-	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, productsBasePath), cors.Middleware(handleProducts))
-	http.Handle(fmt.Sprintf("%s/%s/", apiBasePath, productsBasePath), cors.Middleware(handleProduct))
+func SetupProductRoutes(r *mux.Router, apiBasePath string) {
+	r.HandleFunc(fmt.Sprintf("%s/%s", apiBasePath, productsBasePath), productsHandler)
+	r.HandleFunc(fmt.Sprintf("%s/%s/{id}", apiBasePath, productsBasePath), productHandler)
 }
 
 func productsHandler(w http.ResponseWriter, r *http.Request) {
@@ -74,8 +71,8 @@ func productsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func productHandler(w http.ResponseWriter, r *http.Request) {
-	urlPathSegments := strings.Split(r.URL.Path, "products/")
-	productID, err := strconv.Atoi(urlPathSegments[len(urlPathSegments)-1])
+	vars := mux.Vars(r)
+	productID, err := strconv.Atoi(vars["id"])
 
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
