@@ -2,22 +2,22 @@ package authentication
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 
 	"github.com/ecommerce/user"
+	"github.com/gorilla/mux"
 )
 
-const productsBasePath = "authentication"
+const authBasePath = "auth"
 
 // SetupRoutes :
-// func SetupRoutes(apiBasePath string) {
-// 	handleLogin := http.HandlerFunc(loginHandler)
-// 	handleRegister := http.HandlerFunc(registerHandler)
-// 	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, productsBasePath), cors.Middleware(handleLogin))
-// 	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, productsBasePath), cors.Middleware(handleRegister))
-// }
+func SetupAuthRoutes(r *mux.Router, apiBasePath string) {
+	r.HandleFunc(fmt.Sprintf("%s/%s/login", apiBasePath, authBasePath), loginHandler)
+	r.HandleFunc(fmt.Sprintf("%s/%s/register", apiBasePath, authBasePath), registerHandler)
+}
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -78,10 +78,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		_, err = user.LoginUser(existingUser)
+		res, err := user.LoginUser(existingUser)
 		if err != nil {
 			log.Print(err)
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(res)
 			return
 		}
 		w.WriteHeader(http.StatusOK)

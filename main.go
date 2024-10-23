@@ -5,9 +5,11 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ecommerce/authentication"
 	"github.com/ecommerce/database"
 	"github.com/ecommerce/middleware"
 	"github.com/ecommerce/product"
+	"github.com/ecommerce/user"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
@@ -40,4 +42,10 @@ func registerMiddleWares(r *mux.Router) {
 func registerRoutes(r *mux.Router, apiBasePath string) {
 	//Product
 	product.SetupProductRoutes(r, apiBasePath)
+
+	// User
+	user.SetupUserRoutes(r, apiBasePath)
+
+	// Auth
+	authentication.SetupAuthRoutes(r, apiBasePath)
 }

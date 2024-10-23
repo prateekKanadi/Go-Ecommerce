@@ -2,14 +2,16 @@ package user
 
 import (
 	"database/sql"
+	"errors"
 	"log"
+	"net/http"
 
 	"github.com/ecommerce/database"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func hashPassword(password string) (string, error) {
-	// Convert the password to a byte array
+	// Convert the string password to a byte slice
 	passwordBytes := []byte(password)
 
 	// Generate the hashed password
@@ -131,19 +133,43 @@ func updatePassword(user User) error {
 	return nil
 }
 
+func updateUser(user User) error {
+	err_e := updateEmail(user)
+	// err_p := updatePassword(user)
+
+	if err_e != nil {
+		log.Println(err_e.Error())
+		return err_e
+	}
+
+	// if err_p != nil {
+	// 	log.Println(err_p.Error())
+	// 	return err_p
+	// }
+
+	return nil
+}
+
 func RegisterUser(user User) (int, error) {
 	return insertUser(user)
 }
 func LoginUser(user User) (int, error) {
-	reqUser, err := getUserByEmail(user.Email)
+	existingUser, err := getUserByEmail(user.Email)
 	if err != nil {
-		return 0, err
+		return http.StatusInternalServerError, err
 	}
-	isCredMisMatch := bcrypt.CompareHashAndPassword([]byte(reqUser.Password), []byte(user.Password))
+
+	// Check if user was found (i.e., existingUser is not nil)
+	if existingUser == nil {
+		return http.StatusNotFound, errors.New("user not found")
+	}
+
+	//compare existing-hashed-pass and request-pass
+	isCredMisMatch := bcrypt.CompareHashAndPassword([]byte(existingUser.Password), []byte(user.Password))
 	if isCredMisMatch != nil {
-		return 0, isCredMisMatch
+		return http.StatusUnauthorized, isCredMisMatch
 	}
-	return 0, nil
+	return http.StatusOK, nil
 }
 func insertUser(user User) (int, error) {
 	hashedPass, err := hashPassword(user.Password)
