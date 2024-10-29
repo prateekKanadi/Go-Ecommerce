@@ -7,7 +7,7 @@ import (
 )
 
 func getAllUsersService() ([]byte, int) {
-	userList, err := getUserList()
+	userList, err := getAllUsers()
 	if err != nil {
 		return nil, http.StatusInternalServerError
 	}
@@ -33,7 +33,7 @@ func getUserService(userID int) (*User, int, error) {
 }
 
 func addUserService(newUser User) (int, error) {
-	_, err := insertUser(newUser)
+	_, err := addUser(newUser)
 	if err != nil {
 		log.Print(err)
 		return http.StatusBadRequest, nil
@@ -61,6 +61,6 @@ func updatePasswordService(updatedUser User) (int, error) {
 	return http.StatusOK, err
 }
 
-func removeUserService(userID int) {
-	removeUser(userID)
+func removeUserService(userID int) error {
+	return removeUser(userID)
 }

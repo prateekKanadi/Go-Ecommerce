@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Login Page</title>
+    <title>Register</title>
     <style>
         /* Body styling */
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #74ebd5 0%, #acb6e5 100%);
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
             margin: 0;
             padding: 0;
             display: flex;
@@ -19,25 +18,27 @@
             color: #333;
         }
 
-        /* Container styling */
-        .login-container {
+        /* Registration container styling */
+        .register-container {
             background-color: #fff;
-            padding: 30px;
+            padding: 40px;
             border-radius: 10px;
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
-            width: 350px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
             text-align: center;
         }
 
-        .login-container h2 {
+        .register-container h2 {
             margin-bottom: 20px;
-            color: #444;
+            font-size: 1.8em;
+            color: #ff6b6b;
             font-weight: 600;
-            font-size: 1.5em;
         }
 
-        .login-container input[type="text"],
-        .login-container input[type="password"] {
+        .register-container input[type="text"],
+        .register-container input[type="email"],
+        .register-container input[type="password"] {
             width: 90%;
             padding: 12px;
             margin: 12px 0;
@@ -46,10 +47,10 @@
             font-size: 1em;
         }
 
-        .login-container input[type="submit"] {
+        .register-container input[type="submit"] {
             width: 100%;
             padding: 12px;
-            background-color: #5cb85c;
+            background-color: #ff6b6b;
             border: none;
             color: #fff;
             font-size: 1em;
@@ -58,21 +59,22 @@
             transition: background-color 0.3s ease;
         }
 
-        .login-container input[type="submit"]:hover {
-            background-color: #4cae4c;
+        .register-container input[type="submit"]:hover {
+            background-color: #e55a5a;
         }
 
-        .login-container a {
-            display: inline-block;
+        .register-container a {
+            display: block;
             margin-top: 20px;
-            color: #5cb85c;
+            color: #ff6b6b;
             text-decoration: none;
         }
 
-        .login-container a:hover {
+        .register-container a:hover {
             text-decoration: underline;
         }
 
+        /* Error message styling */
         .error-message {
             color: #d9534f;
             background-color: #f2dede;
@@ -80,37 +82,27 @@
             border-radius: 5px;
             margin-bottom: 20px;
         }
-
-        /* Footer styling */
-        footer {
-            position: absolute;
-            bottom: 15px;
-            text-align: center;
-            font-size: 0.9em;
-            color: #f4f4f4;
-            width: 100%;
-        }        
     </style>
 </head>
 <body>
 
-    <div class="login-container">
-        <h2>Login</h2>
+    <div class="register-container">
+        <h2>Create an Account</h2>
 
+        <!-- Display error message if any -->
         {{if .Error}}
         <div class="error-message">{{.Error}}</div>
         {{end}}
 
-        <form action="/prod/auth/login" method="POST">
-            <input type="text" name="email" placeholder="Email" required>
+        <form action="/register" method="POST">            
+            <input type="email" name="email" placeholder="Email" required>
             <input type="password" name="password" placeholder="Password" required>
-            <input type="submit" value="Login">
+            <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+            <input type="submit" value="Register">
         </form>
-        <a href="#">Forgot your password?</a>
-        <a href="/prod/auth/register">Don't have an account? Register here</a>
-    </div>
 
-    <footer>&copy; 2023 Your Company</footer>
+        <a href="/prod/auth/login">Already have an account? Login here</a>
+    </div>
 
 </body>
 </html>

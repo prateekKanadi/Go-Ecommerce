@@ -17,13 +17,14 @@ func SetupUserRoutes(r *mux.Router, apiBasePath string) {
 	r.HandleFunc(fmt.Sprintf("%s/%s", apiBasePath, usersBasePath), usersHandler)
 	r.HandleFunc(fmt.Sprintf("%s/%s/{id}", apiBasePath, usersBasePath), userHandler)
 	r.HandleFunc(fmt.Sprintf("%s/%s/resetPass", apiBasePath, usersBasePath), resetPassHandler).Methods("POST")
-	SetupProdUserRoutes(r, "prod")
+	SetupProdUserRoutes(r, "/prod")
 }
 
 func SetupProdUserRoutes(r *mux.Router, apiBasePath string) {
 	r.HandleFunc(fmt.Sprintf("%s/%s", apiBasePath, usersBasePath), usersProdHandler)
 	r.HandleFunc(fmt.Sprintf("%s/%s/{id}", apiBasePath, usersBasePath), userProdHandler)
 	r.HandleFunc(fmt.Sprintf("%s/%s/resetPass", apiBasePath, usersBasePath), resetPassProdHandler).Methods("POST")
+	// r.HandleFunc(fmt.Sprintf("%s/%s/dashboard", apiBasePath, usersBasePath), userDashboardHandler).Methods("GET")
 }
 
 func usersProdHandler(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +123,11 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		return
 	case http.MethodDelete:
-		removeUserService(userID)
+		err := removeUserService(userID)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	case http.MethodOptions:
 		return
 	default:

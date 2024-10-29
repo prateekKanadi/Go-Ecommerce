@@ -16,23 +16,178 @@ const authBasePath = "auth"
 
 // SetupRoutes :
 func SetupAuthRoutes(r *mux.Router, apiBasePath string) {
+	r.HandleFunc("/", homePageHandler).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("%s/%s/login", apiBasePath, authBasePath), loginHandler)
 	r.HandleFunc(fmt.Sprintf("%s/%s/register", apiBasePath, authBasePath), registerHandler)
-	SetupProdAuthRoutes(r, "prod")
+	SetupProdAuthRoutes(r, "/prod")
 }
 
 // SetupRoutes :
 func SetupProdAuthRoutes(r *mux.Router, apiBasePath string) {
 	r.HandleFunc(fmt.Sprintf("%s/%s/login", apiBasePath, authBasePath), loginProdHandler)
 	r.HandleFunc(fmt.Sprintf("%s/%s/register", apiBasePath, authBasePath), registerProdHandler)
+	r.HandleFunc(fmt.Sprintf("%s/%s/dashboard", apiBasePath, authBasePath), userDashboardHandler).Methods("GET")
+}
+
+func homePageHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the template file (adjust path if necessary)
+	tmpl, err := template.ParseFiles("template/homePage.html")
+	if err != nil {
+		http.Error(w, "Error loading home page", http.StatusInternalServerError)
+		log.Println("Template parsing error:", err)
+		return
+	}
+	switch r.Method {
+	case http.MethodGet:
+		// Execute the template, sending data if needed (or nil if not)
+		err = tmpl.Execute(w, nil)
+		if err != nil {
+			http.Error(w, "Error rendering home page", http.StatusInternalServerError)
+			log.Println("Template execution error:", err)
+		}
+	case http.MethodOptions:
+		return
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
 }
 
 func registerProdHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the template file (adjust path if necessary)
+	tmpl, err := template.ParseFiles("template/register.html")
+	if err != nil {
+		http.Error(w, "Error loading register page", http.StatusInternalServerError)
+		log.Println("Template parsing error:", err)
+		return
+	}
+	switch r.Method {
+	case http.MethodGet:
+		// Execute the template, sending data if needed (or nil if not)
+		err = tmpl.Execute(w, nil)
+		if err != nil {
+			http.Error(w, "Error rendering register page", http.StatusInternalServerError)
+			log.Println("Template execution error:", err)
+		}
+	case http.MethodPost:
 
+		if r.Method != http.MethodPost {
+			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+			return
+		}
+
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Error parsing form data", http.StatusBadRequest)
+			return
+		}
+
+		// extracting data of form values
+		email := r.FormValue("email")
+		password := r.FormValue("password")
+
+		// Simple validation
+		if email == "" || password == "" {
+			http.Error(w, "Email and password are required", http.StatusBadRequest)
+			return
+		}
+
+		//register user
+		newUser := user.User{Email: email, Password: password}
+		res, err := registerUserService(newUser)
+
+		if err != nil {
+			w.WriteHeader(res)
+			tmpl.Execute(w, map[string]string{"Error": err.Error()})
+			return
+		}
+
+		// If register is successful, redirect
+		// Redirect to dashboard page on successful login
+		http.Redirect(w, r, "dashboard", http.StatusFound) // 302 Found
+	case http.MethodOptions:
+		return
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
 }
 
 func loginProdHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the template file (adjust path if necessary)
+	tmpl, err := template.ParseFiles("template/login.html")
+	if err != nil {
+		http.Error(w, "Error loading login page", http.StatusInternalServerError)
+		log.Println("Template parsing error:", err)
+		return
+	}
 
+	switch r.Method {
+	case http.MethodGet:
+		// Execute the template, sending data if needed (or nil if not)
+		err = tmpl.Execute(w, nil)
+		if err != nil {
+			http.Error(w, "Error rendering login page", http.StatusInternalServerError)
+			log.Println("Template execution error:", err)
+		}
+	case http.MethodPost:
+		if r.Method != http.MethodPost {
+			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+			return
+		}
+
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Error parsing form data", http.StatusBadRequest)
+			return
+		}
+
+		// extracting data of form values
+		email := r.FormValue("email")
+		password := r.FormValue("password")
+
+		// Simple validation
+		if email == "" || password == "" {
+			http.Error(w, "Email and password are required", http.StatusBadRequest)
+			return
+		}
+
+		//login user
+		existingUser := user.User{Email: email, Password: password}
+		res, err := loginUserService(existingUser)
+
+		if err != nil {
+			w.WriteHeader(res)
+			tmpl.Execute(w, map[string]string{"Error": err.Error()})
+			return
+		}
+
+		// If login is successful, redirect
+		// Redirect to dashboard page on successful login
+		http.Redirect(w, r, "dashboard", http.StatusFound) // 302 Found
+
+	case http.MethodOptions:
+		return
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+}
+
+func userDashboardHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the template file (adjust path if necessary)
+	tmpl, err := template.ParseFiles("template/dashboard.html")
+	if err != nil {
+		http.Error(w, "Error loading dashboard page", http.StatusInternalServerError)
+		log.Println("Template parsing error:", err)
+		return
+	}
+
+	// Execute the template, sending data if needed (or nil if not)
+	err = tmpl.Execute(w, nil)
+	if err != nil {
+		http.Error(w, "Error rendering dashboard page", http.StatusInternalServerError)
+		log.Println("Template execution error:", err)
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {
@@ -76,21 +231,6 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case http.MethodGet:
-		// Parse the template file (adjust path if necessary)
-		tmpl, err := template.ParseFiles("template/login.html")
-		if err != nil {
-			http.Error(w, "Error loading login page", http.StatusInternalServerError)
-			log.Println("Template parsing error:", err)
-			return
-		}
-
-		// Execute the template, sending data if needed (or nil if not)
-		err = tmpl.Execute(w, nil)
-		if err != nil {
-			http.Error(w, "Error rendering login page", http.StatusInternalServerError)
-			log.Println("Template execution error:", err)
-		}
 	case http.MethodPost:
 		// add a new product to the list
 		var existingUser user.User
@@ -114,7 +254,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		//login user
 		res, err := loginUserService(existingUser)
 
-		if err == nil {
+		if err != nil {
 			w.WriteHeader(res)
 			return
 		}

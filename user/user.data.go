@@ -77,7 +77,7 @@ func removeUser(userID int) error {
 	return nil
 }
 
-func getUserList() ([]User, error) {
+func getAllUsers() ([]User, error) {
 	results, err := database.DbConn.Query(`SELECT 
 	userId, 	 
 	email,
@@ -151,7 +151,7 @@ func updateUser(user User) error {
 }
 
 func RegisterUser(user User) (int, error) {
-	return insertUser(user)
+	return addUser(user)
 }
 func LoginUser(user User) (int, error) {
 	existingUser, err := getUserByEmail(user.Email)
@@ -165,13 +165,13 @@ func LoginUser(user User) (int, error) {
 	}
 
 	//compare existing-hashed-pass and request-pass
-	isCredMisMatch := bcrypt.CompareHashAndPassword([]byte(existingUser.Password), []byte(user.Password))
-	if isCredMisMatch != nil {
-		return http.StatusUnauthorized, isCredMisMatch
+	isCredMisMatchError := bcrypt.CompareHashAndPassword([]byte(existingUser.Password), []byte(user.Password))
+	if isCredMisMatchError != nil {
+		return http.StatusUnauthorized, errors.New("incorrect password")
 	}
 	return http.StatusOK, nil
 }
-func insertUser(user User) (int, error) {
+func addUser(user User) (int, error) {
 	hashedPass, err := hashPassword(user.Password)
 	if err != nil {
 		log.Println(err.Error())

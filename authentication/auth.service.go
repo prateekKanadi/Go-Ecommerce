@@ -17,10 +17,10 @@ func registerUserService(newUser user.User) (int, error) {
 }
 
 func loginUserService(existingUser user.User) (int, error) {
-	_, err := user.LoginUser(existingUser)
+	res, err := user.LoginUser(existingUser)
 	if err != nil {
 		log.Print(err)
-		return http.StatusBadRequest, nil
+		return res, err
 	}
-	return http.StatusOK, err
+	return res, nil
 }

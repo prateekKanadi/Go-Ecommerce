@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Our Site</title>
+    <style>
+        /* Body styling */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+        }
+
+        /* Home container styling */
+        .home-container {
+            text-align: center;
+            max-width: 500px;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .home-container h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .home-container p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            color: #e2e2e2;
+        }
+
+        .home-container .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 10px;
+            color: #fff;
+            background-color: #5a67d8;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .home-container .btn:hover {
+            background-color: #4c51bf;
+        }
+
+        .home-container .btn-secondary {
+            background-color: #a0aec0;
+        }
+
+        .home-container .btn-secondary:hover {
+            background-color: #718096;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="home-container">
+        <h1>Welcome to Our Platform!</h1>
+        <p>Your gateway to amazing products and services. Join us today and start exploring!</p>
+        
+        <a href="prod/auth/register" class="btn">Get Started</a>
+        <a href="prod/auth/login" class="btn btn-secondary">Login</a>
+    </div>
+
+</body>
+</html>

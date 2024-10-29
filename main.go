@@ -42,6 +42,7 @@ func registerMiddleWares(r *mux.Router) {
 func registerRoutes(r *mux.Router, apiBasePath string) {
 	// Serve static files from the "static" directory
 	// r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	//Landing Page
 
 	//Product
 	product.SetupProductRoutes(r, apiBasePath)
