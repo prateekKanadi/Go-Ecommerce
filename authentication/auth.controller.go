@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -84,10 +85,19 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 		// extracting data of form values
 		email := r.FormValue("email")
 		password := r.FormValue("password")
+		confirmPassword := r.FormValue("confirm_password")
 
-		// Simple validation
+		// email and pass empty validation
 		if email == "" || password == "" {
-			http.Error(w, "Email and password are required", http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			tmpl.Execute(w, map[string]string{"Error": errors.New("email and password are required").Error()})
+			return
+		}
+
+		// pass and confirm pass validation
+		if password != confirmPassword {
+			w.WriteHeader(http.StatusBadRequest)
+			tmpl.Execute(w, map[string]string{"Error": errors.New("password and confirm password is not same").Error()})
 			return
 		}
 
@@ -146,7 +156,7 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Simple validation
 		if email == "" || password == "" {
-			http.Error(w, "Email and password are required", http.StatusBadRequest)
+			http.Error(w, "email and password are required", http.StatusBadRequest)
 			return
 		}
 
