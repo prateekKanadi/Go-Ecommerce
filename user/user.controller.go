@@ -4,27 +4,62 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
+	"text/template"
 
 	"github.com/gorilla/mux"
 )
 
-const usersBasePath = "users"
+const (
+	usersBasePath = "users"
+	apiVersion    = "prod"
+	apiBasePath   = "api"
+)
 
 // SetupRoutes :
-func SetupUserRoutes(r *mux.Router, apiBasePath string) {
-	r.HandleFunc(fmt.Sprintf("%s/%s", apiBasePath, usersBasePath), usersHandler)
-	r.HandleFunc(fmt.Sprintf("%s/%s/{id}", apiBasePath, usersBasePath), userHandler)
-	r.HandleFunc(fmt.Sprintf("%s/%s/resetPass", apiBasePath, usersBasePath), resetPassHandler).Methods("POST")
-	SetupProdUserRoutes(r, "/prod")
+func SetupUserRoutes(r *mux.Router) {
+	r.HandleFunc(fmt.Sprintf("/%s/%s", apiBasePath, usersBasePath), usersHandler)
+	r.HandleFunc(fmt.Sprintf("/%s/%s/{id}", apiBasePath, usersBasePath), userHandler)
+	r.HandleFunc(fmt.Sprintf("/%s/%s/resetPass", apiBasePath, usersBasePath), resetPassHandler).Methods("POST")
+
+	// -------------------------PROD----------------------
+	prodUrlPath := fmt.Sprintf("%s/%s", apiVersion, usersBasePath)
+	// r.HandleFunc(fmt.Sprintf("/%s/%s", apiVersion, usersBasePath), usersProdHandler)
+	// r.HandleFunc(fmt.Sprintf("/%s/%s/{id}", apiVersion, usersBasePath), userProdHandler)
+	// r.HandleFunc(fmt.Sprintf("/%s/%s/resetPass", apiVersion, usersBasePath), resetPassProdHandler).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/dashboard", prodUrlPath), userDashboardHandler).Methods("GET")
 }
 
-func SetupProdUserRoutes(r *mux.Router, apiBasePath string) {
-	r.HandleFunc(fmt.Sprintf("%s/%s", apiBasePath, usersBasePath), usersProdHandler)
-	r.HandleFunc(fmt.Sprintf("%s/%s/{id}", apiBasePath, usersBasePath), userProdHandler)
-	r.HandleFunc(fmt.Sprintf("%s/%s/resetPass", apiBasePath, usersBasePath), resetPassProdHandler).Methods("POST")
-	// r.HandleFunc(fmt.Sprintf("%s/%s/dashboard", apiBasePath, usersBasePath), userDashboardHandler).Methods("GET")
+func userDashboardHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the template file (adjust path if necessary)
+	tmpl, err := template.ParseFiles("template/dashboard.html")
+	if err != nil {
+		http.Error(w, "Error loading dashboard page", http.StatusInternalServerError)
+		log.Println("Template parsing error:", err)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		if r.Method != http.MethodGet {
+			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Execute the template, sending data if needed (or nil if not)
+		err = tmpl.Execute(w, nil)
+		if err != nil {
+			http.Error(w, "Error rendering dashboard page", http.StatusInternalServerError)
+			log.Println("Template execution error:", err)
+			return
+		}
+	case http.MethodOptions:
+		return
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
 }
 
 func usersProdHandler(w http.ResponseWriter, r *http.Request) {

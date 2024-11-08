@@ -13,13 +13,13 @@ import (
 	"github.com/ecommerce/index"
 	"github.com/ecommerce/middleware"
 	"github.com/ecommerce/product"
+	"github.com/ecommerce/session"
 	"github.com/ecommerce/user"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
 
 const (
-	apiBasePath    = "/api"
 	configFilePath = "config.yaml"
 )
 
@@ -43,8 +43,11 @@ func main() {
 	//Registering Middlewares
 	registerMiddleWares(r)
 
+	// setup session store
+	session.Init()
+
 	//Registering routes
-	registerRoutes(r, apiBasePath)
+	registerRoutes(r)
 
 	fmt.Println("Server is running at http://localhost:5000")
 
@@ -64,21 +67,21 @@ func serveIndexPage() {
 
 func registerMiddleWares(r *mux.Router) {
 	r.Use(middleware.CorsMiddleware)
-	r.Use(middleware.AuthMiddleware)
 }
 
-func registerRoutes(r *mux.Router, apiBasePath string) {
+func registerRoutes(r *mux.Router) {
 	// Serve static files from the "static" directory
 	// r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
 	//Landing Page
 	index.SetupIndexRoutes(r)
 
 	//Product
-	product.SetupProductRoutes(r, apiBasePath)
+	product.SetupProductRoutes(r)
 
 	// User
-	user.SetupUserRoutes(r, apiBasePath)
+	user.SetupUserRoutes(r)
 
 	// Auth
-	authentication.SetupAuthRoutes(r, apiBasePath)
+	authentication.SetupAuthRoutes(r)
 }

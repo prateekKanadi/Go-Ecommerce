@@ -13,45 +13,21 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const authBasePath = "auth"
+const (
+	authBasePath = "auth"
+	apiVersion   = "prod"
+	apiBasePath  = "api"
+)
 
 // SetupRoutes :
-func SetupAuthRoutes(r *mux.Router, apiBasePath string) {
-	// r.HandleFunc("/", homePageHandler).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("%s/%s/login", apiBasePath, authBasePath), loginHandler)
-	r.HandleFunc(fmt.Sprintf("%s/%s/register", apiBasePath, authBasePath), registerHandler)
-	SetupProdAuthRoutes(r, "/prod")
-}
+func SetupAuthRoutes(r *mux.Router) {
+	r.HandleFunc(fmt.Sprintf("/%s/%s/login", apiBasePath, authBasePath), loginHandler)
+	r.HandleFunc(fmt.Sprintf("/%s/%s/register", apiBasePath, authBasePath), registerHandler)
 
-// SetupRoutes :
-func SetupProdAuthRoutes(r *mux.Router, apiBasePath string) {
-	r.HandleFunc(fmt.Sprintf("%s/%s/login", apiBasePath, authBasePath), loginProdHandler)
-	r.HandleFunc(fmt.Sprintf("%s/%s/register", apiBasePath, authBasePath), registerProdHandler)
-	r.HandleFunc(fmt.Sprintf("%s/%s/dashboard", apiBasePath, authBasePath), userDashboardHandler).Methods("GET")
+	// -------------------------PROD----------------------
+	r.HandleFunc(fmt.Sprintf("/%s/%s/login", apiVersion, authBasePath), loginProdHandler)
+	r.HandleFunc(fmt.Sprintf("/%s/%s/register", apiVersion, authBasePath), registerProdHandler)
 }
-
-// func homePageHandler(w http.ResponseWriter, r *http.Request) {
-// 	// Parse the template file (adjust path if necessary)
-// 	tmpl, err := template.ParseFiles("template/homePage.html")
-// 	if err != nil {
-// 		http.Error(w, "Error loading home page", http.StatusInternalServerError)
-// 		log.Println("Template parsing error:", err)
-// 		return
-// 	}
-// 	switch r.Method {
-// 	case http.MethodGet:
-// 		// Execute the template, sending data if needed (or nil if not)
-// 		err = tmpl.Execute(w, nil)
-// 		if err != nil {
-// 			http.Error(w, "Error rendering home page", http.StatusInternalServerError)
-// 			log.Println("Template execution error:", err)
-// 		}
-// 	case http.MethodOptions:
-// 		return
-// 	default:
-// 		w.WriteHeader(http.StatusMethodNotAllowed)
-// 	}
-// }
 
 func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the template file (adjust path if necessary)
@@ -113,7 +89,7 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 
 		// If register is successful, redirect
 		// Redirect to dashboard page on successful login
-		http.Redirect(w, r, "dashboard", http.StatusFound) // 302 Found
+		http.Redirect(w, r, "/prod/users/dashboard", http.StatusSeeOther) // 302 Found
 	case http.MethodOptions:
 		return
 	default:
@@ -172,32 +148,12 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 
 		// If login is successful, redirect
 		// Redirect to dashboard page on successful login
-		http.Redirect(w, r, "dashboard", http.StatusFound) // 302 Found
-
+		http.Redirect(w, r, "/prod/users/dashboard", http.StatusSeeOther) // 303
 	case http.MethodOptions:
 		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
-}
-
-func userDashboardHandler(w http.ResponseWriter, r *http.Request) {
-	// Parse the template file (adjust path if necessary)
-	tmpl, err := template.ParseFiles("template/dashboard.html")
-	if err != nil {
-		http.Error(w, "Error loading dashboard page", http.StatusInternalServerError)
-		log.Println("Template parsing error:", err)
-		return
-	}
-
-	// Execute the template, sending data if needed (or nil if not)
-	err = tmpl.Execute(w, nil)
-	if err != nil {
-		http.Error(w, "Error rendering dashboard page", http.StatusInternalServerError)
-		log.Println("Template execution error:", err)
-	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {

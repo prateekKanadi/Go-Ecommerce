@@ -11,10 +11,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const productsBasePath = "products"
+const (
+	productsBasePath = "products"
+	apiVersion       = "prod"
+	apiBasePath      = "api"
+)
 
 // SetupRoutes :
-func SetupProductRoutes(r *mux.Router, apiBasePath string) {
+func SetupProductRoutes(r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("%s/%s", apiBasePath, productsBasePath), productsHandler)
 	r.HandleFunc(fmt.Sprintf("%s/%s/{id}", apiBasePath, productsBasePath), productHandler)
 }
