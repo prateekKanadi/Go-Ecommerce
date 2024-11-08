@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -9,13 +10,20 @@ import (
 	"strconv"
 	"text/template"
 
+	"github.com/ecommerce/session"
+	"github.com/ecommerce/utils"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 )
 
 const (
 	usersBasePath = "users"
 	apiVersion    = "prod"
 	apiBasePath   = "api"
+)
+
+var (
+	store *sessions.CookieStore
 )
 
 // SetupRoutes :
@@ -33,6 +41,24 @@ func SetupUserRoutes(r *mux.Router) {
 }
 
 func userDashboardHandler(w http.ResponseWriter, r *http.Request) {
+	session := session.GetSessionFromContext(r)
+	if session == nil {
+		http.Error(w, errors.New("session not found in context").Error(), http.StatusInternalServerError)
+		return
+	}
+
+	email := session.Values["user_email"].(string)
+	log.Println(email)
+
+	user, err, res := getUserByEmailService(email)
+
+	if err != nil {
+		http.Error(w, "Error loading dashboard page", res)
+		log.Println("Error :", err)
+		return
+	}
+	log.Println(utils.ToString(*user))
+
 	// Parse the template file (adjust path if necessary)
 	tmpl, err := template.ParseFiles("template/dashboard.html")
 	if err != nil {

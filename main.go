@@ -40,11 +40,11 @@ func main() {
 	//register datatbase
 	database.SetupDatabase(config)
 
+	// setup session store
+	session.Init(config)
+
 	//Registering Middlewares
 	registerMiddleWares(r)
-
-	// setup session store
-	session.Init()
 
 	//Registering routes
 	registerRoutes(r)
@@ -67,6 +67,7 @@ func serveIndexPage() {
 
 func registerMiddleWares(r *mux.Router) {
 	r.Use(middleware.CorsMiddleware)
+	r.Use(middleware.SessionMiddleware)
 }
 
 func registerRoutes(r *mux.Router) {

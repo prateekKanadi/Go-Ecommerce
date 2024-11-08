@@ -7,9 +7,22 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// variable declaration
+var (
+	// global
+	Conf *Config
+
+	// local
+
+)
+
 type Config struct {
-	SessionKey string `yaml:"session_key"`
-	Database   struct {
+	Session struct {
+		SessionKey        string `yaml:"session_key"`
+		SessionContextKey string `yaml:"session_context_key"`
+	} `yaml:"session"`
+
+	Database struct {
 		URL      string `yaml:"url"`
 		User     string `yaml:"user"`
 		Password string `yaml:"password"`
@@ -22,6 +35,7 @@ func Init(configPath string) *Config {
 	if err != nil {
 		log.Fatalf("Error loading config: %v", err)
 	}
+	Conf = config
 	return config
 }
 

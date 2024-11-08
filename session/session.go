@@ -2,8 +2,9 @@ package session
 
 import (
 	"encoding/gob"
-	"os"
+	"net/http"
 
+	"github.com/ecommerce/configuration"
 	"github.com/gorilla/sessions"
 )
 
@@ -33,9 +34,9 @@ type (
 	}
 )
 
-func Init() *sessions.CookieStore {
+func Init(config *configuration.Config) *sessions.CookieStore {
 	registerTypes()
-	store := sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
+	store := sessions.NewCookieStore([]byte(config.Session.SessionKey), nil)
 	store.Options = &sessions.Options{
 		Domain:   "localhost",
 		Path:     "/",
@@ -52,4 +53,11 @@ func registerTypes() {
 	// gob.Register(&Person{})
 	gob.Register(&User{})
 	// gob.Register(&M{})
+}
+
+// Helper function to get session from request context
+func GetSessionFromContext(r *http.Request) *sessions.Session {
+	config := configuration.Conf
+	session, _ := r.Context().Value(config.Session.SessionContextKey).(*sessions.Session)
+	return session
 }

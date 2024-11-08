@@ -8,7 +8,7 @@ import (
 
 // --------------------------------------------------- helper function ---------------------------------------------------
 // toString function that accepts any struct and returns a string with all fields and their values.
-func toString(v interface{}) string {
+func ToString(v interface{}) string {
 	val := reflect.ValueOf(v)
 	if val.Kind() != reflect.Struct {
 		return "toString function requires a struct type"

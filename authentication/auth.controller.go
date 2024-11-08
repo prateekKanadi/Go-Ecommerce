@@ -9,14 +9,20 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ecommerce/session"
 	"github.com/ecommerce/user"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 )
 
 const (
 	authBasePath = "auth"
 	apiVersion   = "prod"
 	apiBasePath  = "api"
+)
+
+var (
+	store *sessions.CookieStore
 )
 
 // SetupRoutes :
@@ -47,12 +53,18 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	case http.MethodPost:
 
+		session := session.GetSessionFromContext(r)
+		if session == nil {
+			http.Error(w, errors.New("session not found in context").Error(), http.StatusInternalServerError)
+			return
+		}
+
 		if r.Method != http.MethodPost {
 			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 			return
 		}
 
-		err := r.ParseForm()
+		err = r.ParseForm()
 		if err != nil {
 			http.Error(w, "Error parsing form data", http.StatusBadRequest)
 			return
@@ -87,8 +99,18 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		session.Values["user_email"] = email
+		err = session.Save(r, w)
+
+		if err != nil {
+			log.Println("line-111")
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		// If register is successful, redirect
 		// Redirect to dashboard page on successful login
+		log.Println("redirect-to-dashboard")
 		http.Redirect(w, r, "/prod/users/dashboard", http.StatusSeeOther) // 302 Found
 	case http.MethodOptions:
 		return
@@ -115,12 +137,18 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("Template execution error:", err)
 		}
 	case http.MethodPost:
+		session := session.GetSessionFromContext(r)
+		if session == nil {
+			http.Error(w, errors.New("session not found in context").Error(), http.StatusInternalServerError)
+			return
+		}
+
 		if r.Method != http.MethodPost {
 			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 			return
 		}
 
-		err := r.ParseForm()
+		err = r.ParseForm()
 		if err != nil {
 			http.Error(w, "Error parsing form data", http.StatusBadRequest)
 			return
@@ -146,8 +174,18 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		session.Values["user_email"] = email
+		err = session.Save(r, w)
+
+		if err != nil {
+			log.Println("line-191")
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		// If login is successful, redirect
 		// Redirect to dashboard page on successful login
+		log.Println("redirect-to-dashboard")
 		http.Redirect(w, r, "/prod/users/dashboard", http.StatusSeeOther) // 303
 	case http.MethodOptions:
 		return

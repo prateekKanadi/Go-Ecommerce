@@ -32,6 +32,16 @@ func getUserService(userID int) (*User, int, error) {
 	return user, http.StatusOK, nil
 }
 
+func getUserByEmailService(email string) (*User, error, int) {
+	user, err := getUserByEmail(email)
+
+	if err != nil {
+		log.Print(err)
+		return nil, err, http.StatusBadRequest
+	}
+	return user, nil, http.StatusOK
+}
+
 func addUserService(newUser User) (int, error) {
 	_, err := addUser(newUser)
 	if err != nil {
