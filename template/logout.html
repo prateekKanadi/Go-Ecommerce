@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Logout</title>
     <style>
         /* Body styling */
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
             margin: 0;
             padding: 0;
             display: flex;
@@ -18,31 +18,31 @@
             color: #333;
         }
 
-        /* Dashboard container styling */
-        .dashboard-container {
+        /* Logout container styling */
+        .logout-container {
             background-color: #fff;
             padding: 40px;
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-            width: 100%;
-            max-width: 400px;
             text-align: center;
+            max-width: 400px;
+            width: 100%;
         }
 
-        .dashboard-container h1 {
-            margin-bottom: 20px;
+        .logout-container h1 {
             font-size: 2em;
-            color: #5a67d8;
+            margin-bottom: 20px;
+            color: #d9534f;
             font-weight: 600;
         }
 
-        .dashboard-container p {
-            font-size: 1.1em;
+        .logout-container p {
+            font-size: 1.2em;
             margin-bottom: 30px;
             color: #555;
         }
 
-        .dashboard-container .btn {
+        .logout-container .btn {
             display: inline-block;
             padding: 12px 20px;
             margin: 10px;
@@ -56,42 +56,28 @@
             transition: background-color 0.3s ease;
         }
 
-        .dashboard-container .btn:hover {
+        .logout-container .btn:hover {
             background-color: #4c51bf;
         }
 
-        .dashboard-container .btn-secondary {
+        .logout-container .btn-secondary {
             background-color: #a0aec0;
         }
 
-        .dashboard-container .btn-secondary:hover {
+        .logout-container .btn-secondary:hover {
             background-color: #718096;
-        }
-
-        footer {
-            font-size: 0.9em;
-            color: #f4f4f4;
-            position: absolute;
-            bottom: 15px;
-            text-align: center;
-            width: 100%;
         }
     </style>
 </head>
 <body>
 
-    <div class="dashboard-container">
-        <h1>Welcome, User!</h1>
-        <p>You have successfully logged in to your dashboard.</p>
-        
-        <a href="/profile" class="btn">View Profile</a>
-        <a href="/settings" class="btn btn-secondary">Settings</a>
-        <form action="/prod/auth/logout" method="POST" style="display: inline;">
-            <button type="submit" class="btn btn-secondary">Logout</button>
-        </form>
-    </div>
+    <div class="logout-container">
+        <h1>Logged Out</h1>
+        <p>You have successfully logged out. We hope to see you again soon!</p>
 
-    <footer>&copy; 2023 Your Company</footer>
+        <a href="/prod/auth/login" class="btn">Log Back In</a>
+        <a href="/" class="btn btn-secondary">Go to Homepage</a>
+    </div>
 
 </body>
 </html>

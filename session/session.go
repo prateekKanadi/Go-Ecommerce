@@ -2,6 +2,7 @@ package session
 
 import (
 	"encoding/gob"
+	"fmt"
 	"net/http"
 
 	"github.com/ecommerce/configuration"
@@ -60,4 +61,19 @@ func GetSessionFromContext(r *http.Request) *sessions.Session {
 	config := configuration.Conf
 	session, _ := r.Context().Value(config.Session.SessionContextKey).(*sessions.Session)
 	return session
+}
+
+// GetSessionUserID retrieves the userId from the session and returns an error if it doesn't exist or is not an int.
+func GetSessionUserID(session *sessions.Session) (int, error) {
+	userIdValue, exists := session.Values["userId"]
+	if !exists {
+		return 0, fmt.Errorf("userId not found in session")
+	}
+
+	userId, ok := userIdValue.(int)
+	if !ok {
+		return 0, fmt.Errorf("userId is not an int")
+	}
+
+	return userId, nil
 }

@@ -10,19 +10,15 @@ import (
 	"net/http"
 
 	"github.com/ecommerce/session"
+	s "github.com/ecommerce/session"
 	"github.com/ecommerce/user"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/sessions"
 )
 
 const (
 	authBasePath = "auth"
 	apiVersion   = "prod"
 	apiBasePath  = "api"
-)
-
-var (
-	store *sessions.CookieStore
 )
 
 // SetupRoutes :
@@ -33,6 +29,7 @@ func SetupAuthRoutes(r *mux.Router) {
 	// -------------------------PROD----------------------
 	r.HandleFunc(fmt.Sprintf("/%s/%s/login", apiVersion, authBasePath), loginProdHandler)
 	r.HandleFunc(fmt.Sprintf("/%s/%s/register", apiVersion, authBasePath), registerProdHandler)
+	r.HandleFunc(fmt.Sprintf("/%s/%s/logout", apiVersion, authBasePath), logoutProdHandler)
 }
 
 func registerProdHandler(w http.ResponseWriter, r *http.Request) {
@@ -174,11 +171,17 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		session.Values["user_email"] = email
+		user, err, res := user.GetUserByEmailService(email)
+
+		if err != nil {
+			http.Error(w, err.Error(), res)
+			return
+		}
+
+		session.Values["userId"] = user.UserID
 		err = session.Save(r, w)
 
 		if err != nil {
-			log.Println("line-191")
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -187,6 +190,73 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 		// Redirect to dashboard page on successful login
 		log.Println("redirect-to-dashboard")
 		http.Redirect(w, r, "/prod/users/dashboard", http.StatusSeeOther) // 303
+	case http.MethodOptions:
+		return
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+}
+
+func logoutProdHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the template file (adjust path if necessary)
+	tmpl, err := template.ParseFiles("template/logout.html")
+	if err != nil {
+		http.Error(w, "Error loading logout page", http.StatusInternalServerError)
+		log.Println("Template parsing error:", err)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		// Execute the template, sending data if needed (or nil if not)
+		err = tmpl.Execute(w, nil)
+		if err != nil {
+			http.Error(w, "Error rendering logout page", http.StatusInternalServerError)
+			log.Println("Template execution error:", err)
+		}
+	case http.MethodPost:
+		session := session.GetSessionFromContext(r)
+		if session == nil {
+			http.Error(w, errors.New("session not found in context").Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if r.Method != http.MethodPost {
+			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Clear session values
+		session.Values = nil
+
+		//delete session before logout
+		session.Options.MaxAge = -1
+
+		// Save the session to apply the deletion
+		err = session.Save(r, w)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Check if the session was deleted
+		deletedSession, err := s.Store.Get(r, "session-name")
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if len(deletedSession.Values) == 0 {
+			log.Println("Session successfully deleted.")
+		} else {
+			log.Println("Failed to delete session.")
+		}
+
+		// If logout is successful, redirect
+		// Redirect to home page on successful logout
+		log.Println("redirect-to-homepage")
+		http.Redirect(w, r, "/prod/auth/logout", http.StatusSeeOther) // 303
 	case http.MethodOptions:
 		return
 	default:

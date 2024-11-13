@@ -32,7 +32,7 @@ func getUserService(userID int) (*User, int, error) {
 	return user, http.StatusOK, nil
 }
 
-func getUserByEmailService(email string) (*User, error, int) {
+func GetUserByEmailService(email string) (*User, error, int) {
 	user, err := getUserByEmail(email)
 
 	if err != nil {

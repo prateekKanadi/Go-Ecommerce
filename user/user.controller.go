@@ -11,6 +11,7 @@ import (
 	"text/template"
 
 	"github.com/ecommerce/session"
+	s "github.com/ecommerce/session"
 	"github.com/ecommerce/utils"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -47,14 +48,23 @@ func userDashboardHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email := session.Values["user_email"].(string)
-	log.Println(email)
+	if session.Values == nil {
+		http.Error(w, errors.New("session values nil").Error(), http.StatusInternalServerError)
+		return
+	}
 
-	user, err, res := getUserByEmailService(email)
+	userId, err := s.GetSessionUserID(session)
+	if err != nil {
+		log.Println("UserId is not set in session")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	user, res, err := getUserService(userId)
 
 	if err != nil {
-		http.Error(w, "Error loading dashboard page", res)
-		log.Println("Error :", err)
+		http.Error(w, err.Error(), res)
+		log.Println("error : ", err)
 		return
 	}
 	log.Println(utils.ToString(*user))
