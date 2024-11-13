@@ -12,7 +12,9 @@ func getProduct(productID int) (*Product, error) {
 	productId, 	
 	pricePerUnit,	
 	productName,
-	productBrand
+	productBrand,
+	description,
+	stockQuantity
 	FROM products 
 	WHERE productId = ?`, productID)
 
@@ -21,7 +23,9 @@ func getProduct(productID int) (*Product, error) {
 		&product.ProductID,
 		&product.PricePerUnit,
 		&product.ProductName,
-		&product.ProductBrand)
+		&product.ProductBrand,
+		&product.Description,
+		&product.StockQuantity)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
@@ -40,12 +44,14 @@ func removeProduct(productID int) error {
 	return nil
 }
 
-func getProductList() ([]Product, error) {
+func getAllProducts() ([]Product, error) {
 	results, err := database.DbConn.Query(`SELECT 
 	productId, 	 
 	pricePerUnit, 	 
 	productName,
-	productBrand 
+	productBrand,
+	description,
+	stockQuantity 
 	FROM products`)
 	if err != nil {
 		log.Println(err.Error())
@@ -58,7 +64,9 @@ func getProductList() ([]Product, error) {
 		results.Scan(&product.ProductID,
 			&product.PricePerUnit,
 			&product.ProductName,
-			&product.ProductBrand)
+			&product.ProductBrand,
+			&product.Description,
+			&product.StockQuantity)
 
 		products = append(products, product)
 	}
@@ -69,11 +77,15 @@ func updateProduct(product Product) error {
 	_, err := database.DbConn.Exec(`UPDATE products SET 		 
 		pricePerUnit=CAST(? AS DECIMAL(13,2)), 		 
 		productName=?,
-		productBrand=?
+		productBrand=?,
+		description=?,
+		stockQuantity=?
 		WHERE productId=?`,
 		product.PricePerUnit,
 		product.ProductName,
 		product.ProductBrand,
+		product.Description,
+		product.StockQuantity,
 		product.ProductID)
 	if err != nil {
 		log.Println(err.Error())
@@ -82,14 +94,18 @@ func updateProduct(product Product) error {
 	return nil
 }
 
-func insertProduct(product Product) (int, error) {
+func addProduct(product Product) (int, error) {
 	result, err := database.DbConn.Exec(`INSERT INTO products  
 	(pricePerUnit,
 	productName,
-	productBrand) VALUES (?, ?, ?)`,
+	productBrand,
+	description,
+	stockQuantity) VALUES (?, ?, ?, ?, ?)`,
 		product.PricePerUnit,
 		product.ProductName,
-		product.ProductBrand)
+		product.ProductBrand,
+		product.Description,
+		product.StockQuantity)
 	if err != nil {
 		log.Println(err.Error())
 		return 0, err

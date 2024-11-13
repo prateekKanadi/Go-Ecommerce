@@ -36,8 +36,8 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the template file (adjust path if necessary)
 	tmpl, err := template.ParseFiles("template/register.html")
 	if err != nil {
-		http.Error(w, "Error loading register page", http.StatusInternalServerError)
 		log.Println("Template parsing error:", err)
+		http.Error(w, "Error loading register page", http.StatusInternalServerError)
 		return
 	}
 	switch r.Method {
@@ -45,25 +45,24 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 		// Execute the template, sending data if needed (or nil if not)
 		err = tmpl.Execute(w, nil)
 		if err != nil {
-			http.Error(w, "Error rendering register page", http.StatusInternalServerError)
 			log.Println("Template execution error:", err)
+			http.Error(w, "Error rendering register page", http.StatusInternalServerError)
 		}
 	case http.MethodPost:
 
 		session := session.GetSessionFromContext(r)
 		if session == nil {
-			http.Error(w, errors.New("session not found in context").Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if r.Method != http.MethodPost {
-			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+			err := errors.New("session not found in context")
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		err = r.ParseForm()
 		if err != nil {
-			http.Error(w, "Error parsing form data", http.StatusBadRequest)
+			err := errors.New("Error parsing form data")
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -74,15 +73,19 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 
 		// email and pass empty validation
 		if email == "" || password == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			tmpl.Execute(w, map[string]string{"Error": errors.New("email and password are required").Error()})
+			err := errors.New("email and password are required")
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			tmpl.Execute(w, map[string]string{"Error": err.Error()})
 			return
 		}
 
 		// pass and confirm pass validation
 		if password != confirmPassword {
-			w.WriteHeader(http.StatusBadRequest)
-			tmpl.Execute(w, map[string]string{"Error": errors.New("password and confirm password is not same").Error()})
+			err := errors.New("password and confirm password is not same")
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			tmpl.Execute(w, map[string]string{"Error": err.Error()})
 			return
 		}
 
@@ -91,7 +94,8 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 		res, err := registerUserService(newUser)
 
 		if err != nil {
-			w.WriteHeader(res)
+			log.Println(err)
+			http.Error(w, err.Error(), res)
 			tmpl.Execute(w, map[string]string{"Error": err.Error()})
 			return
 		}
@@ -100,7 +104,7 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 		err = session.Save(r, w)
 
 		if err != nil {
-			log.Println("line-111")
+			log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -120,8 +124,8 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the template file (adjust path if necessary)
 	tmpl, err := template.ParseFiles("template/login.html")
 	if err != nil {
-		http.Error(w, "Error loading login page", http.StatusInternalServerError)
 		log.Println("Template parsing error:", err)
+		http.Error(w, "Error loading login page", http.StatusInternalServerError)
 		return
 	}
 
@@ -130,23 +134,22 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 		// Execute the template, sending data if needed (or nil if not)
 		err = tmpl.Execute(w, nil)
 		if err != nil {
-			http.Error(w, "Error rendering login page", http.StatusInternalServerError)
 			log.Println("Template execution error:", err)
+			http.Error(w, "Error rendering login page", http.StatusInternalServerError)
+			return
 		}
 	case http.MethodPost:
 		session := session.GetSessionFromContext(r)
 		if session == nil {
-			http.Error(w, errors.New("session not found in context").Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if r.Method != http.MethodPost {
-			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+			err := errors.New("session not found in context")
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		err = r.ParseForm()
 		if err != nil {
+			log.Println(err)
 			http.Error(w, "Error parsing form data", http.StatusBadRequest)
 			return
 		}
@@ -157,7 +160,9 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Simple validation
 		if email == "" || password == "" {
-			http.Error(w, "email and password are required", http.StatusBadRequest)
+			err := errors.New("email and password are required")
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -166,7 +171,8 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 		res, err := loginUserService(existingUser)
 
 		if err != nil {
-			w.WriteHeader(res)
+			log.Println(err)
+			http.Error(w, err.Error(), res)
 			tmpl.Execute(w, map[string]string{"Error": err.Error()})
 			return
 		}
@@ -174,6 +180,7 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 		user, err, res := user.GetUserByEmailService(email)
 
 		if err != nil {
+			log.Println(err)
 			http.Error(w, err.Error(), res)
 			return
 		}
@@ -182,6 +189,7 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 		err = session.Save(r, w)
 
 		if err != nil {
+			log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -201,8 +209,8 @@ func logoutProdHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the template file (adjust path if necessary)
 	tmpl, err := template.ParseFiles("template/logout.html")
 	if err != nil {
-		http.Error(w, "Error loading logout page", http.StatusInternalServerError)
 		log.Println("Template parsing error:", err)
+		http.Error(w, "Error loading logout page", http.StatusInternalServerError)
 		return
 	}
 
@@ -211,18 +219,15 @@ func logoutProdHandler(w http.ResponseWriter, r *http.Request) {
 		// Execute the template, sending data if needed (or nil if not)
 		err = tmpl.Execute(w, nil)
 		if err != nil {
-			http.Error(w, "Error rendering logout page", http.StatusInternalServerError)
 			log.Println("Template execution error:", err)
+			http.Error(w, "Error rendering logout page", http.StatusInternalServerError)
 		}
 	case http.MethodPost:
 		session := session.GetSessionFromContext(r)
 		if session == nil {
-			http.Error(w, errors.New("session not found in context").Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if r.Method != http.MethodPost {
-			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+			err := errors.New("session not found in context")
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -236,6 +241,7 @@ func logoutProdHandler(w http.ResponseWriter, r *http.Request) {
 		err = session.Save(r, w)
 
 		if err != nil {
+			log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -244,13 +250,14 @@ func logoutProdHandler(w http.ResponseWriter, r *http.Request) {
 		deletedSession, err := s.Store.Get(r, "session-name")
 
 		if err != nil {
+			log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		if len(deletedSession.Values) == 0 {
 			log.Println("Session successfully deleted.")
 		} else {
-			log.Println("Failed to delete session.")
+			log.Fatalln("Failed to delete session.")
 		}
 
 		// If logout is successful, redirect

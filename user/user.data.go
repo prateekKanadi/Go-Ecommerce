@@ -28,7 +28,8 @@ func getUserByEmail(email string) (*User, error) {
 	row := database.DbConn.QueryRow(`SELECT 
 	userId, 	
 	email,
-	password	
+	password,
+	isAdmin	
 	FROM users
 	WHERE email = ?`, email)
 
@@ -36,7 +37,8 @@ func getUserByEmail(email string) (*User, error) {
 	err := row.Scan(
 		&user.UserID,
 		&user.Email,
-		&user.Password)
+		&user.Password,
+		&user.IsAdmin)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
@@ -50,7 +52,8 @@ func getUser(userID int) (*User, error) {
 	row := database.DbConn.QueryRow(`SELECT 
 	userId, 	
 	email,
-	password	
+	password,
+	isAdmin	
 	FROM users
 	WHERE userId = ?`, userID)
 
@@ -58,7 +61,8 @@ func getUser(userID int) (*User, error) {
 	err := row.Scan(
 		&user.UserID,
 		&user.Email,
-		&user.Password)
+		&user.Password,
+		&user.IsAdmin)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
@@ -81,7 +85,8 @@ func getAllUsers() ([]User, error) {
 	results, err := database.DbConn.Query(`SELECT 
 	userId, 	 
 	email,
-	password	
+	password,
+	isAdmin	
 	FROM users`)
 	if err != nil {
 		log.Println(err.Error())
@@ -93,7 +98,8 @@ func getAllUsers() ([]User, error) {
 		var user User
 		results.Scan(&user.UserID,
 			&user.Email,
-			&user.Password)
+			&user.Password,
+			&user.IsAdmin)
 
 		users = append(users, user)
 	}

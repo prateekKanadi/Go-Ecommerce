@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details</title>
+    <style>
+        /* Body styling */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Container styling */
+        .product-details-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .product-details-container h1 {
+            color: #5a67d8;
+            font-size: 2em;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Details Section */
+        .product-details {
+            margin-bottom: 20px;
+        }
+
+        .product-details div {
+            margin-bottom: 15px;
+        }
+
+        .product-details label {
+            font-weight: bold;
+        }
+
+        .product-details .value {
+            color: #555;
+        }
+
+        /* Button styling */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #5a67d8;
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1em;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #4c51bf;
+        }
+
+        /* Go Back Button */
+        .btn-back {
+            background-color: #e53e3e;
+        }
+
+        .btn-back:hover {
+            background-color: #c53030;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="product-details-container">
+        <h1>Product Details</h1>
+
+        <div class="product-details">
+            <div>
+                <label>Product Name:</label>
+                <span class="value">{{ .Product.ProductName }}</span>
+            </div>
+            <div>
+                <label>Product Brand:</label>
+                <span class="value">{{ .Product.ProductBrand }}</span>
+            </div>
+            <div>
+                <label>Price:</label>
+                <span class="value">${{ .Product.PricePerUnit }}</span>
+            </div>
+            <div>
+                <label>Description:</label>
+                <span class="value">{{ .Product.Description }}</span>
+            </div>
+            <div>
+                <label>Stock Quantity:</label>
+                <span class="value">{{ .Product.StockQuantity }}</span>
+            </div>
+        </div>
+
+        <!-- Button to go back to My Products page -->
+        <a href="/prod/products" class="btn btn-back">Back to Products</a>
+        {{ if $.IsAdmin }}
+            <!-- Edit button (conditionally disabled for non-admin users) -->
+            <form action="/prod/products/{{ .ProductID }}" method="POST" style="display: inline;" class="edit-form">
+                <button type="submit" class="btn">Edit</button>
+            </form>
+            <!-- Delete button (conditionally disabled for non-admin users) -->
+            <form action="/prod/products/{{ .ProductID }}" method="POST" style="display: inline;" class="delete-form">
+                <button type="submit" class="btn" style="background-color: #e53e3e;">Delete</button>
+            </form>
+        {{ else }}
+            <a href="#" class="btn" style="background-color: #ccc;" disabled>Edit</a>
+            <a href="#" class="btn" style="background-color: #ccc;" disabled>Delete</a>
+        {{ end }}
+
+    </div>
+
+    <!-- JavaScript to handle method switching -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // For Edit button (simulating PUT request)
+            const editForms = document.querySelectorAll('.edit-form');
+            editForms.forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    form.method = 'PUT'; // Change method to PUT for Edit
+                    form.submit(); // Submit with PUT method
+                });
+            });
+
+            // For Delete button (simulating DELETE request)
+            const deleteForms = document.querySelectorAll('.delete-form');
+            deleteForms.forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    form.method = 'DELETE'; // Change method to DELETE for Delete
+                    form.submit(); // Submit with DELETE method
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -79,13 +79,8 @@ func userDashboardHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
-		if r.Method != http.MethodGet {
-			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-			return
-		}
-
 		// Execute the template, sending data if needed (or nil if not)
-		err = tmpl.Execute(w, nil)
+		err = tmpl.Execute(w, user)
 		if err != nil {
 			http.Error(w, "Error rendering dashboard page", http.StatusInternalServerError)
 			log.Println("Template execution error:", err)
