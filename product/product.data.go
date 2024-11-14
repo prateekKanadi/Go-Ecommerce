@@ -2,23 +2,25 @@ package product
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/ecommerce/database"
+	"github.com/ecommerce/utils"
+)
+
+const (
+	PRODUCT_ID = "productId"
+	TABLE_NAME = "products"
+	DELETE     = "DELETE"
 )
 
 func getProduct(productID int) (*Product, error) {
-	row := database.DbConn.QueryRow(`SELECT 
-	productId, 	
-	pricePerUnit,	
-	productName,
-	productBrand,
-	description,
-	stockQuantity
-	FROM products 
-	WHERE productId = ?`, productID)
-
 	product := &Product{}
+	whereClause := fmt.Sprintf("%s = ?", PRODUCT_ID)
+	query := utils.BuildSelectQuery(TABLE_NAME, product, whereClause)
+
+	row := database.DbConn.QueryRow(query, productID)
 	err := row.Scan(
 		&product.ProductID,
 		&product.PricePerUnit,
@@ -36,7 +38,10 @@ func getProduct(productID int) (*Product, error) {
 }
 
 func removeProduct(productID int) error {
-	_, err := database.DbConn.Exec(`DELETE FROM products where productId = ?`, productID)
+	whereClause := fmt.Sprintf("%s = ?", PRODUCT_ID)
+	query := utils.BuildDeleteQuery(TABLE_NAME, whereClause)
+
+	_, err := database.DbConn.Exec(query, productID)
 	if err != nil {
 		log.Println(err.Error())
 		return err
@@ -45,14 +50,8 @@ func removeProduct(productID int) error {
 }
 
 func getAllProducts() ([]Product, error) {
-	results, err := database.DbConn.Query(`SELECT 
-	productId, 	 
-	pricePerUnit, 	 
-	productName,
-	productBrand,
-	description,
-	stockQuantity 
-	FROM products`)
+	query := utils.BuildSelectQuery(TABLE_NAME, &Product{}, "")
+	results, err := database.DbConn.Query(query)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
@@ -74,19 +73,14 @@ func getAllProducts() ([]Product, error) {
 }
 
 func updateProduct(product Product) error {
-	_, err := database.DbConn.Exec(`UPDATE products SET 		 
-		pricePerUnit=CAST(? AS DECIMAL(13,2)), 		 
-		productName=?,
-		productBrand=?,
-		description=?,
-		stockQuantity=?
-		WHERE productId=?`,
-		product.PricePerUnit,
-		product.ProductName,
-		product.ProductBrand,
-		product.Description,
-		product.StockQuantity,
-		product.ProductID)
+	whereClause := fmt.Sprintf("%s = %d", PRODUCT_ID, product.ProductID)
+	query, args := utils.BuildUpdateQuery(TABLE_NAME, product, whereClause)
+
+	// Log the query and arguments to inspect them
+	log.Println("Query:", query)
+	log.Println("Args:", fmt.Sprintln(args...))
+
+	_, err := database.DbConn.Exec(query, args...)
 	if err != nil {
 		log.Println(err.Error())
 		return err
@@ -95,17 +89,9 @@ func updateProduct(product Product) error {
 }
 
 func addProduct(product Product) (int, error) {
-	result, err := database.DbConn.Exec(`INSERT INTO products  
-	(pricePerUnit,
-	productName,
-	productBrand,
-	description,
-	stockQuantity) VALUES (?, ?, ?, ?, ?)`,
-		product.PricePerUnit,
-		product.ProductName,
-		product.ProductBrand,
-		product.Description,
-		product.StockQuantity)
+	query, args := utils.BuildInsertQuery(TABLE_NAME, product)
+	result, err := database.DbConn.Exec(query, args...)
+
 	if err != nil {
 		log.Println(err.Error())
 		return 0, err
