@@ -9,9 +9,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ecommerce/session"
-	s "github.com/ecommerce/session"
-	"github.com/ecommerce/user"
+	"github.com/ecommerce/internal/core/session"
+	s "github.com/ecommerce/internal/core/session"
+	"github.com/ecommerce/internal/user"
 	"github.com/gorilla/mux"
 )
 
@@ -50,9 +50,8 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	case http.MethodPost:
 
-		session := session.GetSessionFromContext(r)
+		session, err := session.GetSessionFromContext(r)
 		if session == nil {
-			err := errors.New("session not found in context")
 			log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -75,7 +74,6 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 		if email == "" || password == "" {
 			err := errors.New("email and password are required")
 			log.Println(err)
-			http.Error(w, err.Error(), http.StatusBadRequest)
 			tmpl.Execute(w, map[string]string{"Error": err.Error()})
 			return
 		}
@@ -84,7 +82,6 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 		if password != confirmPassword {
 			err := errors.New("password and confirm password is not same")
 			log.Println(err)
-			http.Error(w, err.Error(), http.StatusBadRequest)
 			tmpl.Execute(w, map[string]string{"Error": err.Error()})
 			return
 		}
@@ -94,8 +91,7 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 		res, err := registerUserService(newUser)
 
 		if err != nil {
-			log.Println(err)
-			http.Error(w, err.Error(), res)
+			log.Println(res, ": ", err)
 			tmpl.Execute(w, map[string]string{"Error": err.Error()})
 			return
 		}
@@ -139,9 +135,8 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case http.MethodPost:
-		session := session.GetSessionFromContext(r)
+		session, err := session.GetSessionFromContext(r)
 		if session == nil {
-			err := errors.New("session not found in context")
 			log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -172,7 +167,6 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			log.Println(err)
-			http.Error(w, err.Error(), res)
 			tmpl.Execute(w, map[string]string{"Error": err.Error()})
 			return
 		}
@@ -223,9 +217,8 @@ func logoutProdHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error rendering logout page", http.StatusInternalServerError)
 		}
 	case http.MethodPost:
-		session := session.GetSessionFromContext(r)
+		session, err := session.GetSessionFromContext(r)
 		if session == nil {
-			err := errors.New("session not found in context")
 			log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

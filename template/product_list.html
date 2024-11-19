@@ -82,6 +82,15 @@
             color: #e2e8f0;
         }
 
+        /* Go Back Button */
+        .btn-back {
+            background-color: #e53e3e;
+        }
+
+        .btn-back:hover {
+            background-color: #c53030;
+        }
+
     </style>
 </head>
 <body>
@@ -132,6 +141,8 @@
         </table>
 
         <a href="/prod/products" class="btn" {{ if not $.IsAdmin }}disabled{{ end }}>Add New Product</a>
+        <!-- Button to go back to Dashboard page -->
+        <a href="/prod/users/dashboard" class="btn btn-back">Back to Dashboard</a>
     </div>
 
     <!-- JavaScript to handle method switching -->

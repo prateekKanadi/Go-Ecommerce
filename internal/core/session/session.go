@@ -20,14 +20,6 @@ var (
 
 // type declaration
 type (
-	M      map[string]interface{}
-	Person struct {
-		FirstName string
-		LastName  string
-		Email     string
-		Age       int
-	}
-
 	User struct {
 		UserID   string
 		Email    string
@@ -35,32 +27,37 @@ type (
 	}
 )
 
-func Init(config *configuration.Config) *sessions.CookieStore {
+func Init(config *configuration.Config) (*sessions.CookieStore, error) {
 	registerTypes()
 	store := sessions.NewCookieStore([]byte(config.Session.SessionKey), nil)
 	store.Options = &sessions.Options{
-		Domain:   "localhost",
+		Domain:   config.Session.Domain,
 		Path:     "/",
 		MaxAge:   0,
-		Secure:   false,
+		Secure:   config.Session.Secure,
 		HttpOnly: true,
 	}
 
 	Store = store
-	return store
+	return store, nil
 }
 
 func registerTypes() {
-	// gob.Register(&Person{})
 	gob.Register(&User{})
-	// gob.Register(&M{})
 }
 
 // Helper function to get session from request context
-func GetSessionFromContext(r *http.Request) *sessions.Session {
-	config := configuration.Conf
-	session, _ := r.Context().Value(config.Session.SessionContextKey).(*sessions.Session)
-	return session
+func GetSessionFromContext(r *http.Request) (*sessions.Session, error) {
+	// Retrieve configuration from the context
+	config, ok := r.Context().Value("config").(*configuration.Config)
+	if !ok {
+		return nil, fmt.Errorf("configuration not found in request context")
+	}
+	session, ok := r.Context().Value(config.Session.SessionContextKey).(*sessions.Session)
+	if !ok {
+		return nil, fmt.Errorf("session not found in request context")
+	}
+	return session, nil
 }
 
 // GetSessionUserID retrieves the userId from the session and returns an error if it doesn't exist or is not an int.
@@ -72,7 +69,7 @@ func GetSessionUserID(session *sessions.Session) (int, error) {
 
 	userId, ok := userIdValue.(int)
 	if !ok {
-		return 0, fmt.Errorf("userId is not an int")
+		return 0, fmt.Errorf("userId is not an int, found type: %T", userIdValue)
 	}
 
 	return userId, nil

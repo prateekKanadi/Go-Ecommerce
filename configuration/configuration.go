@@ -1,25 +1,19 @@
 package configuration
 
 import (
-	"log"
+	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v3"
 )
 
-// variable declaration
-var (
-	// global
-	Conf *Config
-
-	// local
-
-)
-
+// Config holds the application configuration
 type Config struct {
 	Session struct {
 		SessionKey        string `yaml:"session_key"`
 		SessionContextKey string `yaml:"session_context_key"`
+		Domain            string `yaml:"domain"`
+		Secure            bool   `yaml:"secure"`
 	} `yaml:"session"`
 
 	Database struct {
@@ -30,16 +24,17 @@ type Config struct {
 	} `yaml:"database"`
 }
 
-func Init(configPath string) *Config {
+// Init loads and initializes the configuration from the specified file
+func Init(configPath string) (*Config, error) {
 	config, err := loadConfig(configPath)
 	if err != nil {
-		log.Fatalf("Error loading config: %v", err)
+		return nil, fmt.Errorf("failed to load configuration: %w", err)
 	}
-	Conf = config
-	return config
+
+	return config, nil
 }
 
-// helper functions
+// loadConfig loads configuration from a YAML file
 func loadConfig(configPath string) (*Config, error) {
 	file, err := os.Open(configPath)
 	if err != nil {
@@ -53,4 +48,27 @@ func loadConfig(configPath string) (*Config, error) {
 		return nil, err
 	}
 	return &config, nil
+}
+
+// Validate checks if the loaded configuration is complete and valid
+func (c *Config) Validate() error {
+	if c.Database.URL == "" {
+		return fmt.Errorf("incomplete database configuration: missing URL")
+	}
+	if c.Database.User == "" {
+		return fmt.Errorf("incomplete database configuration: missing User")
+	}
+	if c.Database.Password == "" {
+		return fmt.Errorf("incomplete database configuration: missing Password")
+	}
+	if c.Database.DbName == "" {
+		return fmt.Errorf("incomplete database configuration: missing DbName")
+	}
+	if c.Session.SessionKey == "" {
+		return fmt.Errorf("incomplete session configuration: missing SessionKey")
+	}
+	if c.Session.SessionContextKey == "" {
+		return fmt.Errorf("incomplete session configuration: missing SessionContextKey")
+	}
+	return nil
 }

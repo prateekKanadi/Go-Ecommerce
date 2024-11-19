@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"text/template"
 
-	"github.com/ecommerce/session"
-	s "github.com/ecommerce/session"
+	"github.com/ecommerce/internal/core/session"
+	s "github.com/ecommerce/internal/core/session"
 	"github.com/ecommerce/utils"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -42,20 +42,23 @@ func SetupUserRoutes(r *mux.Router) {
 }
 
 func userDashboardHandler(w http.ResponseWriter, r *http.Request) {
-	session := session.GetSessionFromContext(r)
+	session, err := session.GetSessionFromContext(r)
 	if session == nil {
-		http.Error(w, errors.New("session not found in context").Error(), http.StatusInternalServerError)
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if session.Values == nil {
-		http.Error(w, errors.New("session values nil").Error(), http.StatusInternalServerError)
+		err = errors.New("session values nil")
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	userId, err := s.GetSessionUserID(session)
 	if err != nil {
-		log.Println("UserId is not set in session")
+		log.Println("UserId is not set in session", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -63,8 +66,8 @@ func userDashboardHandler(w http.ResponseWriter, r *http.Request) {
 	user, res, err := getUserService(userId)
 
 	if err != nil {
-		http.Error(w, err.Error(), res)
 		log.Println("error : ", err)
+		http.Error(w, err.Error(), res)
 		return
 	}
 	log.Println(utils.ToString(*user))
@@ -191,6 +194,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodDelete:
 		err := removeUserService(userID)
 		if err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

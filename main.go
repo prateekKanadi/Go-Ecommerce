@@ -7,14 +7,10 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/ecommerce/authentication"
 	"github.com/ecommerce/configuration"
-	"github.com/ecommerce/database"
-	"github.com/ecommerce/index"
-	"github.com/ecommerce/middleware"
-	"github.com/ecommerce/product"
-	"github.com/ecommerce/session"
-	"github.com/ecommerce/user"
+	"github.com/ecommerce/internal/core/routes"
+	"github.com/ecommerce/internal/core/setup"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
@@ -32,22 +28,20 @@ func main() {
 	fmt.Println("Hello! dev-anand")
 
 	//setup configuration
-	config = configuration.Init(configFilePath)
+	config, err := setup.InitializeAll(configFilePath)
+	if err != nil {
+		log.Println(config)
+		log.Fatalf("Failed to initialize application: %v", err)
+	}
 
 	//Creating Mux Router
 	r = mux.NewRouter()
 
-	//register datatbase
-	database.SetupDatabase(config)
-
-	// setup session store
-	session.Init(config)
-
 	//Registering Middlewares
-	registerMiddleWares(r)
+	setup.RegisterMiddleWares(r, config)
 
 	//Registering routes
-	registerRoutes(r)
+	routes.RegisterRoutes(r)
 
 	fmt.Println("Server is running at http://localhost:5000")
 
@@ -63,26 +57,4 @@ func serveIndexPage() {
 	if err != nil {
 		log.Printf("Error opening browser: %v", err)
 	}
-}
-
-func registerMiddleWares(r *mux.Router) {
-	r.Use(middleware.CorsMiddleware)
-	r.Use(middleware.SessionMiddleware)
-}
-
-func registerRoutes(r *mux.Router) {
-	// Serve static files from the "static" directory
-	// r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-
-	//Landing Page
-	index.SetupIndexRoutes(r)
-
-	//Product
-	product.SetupProductRoutes(r)
-
-	// User
-	user.SetupUserRoutes(r)
-
-	// Auth
-	authentication.SetupAuthRoutes(r)
 }
