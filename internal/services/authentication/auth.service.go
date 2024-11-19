@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ecommerce/internal/user"
+	"github.com/ecommerce/internal/services/user"
 )
 
 func registerUserService(newUser user.User) (int, error) {

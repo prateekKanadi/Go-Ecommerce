@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"github.com/ecommerce/internal/authentication"
-	"github.com/ecommerce/internal/index"
-	"github.com/ecommerce/internal/product"
-	"github.com/ecommerce/internal/user"
+	"github.com/ecommerce/internal/services/authentication"
+	"github.com/ecommerce/internal/services/index"
+	"github.com/ecommerce/internal/services/product"
+	"github.com/ecommerce/internal/services/user"
 	"github.com/gorilla/mux"
 )
 

@@ -11,7 +11,8 @@ import (
 
 	"github.com/ecommerce/internal/core/session"
 	s "github.com/ecommerce/internal/core/session"
-	"github.com/ecommerce/internal/user"
+	"github.com/ecommerce/internal/services/user"
+
 	"github.com/gorilla/mux"
 )
 
