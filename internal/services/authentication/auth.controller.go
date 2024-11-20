@@ -10,7 +10,6 @@ import (
 	"net/http"
 
 	"github.com/ecommerce/internal/core/session"
-	s "github.com/ecommerce/internal/core/session"
 	"github.com/ecommerce/internal/services/user"
 
 	"github.com/gorilla/mux"
@@ -241,7 +240,7 @@ func logoutProdHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Check if the session was deleted
-		deletedSession, err := s.Store.Get(r, "session-name")
+		deletedSession, err := session.Store().Get(r, "session-name")
 
 		if err != nil {
 			log.Println(err)

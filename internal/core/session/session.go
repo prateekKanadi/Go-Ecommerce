@@ -9,15 +9,6 @@ import (
 	"github.com/gorilla/sessions"
 )
 
-// variable declaration
-var (
-	// global
-	Store *sessions.CookieStore
-
-	// local
-
-)
-
 // type declaration
 type (
 	User struct {
@@ -38,7 +29,6 @@ func Init(config *configuration.Config) (*sessions.CookieStore, error) {
 		HttpOnly: true,
 	}
 
-	Store = store
 	return store, nil
 }
 

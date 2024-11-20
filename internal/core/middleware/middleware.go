@@ -4,13 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/ecommerce/configuration"
-	"github.com/ecommerce/internal/core/session"
-	"github.com/gorilla/sessions"
-)
-
-var (
-	store *sessions.CookieStore
+	"github.com/ecommerce/internal/core/setup"
+	"github.com/gorilla/mux"
 )
 
 // CORS Middleware
@@ -42,9 +37,10 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 }
 
 // Session Middleware : to load session and add it to the context
-func SessionMiddleware(config *configuration.Config) func(http.Handler) http.Handler {
+func SessionMiddleware(setupRes *setup.InitializationResult) func(http.Handler) http.Handler {
 	//extract session store
-	store = session.Store
+	store := setupRes.Store
+	config := setupRes.Config
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -63,12 +59,19 @@ func SessionMiddleware(config *configuration.Config) func(http.Handler) http.Han
 }
 
 // InjectConfigMiddleware injects the configuration into the request context
-func InjectConfigMiddleware(config *configuration.Config) func(http.Handler) http.Handler {
+func InjectConfigMiddleware(setupRes *setup.InitializationResult) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Inject configuration into context
-			ctx := context.WithValue(r.Context(), "config", config)
+			ctx := context.WithValue(r.Context(), "config", setupRes.Config)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+// Setup middleware
+func RegisterMiddleWares(r *mux.Router, setupRes *setup.InitializationResult) {
+	r.Use(InjectConfigMiddleware(setupRes)) // Add middleware for injecting config
+	r.Use(CorsMiddleware())
+	r.Use(SessionMiddleware(setupRes))
 }

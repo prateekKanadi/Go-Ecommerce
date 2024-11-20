@@ -5,13 +5,19 @@ import (
 
 	"github.com/ecommerce/configuration"
 	"github.com/ecommerce/database"
-	"github.com/ecommerce/internal/core/middleware"
+
 	"github.com/ecommerce/internal/core/session"
-	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 )
 
+type InitializationResult struct {
+	Config *configuration.Config // configuration type
+	Store  *sessions.CookieStore // Or the exact type of your session store
+}
+
 // initialize all core components (except routes)
-func InitializeAll(configPath string) (*configuration.Config, error) {
+func InitializeAll(configPath string) (*InitializationResult, error) {
+	result := &InitializationResult{}
 	// Setup yaml configuration
 	config, err := configuration.Init(configPath)
 	if err != nil {
@@ -24,6 +30,7 @@ func InitializeAll(configPath string) (*configuration.Config, error) {
 		log.Printf("Failed to Validate initialized configuration: %v", err)
 		return nil, err
 	}
+	result.Config = config
 
 	// Setup database
 	err = database.SetupDatabase(config)
@@ -33,19 +40,12 @@ func InitializeAll(configPath string) (*configuration.Config, error) {
 	}
 
 	// Setup session
-	// var store *sessions.CookieStore
-	_, err = session.Init(config)
+	store, err := session.Init(config)
 	if err != nil {
 		log.Printf("Failed to initialize session: %v", err)
 		return nil, err
 	}
+	result.Store = store
 
-	return config, nil
-}
-
-// Setup middleware
-func RegisterMiddleWares(r *mux.Router, config *configuration.Config) {
-	r.Use(middleware.InjectConfigMiddleware(config)) // Add middleware for injecting config
-	r.Use(middleware.CorsMiddleware())
-	r.Use(middleware.SessionMiddleware(config))
+	return result, nil
 }

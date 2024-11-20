@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/ecommerce/configuration"
+	"github.com/ecommerce/internal/core/middleware"
 	"github.com/ecommerce/internal/core/routes"
 	"github.com/ecommerce/internal/core/setup"
 
@@ -19,26 +19,20 @@ const (
 	configFilePath = "config.yaml"
 )
 
-var (
-	config *configuration.Config
-	r      *mux.Router
-)
-
 func main() {
 	fmt.Println("Hello! dev-anand")
 
 	//setup configuration
-	config, err := setup.InitializeAll(configFilePath)
+	setupRes, err := setup.InitializeAll(configFilePath)
 	if err != nil {
-		log.Println(config)
 		log.Fatalf("Failed to initialize application: %v", err)
 	}
 
 	//Creating Mux Router
-	r = mux.NewRouter()
+	r := mux.NewRouter()
 
 	//Registering Middlewares
-	setup.RegisterMiddleWares(r, config)
+	middleware.RegisterMiddleWares(r, setupRes)
 
 	//Registering routes
 	routes.RegisterRoutes(r)
