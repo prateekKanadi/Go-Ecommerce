@@ -50,8 +50,8 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	case http.MethodPost:
 
-		session, err := session.GetSessionFromContext(r)
-		if session == nil {
+		sess, err := session.GetSessionFromContext(r)
+		if sess == nil {
 			log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -96,8 +96,22 @@ func registerProdHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		session.Values["user_email"] = email
-		err = session.Save(r, w)
+		//storing user in session
+		user, err, res := user.GetUserByEmailService(email)
+
+		if err != nil {
+			log.Println(err)
+			http.Error(w, err.Error(), res)
+			return
+		}
+
+		userObj := session.User{
+			UserID: user.UserID, Email: user.Email,
+			Password: user.Password, IsAdmin: user.IsAdmin}
+
+		sess.Values["user"] = &userObj
+		sess.Values["userId"] = user.UserID
+		err = sess.Save(r, w)
 
 		if err != nil {
 			log.Println(err)
@@ -135,8 +149,8 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case http.MethodPost:
-		session, err := session.GetSessionFromContext(r)
-		if session == nil {
+		sess, err := session.GetSessionFromContext(r)
+		if sess == nil {
 			log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -171,6 +185,7 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		//storing user in session
 		user, err, res := user.GetUserByEmailService(email)
 
 		if err != nil {
@@ -179,8 +194,13 @@ func loginProdHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		session.Values["userId"] = user.UserID
-		err = session.Save(r, w)
+		userObj := session.User{
+			UserID: user.UserID, Email: user.Email,
+			Password: user.Password, IsAdmin: user.IsAdmin}
+
+		sess.Values["user"] = &userObj
+		sess.Values["userId"] = user.UserID
+		err = sess.Save(r, w)
 
 		if err != nil {
 			log.Println(err)

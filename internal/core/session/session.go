@@ -12,9 +12,10 @@ import (
 // type declaration
 type (
 	User struct {
-		UserID   string
+		UserID   int
 		Email    string
 		Password string
+		IsAdmin  int
 	}
 )
 

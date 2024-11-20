@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/ecommerce/internal/core/session"
 	"github.com/gorilla/mux"
 )
 
@@ -17,7 +18,6 @@ const (
 	productsBasePath = "products"
 	apiVersion       = "prod"
 	apiBasePath      = "api"
-	userRole         = "user"
 )
 
 // SetupRoutes :
@@ -32,6 +32,15 @@ func SetupProductRoutes(r *mux.Router) {
 }
 
 func productsProdHandler(w http.ResponseWriter, r *http.Request) {
+	sess, err := session.GetSessionFromContext(r)
+	if sess == nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	user := sess.Values["user"].(*session.User)
+
 	switch r.Method {
 	case http.MethodGet:
 		tmpl, err := template.ParseFiles("template/product_list.html")
@@ -47,11 +56,8 @@ func productsProdHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), res)
 			return
 		}
-		// Sample user role check
-		// userRole := "user" // Replace with actual user role retrieval logic
-		isAdmin := userRole == "admin"
 
-		err = tmpl.Execute(w, map[string]interface{}{"Products": productList, "IsAdmin": isAdmin})
+		err = tmpl.Execute(w, map[string]interface{}{"Products": productList, "IsAdmin": user.IsAdmin})
 		if err != nil {
 			log.Println("Template execution error:", err)
 			http.Error(w, "Error rendering product list page", http.StatusInternalServerError)
@@ -98,6 +104,16 @@ func productsProdHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func productProdHandler(w http.ResponseWriter, r *http.Request) {
+
+	sess, err := session.GetSessionFromContext(r)
+	if sess == nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	user := sess.Values["user"].(*session.User)
+
 	vars := mux.Vars(r)
 	productID, err := strconv.Atoi(vars["id"])
 
@@ -123,11 +139,7 @@ func productProdHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Sample user role check
-		// userRole := "user" // Replace with actual user role retrieval logic
-		isAdmin := userRole == "admin"
-
-		err = tmpl.Execute(w, map[string]interface{}{"Product": product, "IsAdmin": isAdmin})
+		err = tmpl.Execute(w, map[string]interface{}{"Product": product, "IsAdmin": user.IsAdmin})
 		if err != nil {
 			log.Println("Template execution error:", err)
 			http.Error(w, "Error rendering product details page", http.StatusInternalServerError)
