@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"database/sql"
 	"log"
 
 	"github.com/ecommerce/configuration"
@@ -13,11 +14,13 @@ import (
 type InitializationResult struct {
 	Config *configuration.Config // configuration type
 	Store  *sessions.CookieStore // Or the exact type of your session store
+	DbConn *sql.DB               // Database type
 }
 
 // initialize all core components (except routes)
 func InitializeAll(configPath string) (*InitializationResult, error) {
 	result := &InitializationResult{}
+
 	// Setup yaml configuration
 	config, err := configuration.Init(configPath)
 	if err != nil {
@@ -33,11 +36,12 @@ func InitializeAll(configPath string) (*InitializationResult, error) {
 	result.Config = config
 
 	// Setup database
-	err = database.SetupDatabase(config)
+	dbConn, err := database.SetupDatabase(config)
 	if err != nil {
 		log.Printf("Failed to initialize database: %v", err)
 		return nil, err
 	}
+	result.DbConn = dbConn
 
 	// Setup session
 	store, err := session.Init(config)

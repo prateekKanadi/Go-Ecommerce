@@ -1,7 +1,9 @@
 package configuration
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -14,13 +16,19 @@ type Config struct {
 		SessionContextKey string `yaml:"session_context_key"`
 		Domain            string `yaml:"domain"`
 		Secure            bool   `yaml:"secure"`
+		HttpOnly          bool   `yaml:"http_only"`
+		Path              string `yaml:"path"`
+		MaxAge            int    `yaml:"max_age"`
 	} `yaml:"session"`
 
 	Database struct {
-		URL      string `yaml:"url"`
-		User     string `yaml:"user"`
-		Password string `yaml:"password"`
-		DbName   string `yaml:"dbName"`
+		URL             string `yaml:"url"`
+		User            string `yaml:"user"`
+		Password        string `yaml:"password"`
+		DbName          string `yaml:"dbName"`
+		MaxOpenConns    int    `yaml:"max_open_conns"`
+		MaxIdleConns    int    `yaml:"max_idle_conns"`
+		ConnMaxLifetime int    `yaml:"conn_max_lifetime"` // In seconds
 	} `yaml:"database"`
 }
 
@@ -64,11 +72,40 @@ func (c *Config) Validate() error {
 	if c.Database.DbName == "" {
 		return fmt.Errorf("incomplete database configuration: missing DbName")
 	}
+	if c.Database.MaxOpenConns <= 0 {
+		return fmt.Errorf("database configuration error: MaxOpenConns must be greater than 0")
+	}
+
+	if c.Database.MaxIdleConns < 0 {
+		return fmt.Errorf("database configuration error: MaxIdleConns cannot be negative")
+	}
+
+	if c.Database.ConnMaxLifetime < 0 {
+		return fmt.Errorf("database configuration error: ConnMaxLifetime cannot be negative")
+	}
+
 	if c.Session.SessionKey == "" {
 		return fmt.Errorf("incomplete session configuration: missing SessionKey")
 	}
 	if c.Session.SessionContextKey == "" {
 		return fmt.Errorf("incomplete session configuration: missing SessionContextKey")
 	}
+	if c.Session.Domain == "" {
+		return fmt.Errorf("incomplete session configuration: missing Domain")
+	}
+	// Validate Secure flag based on the Domain
+	if c.Session.Domain == "localhost" && c.Session.Secure {
+		log.Println("Warning: Secure is true for localhost. This may not work in development.")
+	} else if c.Session.Domain != "localhost" && !c.Session.Secure {
+		return errors.New("session configuration error: Secure must be true for production environments")
+	}
+	if c.Session.Path == "" {
+		return errors.New("session configuration error: Path cannot be empty")
+	}
+
+	if c.Session.MaxAge < 0 {
+		return errors.New("session configuration error: MaxAge cannot be negative")
+	}
+
 	return nil
 }

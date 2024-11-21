@@ -6,26 +6,19 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ecommerce/database"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func hashPassword(password string) (string, error) {
-	// Convert the string password to a byte slice
-	passwordBytes := []byte(password)
-
-	// Generate the hashed password
-	hashed, err := bcrypt.GenerateFromPassword(passwordBytes, bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-
-	// Convert the hashed password back to a string
-	return string(hashed), nil
+type UserRepository struct {
+	db *sql.DB
 }
 
-func getUserByEmail(email string) (*User, error) {
-	row := database.DbConn.QueryRow(`SELECT 
+func NewUserRepository(db *sql.DB) *UserRepository {
+	return &UserRepository{db: db}
+}
+
+func (repo *UserRepository) getUserByEmail(email string) (*User, error) {
+	row := repo.db.QueryRow(`SELECT 
 	userId, 	
 	email,
 	password,
@@ -48,8 +41,8 @@ func getUserByEmail(email string) (*User, error) {
 	return user, nil
 }
 
-func getUser(userID int) (*User, error) {
-	row := database.DbConn.QueryRow(`SELECT 
+func (repo *UserRepository) getUser(userID int) (*User, error) {
+	row := repo.db.QueryRow(`SELECT 
 	userId, 	
 	email,
 	password,
@@ -72,8 +65,8 @@ func getUser(userID int) (*User, error) {
 	return user, nil
 }
 
-func removeUser(userID int) error {
-	_, err := database.DbConn.Exec(`DELETE FROM users where userId = ?`, userID)
+func (repo *UserRepository) removeUser(userID int) error {
+	_, err := repo.db.Exec(`DELETE FROM users where userId = ?`, userID)
 	if err != nil {
 		log.Println(err.Error())
 		return err
@@ -81,8 +74,8 @@ func removeUser(userID int) error {
 	return nil
 }
 
-func getAllUsers() ([]User, error) {
-	results, err := database.DbConn.Query(`SELECT 
+func (repo *UserRepository) getAllUsers() ([]User, error) {
+	results, err := repo.db.Query(`SELECT 
 	userId, 	 
 	email,
 	password,
@@ -106,8 +99,8 @@ func getAllUsers() ([]User, error) {
 	return users, nil
 }
 
-func updateEmail(user User) error {
-	_, err := database.DbConn.Exec(`UPDATE users SET 		 				 
+func (repo *UserRepository) updateEmail(user User) error {
+	_, err := repo.db.Exec(`UPDATE users SET 		 				 
 		email=?		
 		WHERE userId=?`,
 		user.Email,
@@ -119,14 +112,14 @@ func updateEmail(user User) error {
 	return nil
 }
 
-func updatePassword(user User) error {
+func (repo *UserRepository) updatePassword(user User) error {
 	hashedPass, err := hashPassword(user.Password)
 	if err != nil {
 		log.Println(err.Error())
 		return err
 	}
 
-	result, err := database.DbConn.Exec(`UPDATE users SET 		 				 
+	result, err := repo.db.Exec(`UPDATE users SET 		 				 
 		password=?		
 		WHERE userId=?`,
 		hashedPass,
@@ -139,8 +132,8 @@ func updatePassword(user User) error {
 	return nil
 }
 
-func updateUser(user User) error {
-	err_e := updateEmail(user)
+func (repo *UserRepository) updateUser(user User) error {
+	err_e := repo.updateEmail(user)
 	// err_p := updatePassword(user)
 
 	if err_e != nil {
@@ -156,11 +149,37 @@ func updateUser(user User) error {
 	return nil
 }
 
-func RegisterUser(user User) (int, error) {
-	return addUser(user)
+func (repo *UserRepository) addUser(user User) (int, error) {
+	hashedPass, err := hashPassword(user.Password)
+	if err != nil {
+		log.Println(err.Error())
+		return 0, err
+	}
+
+	result, err := repo.db.Exec(`INSERT INTO users  
+	(email,
+	password) VALUES (?, ?)`,
+		user.Email,
+		hashedPass)
+	if err != nil {
+		log.Println(err.Error())
+		return 0, err
+	}
+	insertID, err := result.LastInsertId()
+	if err != nil {
+		log.Println(err.Error())
+		return 0, err
+	}
+	return int(insertID), nil
 }
-func LoginUser(user User) (int, error) {
-	existingUser, err := getUserByEmail(user.Email)
+
+// functions for service layer outside user pkg
+
+func (repo *UserRepository) RegisterUser(user User) (int, error) {
+	return repo.addUser(user)
+}
+func (repo *UserRepository) LoginUser(user User) (int, error) {
+	existingUser, err := repo.getUserByEmail(user.Email)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -177,26 +196,19 @@ func LoginUser(user User) (int, error) {
 	}
 	return http.StatusOK, nil
 }
-func addUser(user User) (int, error) {
-	hashedPass, err := hashPassword(user.Password)
+
+// helper functions
+
+func hashPassword(password string) (string, error) {
+	// Convert the string password to a byte slice
+	passwordBytes := []byte(password)
+
+	// Generate the hashed password
+	hashed, err := bcrypt.GenerateFromPassword(passwordBytes, bcrypt.DefaultCost)
 	if err != nil {
-		log.Println(err.Error())
-		return 0, err
+		return "", err
 	}
 
-	result, err := database.DbConn.Exec(`INSERT INTO users  
-	(email,
-	password) VALUES (?, ?)`,
-		user.Email,
-		hashedPass)
-	if err != nil {
-		log.Println(err.Error())
-		return 0, err
-	}
-	insertID, err := result.LastInsertId()
-	if err != nil {
-		log.Println(err.Error())
-		return 0, err
-	}
-	return int(insertID), nil
+	// Convert the hashed password back to a string
+	return string(hashed), nil
 }

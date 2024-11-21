@@ -24,10 +24,10 @@ func Init(config *configuration.Config) (*sessions.CookieStore, error) {
 	store := sessions.NewCookieStore([]byte(config.Session.SessionKey), nil)
 	store.Options = &sessions.Options{
 		Domain:   config.Session.Domain,
-		Path:     "/",
-		MaxAge:   0,
+		Path:     config.Session.Path,
+		MaxAge:   config.Session.MaxAge,
 		Secure:   config.Session.Secure,
-		HttpOnly: true,
+		HttpOnly: config.Session.HttpOnly,
 	}
 
 	return store, nil

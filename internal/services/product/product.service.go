@@ -6,8 +6,20 @@ import (
 	"net/http"
 )
 
-func getAllProductsService() ([]Product, int, error) {
-	productList, err := getAllProducts()
+// ProductService handles business logic for product-related operations.
+type ProductService struct {
+	Repo *ProductRepository
+}
+
+// NewProductService creates a new ProductService.
+func NewProductService(repo *ProductRepository) *ProductService {
+	return &ProductService{
+		Repo: repo,
+	}
+}
+
+func (s *ProductService) getAllProductsService() ([]Product, int, error) {
+	productList, err := s.Repo.getAllProducts()
 	if err != nil {
 		log.Printf("Error fetching products: %v", err)
 		return nil, http.StatusInternalServerError, err
@@ -16,8 +28,8 @@ func getAllProductsService() ([]Product, int, error) {
 	return productList, http.StatusOK, nil
 }
 
-func getProductService(productID int) (*Product, int, error) {
-	product, err := getProduct(productID)
+func (s *ProductService) getProductService(productID int) (*Product, int, error) {
+	product, err := s.Repo.getProduct(productID)
 
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
@@ -29,8 +41,8 @@ func getProductService(productID int) (*Product, int, error) {
 	return product, http.StatusOK, nil
 }
 
-func addProductService(newProduct Product) (int, error) {
-	_, err := addProduct(newProduct)
+func (s *ProductService) addProductService(newProduct Product) (int, error) {
+	_, err := s.Repo.addProduct(newProduct)
 	if err != nil {
 		log.Print(err)
 		return http.StatusBadRequest, err
@@ -38,8 +50,8 @@ func addProductService(newProduct Product) (int, error) {
 	return http.StatusOK, nil
 }
 
-func updateProductService(updatedProduct Product) (int, error) {
-	err := updateProduct(updatedProduct)
+func (s *ProductService) updateProductService(updatedProduct Product) (int, error) {
+	err := s.Repo.updateProduct(updatedProduct)
 
 	if err != nil {
 		log.Println(err)
@@ -48,8 +60,8 @@ func updateProductService(updatedProduct Product) (int, error) {
 	return http.StatusOK, nil
 }
 
-func removeProductService(productID int) (int, error) {
-	err := removeProduct(productID)
+func (s *ProductService) removeProductService(productID int) (int, error) {
+	err := s.Repo.removeProduct(productID)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

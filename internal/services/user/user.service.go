@@ -1,26 +1,33 @@
 package user
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 )
 
-func getAllUsersService() ([]byte, int) {
-	userList, err := getAllUsers()
-	if err != nil {
-		return nil, http.StatusInternalServerError
-	}
-	usersJson, err := json.Marshal(userList)
-	if err != nil {
-		return nil, http.StatusInternalServerError
-	}
-
-	return usersJson, http.StatusOK
+// UserService handles business logic for user-related operations.
+type UserService struct {
+	Repo *UserRepository
 }
 
-func getUserService(userID int) (*User, int, error) {
-	user, err := getUser(userID)
+// NewUserService creates a new UserService.
+func NewUserService(repo *UserRepository) *UserService {
+	return &UserService{
+		Repo: repo,
+	}
+}
+
+func (s *UserService) getAllUsersService() ([]User, int, error) {
+	userList, err := s.Repo.getAllUsers()
+	if err != nil {
+		log.Printf("Error fetching users: %v", err)
+		return nil, http.StatusInternalServerError, err
+	}
+	return userList, http.StatusOK, nil
+}
+
+func (s *UserService) getUserService(userID int) (*User, int, error) {
+	user, err := s.Repo.getUser(userID)
 
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
@@ -32,45 +39,49 @@ func getUserService(userID int) (*User, int, error) {
 	return user, http.StatusOK, nil
 }
 
-func GetUserByEmailService(email string) (*User, error, int) {
-	user, err := getUserByEmail(email)
+func (s *UserService) GetUserByEmailService(email string) (*User, int, error) {
+	user, err := s.Repo.getUserByEmail(email)
 
 	if err != nil {
 		log.Print(err)
-		return nil, err, http.StatusBadRequest
+		return nil, http.StatusBadRequest, err
 	}
-	return user, nil, http.StatusOK
+	return user, http.StatusOK, nil
 }
 
-func addUserService(newUser User) (int, error) {
-	_, err := addUser(newUser)
+func (s *UserService) addUserService(newUser User) (int, error) {
+	_, err := s.Repo.addUser(newUser)
 	if err != nil {
 		log.Print(err)
-		return http.StatusBadRequest, nil
+		return http.StatusBadRequest, err
 	}
-	return http.StatusOK, err
+	return http.StatusOK, nil
 }
 
-func updateUserService(updatedUser User) (int, error) {
-	err := updateUser(updatedUser)
-
-	if err != nil {
-		log.Print(err)
-		return http.StatusBadRequest, nil
-	}
-	return http.StatusOK, err
-}
-
-func updatePasswordService(updatedUser User) (int, error) {
-	err := updatePassword(updatedUser)
+func (s *UserService) updateUserService(updatedUser User) (int, error) {
+	err := s.Repo.updateUser(updatedUser)
 
 	if err != nil {
 		log.Print(err)
-		return http.StatusBadRequest, nil
+		return http.StatusBadRequest, err
 	}
-	return http.StatusOK, err
+	return http.StatusOK, nil
 }
 
-func removeUserService(userID int) error {
-	return removeUser(userID)
+func (s *UserService) updatePasswordService(updatedUser User) (int, error) {
+	err := s.Repo.updatePassword(updatedUser)
+
+	if err != nil {
+		log.Print(err)
+		return http.StatusBadRequest, err
+	}
+	return http.StatusOK, nil
+}
+
+func (s *UserService) removeUserService(userID int) (int, error) {
+	err := s.Repo.removeUser(userID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, nil
 }

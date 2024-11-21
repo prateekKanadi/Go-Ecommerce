@@ -7,8 +7,20 @@ import (
 	"github.com/ecommerce/internal/services/user"
 )
 
-func registerUserService(newUser user.User) (int, error) {
-	_, err := user.RegisterUser(newUser)
+// AuthService handles business logic for auth-related operations.
+type AuthService struct {
+	UserService *user.UserService
+}
+
+// NewAuthService creates a new AuthService.
+func NewAuthService(userService *user.UserService) *AuthService {
+	return &AuthService{
+		UserService: userService,
+	}
+}
+
+func (s *AuthService) registerUserService(newUser user.User) (int, error) {
+	_, err := s.UserService.Repo.RegisterUser(newUser)
 	if err != nil {
 		log.Print(err)
 		return http.StatusBadRequest, nil
@@ -16,8 +28,8 @@ func registerUserService(newUser user.User) (int, error) {
 	return http.StatusOK, err
 }
 
-func loginUserService(existingUser user.User) (int, error) {
-	res, err := user.LoginUser(existingUser)
+func (s *AuthService) loginUserService(existingUser user.User) (int, error) {
+	res, err := s.UserService.Repo.LoginUser(existingUser)
 	if err != nil {
 		log.Print(err)
 		return res, err

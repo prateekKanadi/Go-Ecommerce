@@ -4,10 +4,20 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os/exec"
 	"text/template"
+	"time"
 
 	"github.com/gorilla/mux"
 )
+
+func ServeIndexPage() {
+	time.Sleep(1 * time.Second) // Wait a second for the server to start
+	err := exec.Command("cmd", "/C", "start", "http://localhost:5000").Run()
+	if err != nil {
+		log.Printf("Error opening browser: %v", err)
+	}
+}
 
 // SetupRoutes :
 func SetupIndexRoutes(r *mux.Router) {

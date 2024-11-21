@@ -5,22 +5,28 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ecommerce/database"
 	"github.com/ecommerce/utils"
 )
 
 const (
 	PRODUCT_ID = "productId"
 	TABLE_NAME = "products"
-	DELETE     = "DELETE"
 )
 
-func getProduct(productID int) (*Product, error) {
+type ProductRepository struct {
+	db *sql.DB
+}
+
+func NewProductRepository(db *sql.DB) *ProductRepository {
+	return &ProductRepository{db: db}
+}
+
+func (repo *ProductRepository) getProduct(productID int) (*Product, error) {
 	product := &Product{}
 	whereClause := fmt.Sprintf("%s = ?", PRODUCT_ID)
 	query := utils.BuildSelectQuery(TABLE_NAME, product, whereClause)
 
-	row := database.DbConn.QueryRow(query, productID)
+	row := repo.db.QueryRow(query, productID)
 	err := row.Scan(
 		&product.ProductID,
 		&product.PricePerUnit,
@@ -37,11 +43,11 @@ func getProduct(productID int) (*Product, error) {
 	return product, nil
 }
 
-func removeProduct(productID int) error {
+func (repo *ProductRepository) removeProduct(productID int) error {
 	whereClause := fmt.Sprintf("%s = ?", PRODUCT_ID)
 	query := utils.BuildDeleteQuery(TABLE_NAME, whereClause)
 
-	_, err := database.DbConn.Exec(query, productID)
+	_, err := repo.db.Exec(query, productID)
 	if err != nil {
 		log.Println(err.Error())
 		return err
@@ -49,9 +55,9 @@ func removeProduct(productID int) error {
 	return nil
 }
 
-func getAllProducts() ([]Product, error) {
+func (repo *ProductRepository) getAllProducts() ([]Product, error) {
 	query := utils.BuildSelectQuery(TABLE_NAME, &Product{}, "")
-	results, err := database.DbConn.Query(query)
+	results, err := repo.db.Query(query)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
@@ -72,7 +78,7 @@ func getAllProducts() ([]Product, error) {
 	return products, nil
 }
 
-func updateProduct(product Product) error {
+func (repo *ProductRepository) updateProduct(product Product) error {
 	whereClause := fmt.Sprintf("%s = %d", PRODUCT_ID, product.ProductID)
 	query, args := utils.BuildUpdateQuery(TABLE_NAME, product, whereClause)
 
@@ -80,7 +86,7 @@ func updateProduct(product Product) error {
 	log.Println("Query:", query)
 	log.Println("Args:", fmt.Sprintln(args...))
 
-	_, err := database.DbConn.Exec(query, args...)
+	_, err := repo.db.Exec(query, args...)
 	if err != nil {
 		log.Println(err.Error())
 		return err
@@ -88,9 +94,9 @@ func updateProduct(product Product) error {
 	return nil
 }
 
-func addProduct(product Product) (int, error) {
+func (repo *ProductRepository) addProduct(product Product) (int, error) {
 	query, args := utils.BuildInsertQuery(TABLE_NAME, product)
-	result, err := database.DbConn.Exec(query, args...)
+	result, err := repo.db.Exec(query, args...)
 
 	if err != nil {
 		log.Println(err.Error())
