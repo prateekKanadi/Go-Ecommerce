@@ -37,7 +37,7 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 }
 
 // Session Middleware : to load session and add it to the context
-func SessionMiddleware(setupRes *setup.InitializationResult) func(http.Handler) http.Handler {
+func SessionMiddleware(setupRes *setup.CoreSetupInitResult) func(http.Handler) http.Handler {
 	//extract session store
 	store := setupRes.Store
 	config := setupRes.Config
@@ -59,7 +59,7 @@ func SessionMiddleware(setupRes *setup.InitializationResult) func(http.Handler) 
 }
 
 // InjectConfigMiddleware injects the configuration into the request context
-func InjectConfigMiddleware(setupRes *setup.InitializationResult) func(http.Handler) http.Handler {
+func InjectConfigMiddleware(setupRes *setup.CoreSetupInitResult) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Inject configuration into context
@@ -70,7 +70,7 @@ func InjectConfigMiddleware(setupRes *setup.InitializationResult) func(http.Hand
 }
 
 // Setup middleware
-func RegisterMiddleWares(r *mux.Router, setupRes *setup.InitializationResult) {
+func RegisterMiddleWares(r *mux.Router, setupRes *setup.CoreSetupInitResult) {
 	r.Use(InjectConfigMiddleware(setupRes)) // Add middleware for injecting config
 	r.Use(CorsMiddleware())
 	r.Use(SessionMiddleware(setupRes))
