@@ -3,6 +3,7 @@ package user
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -33,7 +34,7 @@ func (repo *UserRepository) getUserByEmail(email string) (*User, error) {
 		&user.Password,
 		&user.IsAdmin)
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return nil, fmt.Errorf("no user found with email %s: %v", email, err)
 	} else if err != nil {
 		log.Println(err)
 		return nil, err
@@ -170,7 +171,26 @@ func (repo *UserRepository) addUser(user User) (int, error) {
 		log.Println(err.Error())
 		return 0, err
 	}
+
 	return int(insertID), nil
+}
+
+func (repo *UserRepository) CreateCartForUser(userID int) (int, error) {
+	// Create a new cart record for the user
+	query := `INSERT INTO carts (user_id) VALUES (?)`
+	result, err := repo.db.Exec(query, userID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to create cart for user %d: %v", userID, err)
+	}
+
+	cartID, err := result.LastInsertId()
+	if err != nil {
+		log.Println(err.Error())
+		return 0, err
+	}
+
+	log.Printf("Cart created for user %d successfully", userID)
+	return int(cartID), nil
 }
 
 // functions for service layer outside user pkg

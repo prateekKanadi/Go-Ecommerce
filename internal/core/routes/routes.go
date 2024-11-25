@@ -4,6 +4,7 @@ import (
 	"github.com/ecommerce/internal/core/services"
 	"github.com/ecommerce/internal/core/setup"
 	"github.com/ecommerce/internal/services/authentication"
+	"github.com/ecommerce/internal/services/cart"
 	"github.com/ecommerce/internal/services/index"
 	"github.com/ecommerce/internal/services/product"
 	"github.com/ecommerce/internal/services/user"
@@ -19,4 +20,5 @@ func RegisterRoutes(r *mux.Router, setupRes *setup.CoreSetupInitResult) {
 	product.SetupProductRoutes(r, serviceRegistry.ProductService)
 	user.SetupUserRoutes(r, serviceRegistry.UserService)
 	authentication.SetupAuthRoutes(r, serviceRegistry.AuthService)
+	cart.SetupCartRoutes(r, serviceRegistry.AuthService.CartService)
 }

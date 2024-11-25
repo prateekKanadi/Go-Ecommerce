@@ -17,6 +17,10 @@ type (
 		Password string
 		IsAdmin  int
 	}
+
+	Cart struct {
+		CartID int
+	}
 )
 
 func Init(config *configuration.Config) (*sessions.CookieStore, error) {
@@ -35,6 +39,7 @@ func Init(config *configuration.Config) (*sessions.CookieStore, error) {
 
 func registerTypes() {
 	gob.Register(&User{})
+	gob.Register(&Cart{})
 }
 
 // Helper function to get session from request context

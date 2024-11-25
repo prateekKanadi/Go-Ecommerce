@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/ecommerce/internal/services/authentication"
+	"github.com/ecommerce/internal/services/cart"
 	"github.com/ecommerce/internal/services/product"
 	"github.com/ecommerce/internal/services/user"
 )
@@ -19,8 +20,12 @@ func InitializeServices(db *sql.DB) *ServiceRegistry {
 	userRepo := user.NewUserRepository(db)
 	userService := user.NewUserService(userRepo)
 
+	// Initialize cart repository and service
+	cartRepo := cart.NewCartRepository(db)
+	cartService := cart.NewCartService(cartRepo)
+
 	// Initialize authentication service
-	authService := authentication.NewAuthService(userService)
+	authService := authentication.NewAuthService(userService, cartService)
 
 	// Initialize product repository and service
 	productRepo := product.NewProductRepository(db)

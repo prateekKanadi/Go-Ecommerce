@@ -93,7 +93,7 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 
 			//register user
 			newUser := user.User{Email: email, Password: password}
-			res, err := s.registerUserService(newUser)
+			userID, res, err := s.registerUserService(newUser)
 
 			if err != nil {
 				log.Println(res, ": ", err)
@@ -116,6 +116,25 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 
 			sess.Values["user"] = &userObj
 			sess.Values["userId"] = user.UserID
+
+			// Now, create a cart for the user
+			log.Printf("Creating cart for user with ID: %d", userID)
+
+			cartID, err := s.UserService.Repo.CreateCartForUser(userID)
+			// cartID, err := s.CartService.Repo.CreateCartForUser(userID)
+			if err != nil {
+				log.Println("Error creating cart:", err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			//storing cart in session
+			cartObj := session.Cart{
+				CartID: cartID}
+
+			sess.Values["cart"] = &cartObj
+
+			// saving session
 			err = sess.Save(r, w)
 
 			if err != nil {
@@ -318,7 +337,7 @@ func registerHandler(s *AuthService) http.HandlerFunc {
 			}
 
 			//register user
-			res, err := s.registerUserService(newUser)
+			_, res, err := s.registerUserService(newUser)
 
 			if err == nil {
 				w.WriteHeader(res)
