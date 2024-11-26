@@ -13,6 +13,7 @@ type ServiceRegistry struct {
 	UserService    *user.UserService
 	AuthService    *authentication.AuthService
 	ProductService *product.ProductService
+	CartService    *cart.CartService
 }
 
 func InitializeServices(db *sql.DB) *ServiceRegistry {
@@ -36,5 +37,6 @@ func InitializeServices(db *sql.DB) *ServiceRegistry {
 		UserService:    userService,
 		AuthService:    authService,
 		ProductService: productService,
+		CartService:    cartService,
 	}
 }

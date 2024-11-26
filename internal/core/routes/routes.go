@@ -20,5 +20,5 @@ func RegisterRoutes(r *mux.Router, setupRes *setup.CoreSetupInitResult) {
 	product.SetupProductRoutes(r, serviceRegistry.ProductService)
 	user.SetupUserRoutes(r, serviceRegistry.UserService)
 	authentication.SetupAuthRoutes(r, serviceRegistry.AuthService)
-	cart.SetupCartRoutes(r, serviceRegistry.AuthService.CartService)
+	cart.SetupCartRoutes(r, serviceRegistry.CartService)
 }

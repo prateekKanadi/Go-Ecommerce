@@ -116,6 +116,7 @@
                     <td>${{ .PricePerUnit }}</td>
                     <td>
                         <!-- View button -->
+                        <a href="/prod/cart/{{ .ProductID }}" class="btn" style="background-color: #783fb1;">Add to cart</a>
                         <a href="/prod/products/{{ .ProductID }}" class="btn" style="background-color: #48bb78;">View</a>                                                                         
                         {{ if $.IsAdmin }}
                             <!-- Edit button (conditionally disabled for non-admin users) -->

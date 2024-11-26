@@ -175,24 +175,6 @@ func (repo *UserRepository) addUser(user User) (int, error) {
 	return int(insertID), nil
 }
 
-func (repo *UserRepository) CreateCartForUser(userID int) (int, error) {
-	// Create a new cart record for the user
-	query := `INSERT INTO carts (user_id) VALUES (?)`
-	result, err := repo.db.Exec(query, userID)
-	if err != nil {
-		return 0, fmt.Errorf("failed to create cart for user %d: %v", userID, err)
-	}
-
-	cartID, err := result.LastInsertId()
-	if err != nil {
-		log.Println(err.Error())
-		return 0, err
-	}
-
-	log.Printf("Cart created for user %d successfully", userID)
-	return int(cartID), nil
-}
-
 // functions for service layer outside user pkg
 
 func (repo *UserRepository) RegisterUser(user User) (int, error) {
@@ -215,6 +197,43 @@ func (repo *UserRepository) LoginUser(user User) (int, error) {
 		return http.StatusUnauthorized, errors.New("incorrect password")
 	}
 	return http.StatusOK, nil
+}
+
+func (repo *UserRepository) createCartForUser(userID int) (int, error) {
+	// ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	// Create a new cart record for the user
+	query := `INSERT INTO carts (user_id) VALUES (?)`
+	result, err := repo.db.Exec(query, userID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to create cart for user %d: %v", userID, err)
+	}
+
+	cartID, err := result.LastInsertId()
+	if err != nil {
+		log.Println(err.Error())
+		return 0, err
+	}
+
+	log.Printf("Cart %d created for user %d successfully", cartID, userID)
+	return int(cartID), nil
+}
+
+func (repo *UserRepository) GetCartForUser(userID int) (int, error) {
+	// Query to get the cart ID for the given user ID
+	query := `SELECT id FROM carts WHERE user_id = ?`
+	var cartID int
+	err := repo.db.QueryRow(query, userID).Scan(&cartID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// Return a specific error if no cart exists for the user
+			return 0, fmt.Errorf("no cart found for user %d", userID)
+		}
+		log.Printf("Failed to get cart for user %d: %v", userID, err)
+		return 0, err
+	}
+
+	log.Printf("Cart %d retrieved for user %d successfully", cartID, userID)
+	return cartID, nil
 }
 
 // helper functions

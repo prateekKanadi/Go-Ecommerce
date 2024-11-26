@@ -49,6 +49,16 @@ func (s *UserService) GetUserByEmailService(email string) (*User, int, error) {
 	return user, http.StatusOK, nil
 }
 
+func (s *UserService) CreateCartForUserService(userID int) (int, int, error) {
+	CartId, err := s.Repo.createCartForUser(userID)
+
+	if err != nil {
+		log.Print(err)
+		return 0, http.StatusBadRequest, err
+	}
+	return CartId, http.StatusOK, nil
+}
+
 func (s *UserService) addUserService(newUser User) (int, error) {
 	_, err := s.Repo.addUser(newUser)
 	if err != nil {

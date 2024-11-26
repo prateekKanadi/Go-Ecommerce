@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/ecommerce/internal/core/session"
 	"github.com/ecommerce/internal/services/user"
@@ -117,14 +118,13 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 			sess.Values["user"] = &userObj
 			sess.Values["userId"] = user.UserID
 
+			time.Sleep(10 * time.Microsecond)
 			// Now, create a cart for the user
-			log.Printf("Creating cart for user with ID: %d", userID)
+			cartID, status, err := s.UserService.CreateCartForUserService(userID)
 
-			cartID, err := s.UserService.Repo.CreateCartForUser(userID)
-			// cartID, err := s.CartService.Repo.CreateCartForUser(userID)
 			if err != nil {
 				log.Println("Error creating cart:", err)
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, err.Error(), status)
 				return
 			}
 
@@ -226,6 +226,20 @@ func loginProdHandler(s *AuthService) http.HandlerFunc {
 
 			sess.Values["user"] = &userObj
 			sess.Values["userId"] = user.UserID
+
+			//storing cart in session
+			cartID, err := s.UserService.Repo.GetCartForUser(user.UserID)
+			if err != nil {
+				log.Println("Error fetching cart:", err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			cartObj := session.Cart{
+				CartID: cartID}
+
+			sess.Values["cart"] = &cartObj
+
 			err = sess.Save(r, w)
 
 			if err != nil {
