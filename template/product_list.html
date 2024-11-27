@@ -116,7 +116,10 @@
                     <td>${{ .PricePerUnit }}</td>
                     <td>
                         <!-- View button -->
-                        <a href="/prod/cart/{{ .ProductID }}" class="btn" style="background-color: #783fb1;">Add to cart</a>
+                        <form action="/prod/cart/{{ .ProductID }}" method="POST" class="add-to-cart-form">
+                            <button type="submit" class="btn" style="background-color: #783fb1;">Add to cart</button>
+                        </form>
+                        
                         <a href="/prod/products/{{ .ProductID }}" class="btn" style="background-color: #48bb78;">View</a>                                                                         
                         {{ if $.IsAdmin }}
                             <!-- Edit button (conditionally disabled for non-admin users) -->
@@ -168,6 +171,34 @@
                     form.submit(); // Submit with DELETE method
                 });
             });
+
+            // For Add to cart button (simulating add to cart request)
+            const addToCartForms = document.querySelectorAll('.add-to-cart-form');
+
+            // Attach a submit event listener to each form
+            addToCartForms.forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault(); // Prevent the default form submission
+
+                    // Send AJAX request
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                alert('Product added to cart!');
+                            } else {
+                                alert('Failed to add product. Please try again.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error adding product to cart:', error);
+                            alert('Something went wrong. Please try again.');
+                        });
+                });
+            });
+
         });
     </script>
 

@@ -1,6 +1,7 @@
 package cart
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -22,11 +23,12 @@ func SetupCartRoutes(r *mux.Router, s *CartService) {
 	prodUrlPath := fmt.Sprintf("/%s/%s", prodBasePath, cartBasePath)
 	prodCartRouter := r.PathPrefix(prodUrlPath).Subrouter()
 
-	prodCartRouter.HandleFunc("/{id}", AddToCartProdHandler(s)).Methods(http.MethodGet)
+	prodCartRouter.HandleFunc("/{id}", addToCartProdHandler(s)).Methods(http.MethodPost)
 }
 
-func AddToCartProdHandler(s *CartService) http.HandlerFunc {
+func addToCartProdHandler(s *CartService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Get session
 		sess, err := session.GetSessionFromContext(r)
 		if sess == nil {
 			log.Println(err)
@@ -35,28 +37,50 @@ func AddToCartProdHandler(s *CartService) http.HandlerFunc {
 		}
 		log.Println("cart-sess.Values[\"user\"]: ", sess.Values["user"])
 
-		cart := sess.Values["cart"].(*session.Cart)
-		cartID := cart.CartID
-		productID, err := strconv.Atoi(mux.Vars(r)["id"])
-		if err != nil {
-			log.Println(err)
-			http.Error(w, err.Error(), http.StatusNotFound)
-			return
-		}
-		quantity := 1
-		log.Println("cart-productId", productID)
-		log.Println("cart-cartID", cartID)
-
-		// Call the AddOrUpdateCartItem method
-		status, err := s.addOrUpdateCartItemService(cartID, productID, quantity)
-		if err != nil {
-			// Handle the error (e.g., return an error response)
-			http.Error(w, fmt.Sprintf("Failed to add/update cart item: %v", err), status)
+		// Validate cart
+		cart, ok := sess.Values["cart"].(*session.Cart)
+		if !ok || cart == nil {
+			http.Error(w, `{"success": false, "error": "Cart not found"}`, http.StatusBadRequest)
 			return
 		}
 
-		// Success response
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Cart item added/updated successfully"))
+		switch r.Method {
+		case http.MethodPost:
+			//Get cart ID from session
+			cartID := cart.CartID
+			// Get product ID from URL
+			productID, err := strconv.Atoi(mux.Vars(r)["id"])
+			if err != nil {
+				log.Println("Invalid product ID:", err)
+				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), http.StatusNotFound)
+				return
+			}
+			// hardcoded quantity set to 1
+			quantity := 1
+			log.Println("cart-productId", productID)
+			log.Println("cart-cartID", cartID)
+
+			// Call the AddOrUpdateCartItem method
+			status, err := s.addOrUpdateCartItemService(cartID, productID, quantity)
+			if err != nil {
+				// Handle the error (e.g., return an error response)
+				log.Println("Error adding/updating cart item:", err)
+				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), status)
+				return
+			}
+
+			// Success response
+			// Set response content type
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": true,
+				"message": "Cart item added/updated successfully",
+			})
+
+		case http.MethodOptions:
+			return
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
 	}
 }

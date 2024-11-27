@@ -25,7 +25,7 @@ func (s *CartService) addOrUpdateCartItemService(cartID, productID, quantity int
 	}
 
 	// Call the repository to perform the upsert
-	err := s.Repo.AddOrUpdateCartItem(cartID, productID, quantity)
+	err := s.Repo.addOrUpdateCartItem(cartID, productID, quantity)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to add or update cart item: %v", err)
 	}
