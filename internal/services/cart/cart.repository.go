@@ -37,8 +37,7 @@ func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int)
 }
 
 // get all products from cart_items JOIN products table
-func (repo *CartRepository) getAllCartItems(cartID int) ([]CartItem, error) {
-
+func (repo *CartRepository) getAllCartItems(cartID int) (*Cart, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	query := `
@@ -68,6 +67,7 @@ func (repo *CartRepository) getAllCartItems(cartID int) ([]CartItem, error) {
 
 	var items []CartItem
 	var cartTotal float64
+	var cart Cart
 	for rows.Next() {
 		var item CartItem
 		var productName, productBrand, description string
@@ -90,7 +90,6 @@ func (repo *CartRepository) getAllCartItems(cartID int) ([]CartItem, error) {
 
 		// Attach product details to CartItem struct directly without modifying CartItem struct
 		// You can choose to use these values for other operations, but don't store them in CartItem database.
-		// item.ProductID =
 		item.ProductName = productName
 		item.ProductBrand = productBrand
 		item.Description = description
@@ -106,9 +105,10 @@ func (repo *CartRepository) getAllCartItems(cartID int) ([]CartItem, error) {
 	if len(items) == 0 {
 		return nil, nil // No items found for this cart
 	}
-
+	cart.Items = items
+	cart.CartTotal = cartTotal
 	log.Println("Cart items with product details fetched from database")
-	return items, nil
+	return &cart, nil
 }
 
 // ------------CART RELATED------------

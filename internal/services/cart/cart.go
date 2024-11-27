@@ -12,6 +12,9 @@ type Cart struct {
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	Items     []CartItem // One-to-many relationship
+
+	//below fields not stored in db only for ease of access
+	CartTotal float64
 }
 
 type CartItem struct {

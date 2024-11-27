@@ -103,8 +103,9 @@
         }
 
         .btn-disabled {
-            background-color: #ccc;
+            background-color: #a0aec0;
             cursor: not-allowed;
+            color: #e2e8f0;
         }
     </style>
 </head>
@@ -155,7 +156,12 @@
         <div style="text-align: center; margin-top: 20px;">
             <a href="/prod/products" class="btn">Continue Shopping</a>
             <form action="/prod/checkout" method="POST" style="display: inline;">
-                <button type="submit" class="btn {{ if eq .CartTotal 0 }}btn-disabled{{ end }}" {{ if eq .CartTotal 0 }}disabled{{ end }}>Proceed to Checkout</button>
+                {{ if eq .CartTotal 0.0 }}
+                    <button type="submit" class="btn-disabled" disabled>Proceed to Checkout</button>
+                {{ else }}
+                    <button type="submit" class="btn">Proceed to Checkout</button>
+                {{ end }}
+                <!-- <button type="submit" class="btn" {{ if eq .CartTotal 0.0 }}disabled{{ end }}>Proceed to Checkout</button> -->
             </form>
         </div>
     </div>

@@ -62,14 +62,16 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 				return
 			}
 
-			cartItemList, res, err := s.getAllCartItemsService(cartID)
+			cartList, res, err := s.getAllCartItemsService(cartID)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, err.Error(), res)
 				return
 			}
+			// cartList.CartTotal = 0.0
+			err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartList.Items,
+				"IsAdmin": user.IsAdmin, "CartTotal": cartList.CartTotal})
 
-			err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartItemList, "IsAdmin": user.IsAdmin})
 			if err != nil {
 				log.Println("Template execution error:", err)
 				http.Error(w, "Error rendering product list page", http.StatusInternalServerError)

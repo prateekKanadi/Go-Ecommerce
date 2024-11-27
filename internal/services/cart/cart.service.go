@@ -34,12 +34,12 @@ func (s *CartService) addOrUpdateCartItemService(cartID, productID, quantity int
 	return http.StatusOK, nil
 }
 
-func (s *CartService) getAllCartItemsService(cartID int) ([]CartItem, int, error) {
-	cartItemList, err := s.Repo.getAllCartItems(cartID)
+func (s *CartService) getAllCartItemsService(cartID int) (*Cart, int, error) {
+	cartList, err := s.Repo.getAllCartItems(cartID)
 	if err != nil {
 		log.Printf("Error fetching cart items: %v", err)
 		return nil, http.StatusInternalServerError, err
 	}
 
-	return cartItemList, http.StatusOK, nil
+	return cartList, http.StatusOK, nil
 }
