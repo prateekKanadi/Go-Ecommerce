@@ -3,6 +3,7 @@ package cart
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -23,10 +24,10 @@ func SetupCartRoutes(r *mux.Router, s *CartService) {
 	prodUrlPath := fmt.Sprintf("/%s/%s", prodBasePath, cartBasePath)
 	prodCartRouter := r.PathPrefix(prodUrlPath).Subrouter()
 
-	prodCartRouter.HandleFunc("/{id}", addToCartProdHandler(s)).Methods(http.MethodPost)
+	prodCartRouter.HandleFunc("/{id}", cartProdHandler(s))
 }
 
-func addToCartProdHandler(s *CartService) http.HandlerFunc {
+func cartProdHandler(s *CartService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Get session
 		sess, err := session.GetSessionFromContext(r)
@@ -36,6 +37,11 @@ func addToCartProdHandler(s *CartService) http.HandlerFunc {
 			return
 		}
 		log.Println("cart-sess.Values[\"user\"]: ", sess.Values["user"])
+		user, ok := sess.Values["user"].(*session.User)
+		if !ok || user == nil {
+			http.Error(w, `{"success": false, "error": "User not found"}`, http.StatusBadRequest)
+			return
+		}
 
 		// Validate cart
 		cart, ok := sess.Values["cart"].(*session.Cart)
@@ -44,10 +50,33 @@ func addToCartProdHandler(s *CartService) http.HandlerFunc {
 			return
 		}
 
+		//Get cart ID from session
+		cartID := cart.CartID
+
 		switch r.Method {
+		case http.MethodGet:
+			tmpl, err := template.ParseFiles("template/cart_item_list.html")
+			if err != nil {
+				log.Println("Template parsing error:", err)
+				http.Error(w, "Error loading product list page", http.StatusInternalServerError)
+				return
+			}
+
+			cartItemList, res, err := s.getAllCartItemsService(cartID)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, err.Error(), res)
+				return
+			}
+
+			err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartItemList, "IsAdmin": user.IsAdmin})
+			if err != nil {
+				log.Println("Template execution error:", err)
+				http.Error(w, "Error rendering product list page", http.StatusInternalServerError)
+				return
+			}
+			return
 		case http.MethodPost:
-			//Get cart ID from session
-			cartID := cart.CartID
 			// Get product ID from URL
 			productID, err := strconv.Atoi(mux.Vars(r)["id"])
 			if err != nil {

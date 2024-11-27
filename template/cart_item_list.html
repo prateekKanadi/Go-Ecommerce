@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cart</title>
+    <style>
+        /* General styling */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Container styling */
+        .cart-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .cart-container h1 {
+            color: #5a67d8;
+            font-size: 2em;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #5a67d8;
+            color: #fff;
+            text-align: center;
+        }
+
+        td {
+            text-align: center;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Summary section */
+        .cart-summary {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .cart-summary span {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #5a67d8;
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1em;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #4c51bf;
+        }
+
+        .btn-secondary {
+            background-color: #e53e3e;
+        }
+
+        .btn-secondary:hover {
+            background-color: #c53030;
+        }
+
+        .btn-disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cart-container">
+        <h1>My Cart</h1>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Price per Unit</th>
+                    <th>Total Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range .CartItems }}
+                <tr>
+                    <td>{{ .ProductName }}</td>
+                    <td>{{ .Quantity }}</td>
+                    <td>${{ .PricePerUnit }}</td>
+                    <td>${{ .TotalPrice }}</td>
+                    <td>
+                        <form action="/prod/cart/{{ .ID }}/remove" method="DELETE" style="display: inline;">
+                            <button type="submit" class="btn btn-secondary">Remove</button>
+                        </form>
+                        <form action="/prod/cart/{{ .ID }}/update" method="POST" style="display: inline;">
+                            <input type="number" name="quantity" value="{{ .Quantity }}" min="1" style="width: 50px; text-align: center;" />
+                            <button type="submit" class="btn">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {{ else }}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #555;">Your cart is empty.</td>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
+
+        <div class="cart-summary">
+            <p>Total: <span>${{ .CartTotal }}</span></p>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/prod/products" class="btn">Continue Shopping</a>
+            <form action="/prod/checkout" method="POST" style="display: inline;">
+                <button type="submit" class="btn {{ if eq .CartTotal 0 }}btn-disabled{{ end }}" {{ if eq .CartTotal 0 }}disabled{{ end }}>Proceed to Checkout</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,7 +1,7 @@
 package product
 
 type Product struct {
-	ProductID     int     `json:"productId"`
+	ProductID     int     `json:"productId,omitempty"`
 	PricePerUnit  float64 `json:"pricePerUnit"`
 	ProductName   string  `json:"productName"`
 	ProductBrand  string  `json:"productBrand"`

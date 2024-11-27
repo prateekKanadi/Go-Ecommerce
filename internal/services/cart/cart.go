@@ -1,6 +1,10 @@
 package cart
 
-import "time"
+import (
+	"time"
+
+	"github.com/ecommerce/internal/services/product"
+)
 
 type Cart struct {
 	ID        int        `json:"id"`
@@ -17,4 +21,8 @@ type CartItem struct {
 	Quantity  int       `json:"quantity"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+
+	//below fields not stored in db only for ease of access
+	product.Product
+	TotalPrice float64
 }

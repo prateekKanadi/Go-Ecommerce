@@ -2,6 +2,7 @@ package cart
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -31,4 +32,14 @@ func (s *CartService) addOrUpdateCartItemService(cartID, productID, quantity int
 	}
 
 	return http.StatusOK, nil
+}
+
+func (s *CartService) getAllCartItemsService(cartID int) ([]CartItem, int, error) {
+	cartItemList, err := s.Repo.getAllCartItems(cartID)
+	if err != nil {
+		log.Printf("Error fetching cart items: %v", err)
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return cartItemList, http.StatusOK, nil
 }

@@ -37,8 +37,78 @@ func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int)
 }
 
 // get all products from cart_items JOIN products table
-func (repo *CartRepository) getAllCartItem() error {
-	return nil
+func (repo *CartRepository) getAllCartItems(cartID int) ([]CartItem, error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	query := `
+        SELECT 
+            ci.ID AS item_id,
+            ci.cart_id,
+            p.productId,
+            ci.quantity,
+            ci.created_at AS item_created_at,
+            ci.updated_at AS item_updated_at,
+            p.productName,
+            p.productBrand,
+            p.description,
+            p.pricePerUnit
+        FROM 
+            cart_items ci
+        LEFT JOIN 
+            products p ON ci.product_id = p.productId
+        WHERE 
+            ci.cart_id = ?`
+
+	rows, err := repo.db.QueryContext(ctx, query, cartID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []CartItem
+	var cartTotal float64
+	for rows.Next() {
+		var item CartItem
+		var productName, productBrand, description string
+		var pricePerUnit float64
+		err := rows.Scan(
+			&item.ID,
+			&item.CartID,
+			&item.ProductID,
+			&item.Quantity,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+			&productName,
+			&productBrand,
+			&description,
+			&pricePerUnit,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		// Attach product details to CartItem struct directly without modifying CartItem struct
+		// You can choose to use these values for other operations, but don't store them in CartItem database.
+		// item.ProductID =
+		item.ProductName = productName
+		item.ProductBrand = productBrand
+		item.Description = description
+		item.PricePerUnit = pricePerUnit
+		totalPrice := ((float64)(item.Quantity) * pricePerUnit)
+		item.TotalPrice = float64(totalPrice)
+		cartTotal += totalPrice
+
+		// Append the item to the items slice
+		items = append(items, item)
+	}
+
+	if len(items) == 0 {
+		return nil, nil // No items found for this cart
+	}
+
+	log.Println("Cart items with product details fetched from database")
+	return items, nil
 }
 
 // ------------CART RELATED------------
