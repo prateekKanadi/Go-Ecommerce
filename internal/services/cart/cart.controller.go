@@ -24,10 +24,11 @@ func SetupCartRoutes(r *mux.Router, s *CartService) {
 	prodUrlPath := fmt.Sprintf("/%s/%s", prodBasePath, cartBasePath)
 	prodCartRouter := r.PathPrefix(prodUrlPath).Subrouter()
 
+	prodCartRouter.HandleFunc("", cartsProdHandler(s))
 	prodCartRouter.HandleFunc("/{id}", cartProdHandler(s))
 }
 
-func cartProdHandler(s *CartService) http.HandlerFunc {
+func cartsProdHandler(s *CartService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Get session
 		sess, err := session.GetSessionFromContext(r)
@@ -58,7 +59,7 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 			tmpl, err := template.ParseFiles("template/cart_item_list.html")
 			if err != nil {
 				log.Println("Template parsing error:", err)
-				http.Error(w, "Error loading product list page", http.StatusInternalServerError)
+				http.Error(w, "Error loading cart list page", http.StatusInternalServerError)
 				return
 			}
 
@@ -74,10 +75,45 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 
 			if err != nil {
 				log.Println("Template execution error:", err)
-				http.Error(w, "Error rendering product list page", http.StatusInternalServerError)
+				http.Error(w, "Error rendering cart list page", http.StatusInternalServerError)
 				return
 			}
 			return
+		case http.MethodOptions:
+			return
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}
+}
+
+func cartProdHandler(s *CartService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get session
+		sess, err := session.GetSessionFromContext(r)
+		if sess == nil {
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		log.Println("cart-sess.Values[\"user\"]: ", sess.Values["user"])
+		user, ok := sess.Values["user"].(*session.User)
+		if !ok || user == nil {
+			http.Error(w, `{"success": false, "error": "User not found"}`, http.StatusBadRequest)
+			return
+		}
+
+		// Validate cart
+		cart, ok := sess.Values["cart"].(*session.Cart)
+		if !ok || cart == nil {
+			http.Error(w, `{"success": false, "error": "Cart not found"}`, http.StatusBadRequest)
+			return
+		}
+
+		//Get cart ID from session
+		cartID := cart.CartID
+
+		switch r.Method {
 		case http.MethodPost:
 			// Get product ID from URL
 			productID, err := strconv.Atoi(mux.Vars(r)["id"])

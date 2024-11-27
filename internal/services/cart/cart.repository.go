@@ -44,7 +44,7 @@ func (repo *CartRepository) getAllCartItems(cartID int) (*Cart, error) {
         SELECT 
             ci.ID AS item_id,
             ci.cart_id,
-            p.productId,
+            ci.product_id,
             ci.quantity,
             ci.created_at AS item_created_at,
             ci.updated_at AS item_updated_at,
