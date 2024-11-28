@@ -23,12 +23,19 @@ func NewCartRepository(db *sql.DB) *CartRepository {
 
 // ------------CART-ITEM RELATED------------
 func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int) error {
-	// Upsert query: Insert if the product doesn't exist in the cart, or update the quantity if it does
-	query := `
+	var query string
+	if quantity > 1 {
+		query = `INSERT INTO cart_items (cart_id, product_id, quantity)
+	VALUES (?, ?, ?)
+	ON DUPLICATE KEY UPDATE quantity = VALUES(quantity), updated_at = CURRENT_TIMESTAMP
+`
+	} else {
+		query = `
 		INSERT INTO cart_items (cart_id, product_id, quantity)
 		VALUES (?, ?, ?)
 		ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity), updated_at = CURRENT_TIMESTAMP
 	`
+	}
 	_, err := repo.db.Exec(query, cartID, productID, quantity)
 	if err != nil {
 		return fmt.Errorf("failed to add/update cart item: %v", err)
@@ -88,8 +95,6 @@ func (repo *CartRepository) getAllCartItems(cartID int) (*Cart, error) {
 			return nil, err
 		}
 
-		// Attach product details to CartItem struct directly without modifying CartItem struct
-		// You can choose to use these values for other operations, but don't store them in CartItem database.
 		item.ProductName = productName
 		item.ProductBrand = productBrand
 		item.Description = description
@@ -98,7 +103,6 @@ func (repo *CartRepository) getAllCartItems(cartID int) (*Cart, error) {
 		item.TotalPrice = float64(totalPrice)
 		cartTotal += totalPrice
 
-		// Append the item to the items slice
 		items = append(items, item)
 	}
 	cart.Items = items
