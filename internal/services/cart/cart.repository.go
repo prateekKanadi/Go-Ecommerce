@@ -101,12 +101,13 @@ func (repo *CartRepository) getAllCartItems(cartID int) (*Cart, error) {
 		// Append the item to the items slice
 		items = append(items, item)
 	}
-
-	if len(items) == 0 {
-		return nil, nil // No items found for this cart
-	}
 	cart.Items = items
 	cart.CartTotal = cartTotal
+
+	if len(items) == 0 {
+		return &cart, nil // No items found for this cart
+	}
+
 	log.Println("Cart items with product details fetched from database")
 	return &cart, nil
 }

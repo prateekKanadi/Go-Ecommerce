@@ -122,8 +122,27 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), http.StatusNotFound)
 				return
 			}
+
+			err = r.ParseForm()
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "Error parsing form data", http.StatusBadRequest)
+				return
+			}
+
+			// extracting data of form values
+			var quantity = 1
+			if r.FormValue("quantity") != "" {
+				quantity, err = strconv.Atoi(r.FormValue("quantity"))
+				if err != nil {
+					log.Println("Invalid quantity:", err)
+					http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), http.StatusBadRequest)
+					return
+				}
+			}
+
 			// hardcoded quantity set to 1
-			quantity := 1
+			// quantity := 1
 			log.Println("cart-productId", productID)
 			log.Println("cart-cartID", cartID)
 
@@ -138,11 +157,16 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 
 			// Success response
 			// Set response content type
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
-				"success": true,
-				"message": "Cart item added/updated successfully",
-			})
+
+			if r.FormValue("quantity") != "" {
+				http.Redirect(w, r, "/prod/cart", http.StatusSeeOther) // 303
+			} else {
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(map[string]interface{}{
+					"success": true,
+					"message": "Cart item added/updated successfully",
+				})
+			}
 
 		case http.MethodOptions:
 			return
