@@ -16,9 +16,71 @@
             align-items: center;
             min-height: 100vh;
             color: #333;
+            flex-direction: column;
         }
 
-        /* Container styling */
+        /* Header styling */
+        header {
+            width: 100%;
+            background-color: #fff;
+            padding: 15px 20px;  /* Adjusted padding */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: flex-start; /* Align buttons to the left */
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .welcome-message {
+            font-size: 1.2em;
+            color: #5a67d8;
+            margin-right: 800px;  /* Space between welcome message and buttons */
+            margin-bottom: 15px; /* Added space between the welcome message and buttons */
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;  /* Increased gap between buttons for better spacing */
+            margin-left: 20px; /* Ensured buttons are not flush against the edge */
+            flex-wrap: wrap; /* Ensures buttons wrap if they overflow */
+        }
+
+        .btn {
+            padding: 8px 15px; /* Reduced padding to fit buttons */
+            background-color: #5a67d8;  /* Set all buttons to this color */
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #4c51bf;
+        }
+
+        .btn-secondary {
+            background-color: #edf2f7;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+
+        form button[type="submit"] {
+            margin-left: 0px;
+        }
+
+        header .btn-container {
+            overflow: hidden;
+        }
+
+        /* Cart Container styling */
         .cart-container {
             background-color: #fff;
             padding: 40px;
@@ -26,6 +88,7 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             width: 90%;
             max-width: 800px;
+            margin-top: 100px; /* Adjusted for header */
         }
 
         .cart-container h1 {
@@ -36,7 +99,7 @@
             margin-bottom: 20px;
         }
 
-        /* Table styling */
+        /* Table styling (for rows matching product listing) */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -52,18 +115,30 @@
         th {
             background-color: #5a67d8;
             color: #fff;
-            text-align: center;
-        }
-
-        td {
-            text-align: center;
         }
 
         tr:hover {
-            background-color: #f1f1f1;
+            background-color: #f1f1f1; /* Hover effect for rows */
         }
 
-        /* Summary section */
+        .action-buttons {
+            display: flex;
+            gap: 10px; /* Space between remove and update buttons */
+            align-items: center;
+        }
+
+        .action-buttons form {
+            display: inline-block;
+            margin-right: 0;
+        }
+
+        /* Buttons inside action section */
+        .btn {
+            padding: 8px 12px;
+            font-size: 0.9em; /* Smaller font size to fit better */
+        }
+
+        /* Cart Summary */
         .cart-summary {
             text-align: right;
             margin-top: 20px;
@@ -75,33 +150,7 @@
             color: #333;
         }
 
-        /* Buttons */
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            margin: 5px;
-            background-color: #5a67d8;
-            color: #fff;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 1em;
-            text-align: center;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn:hover {
-            background-color: #4c51bf;
-        }
-
-        .btn-secondary {
-            background-color: #e53e3e;
-        }
-
-        .btn-secondary:hover {
-            background-color: #c53030;
-        }
-
+        /* Disabled button styling */
         .btn-disabled {
             background-color: #a0aec0;
             cursor: not-allowed;
@@ -111,6 +160,21 @@
 </head>
 <body>
 
+    <!-- Header Section -->
+    <header>
+        <div class="welcome-message">
+            My Cart Page
+        </div>
+        <div class="btn-container">
+            <a href="/prod/users/dashboard" class="btn" title="View My Dashboard">Dashboard</a>
+            <a href="/prod/products" class="btn" title="View My Products">Products</a>
+            <form action="/prod/auth/logout" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <!-- Cart Container -->
     <div class="cart-container">
         <h1>My Cart</h1>
 
@@ -131,11 +195,11 @@
                     <td>{{ .Quantity }}</td>
                     <td>${{ .PricePerUnit }}</td>
                     <td>${{ .TotalPrice }}</td>
-                    <td>
+                    <td class="action-buttons">
                         <form action="/prod/cart/{{ .ID }}/remove" method="DELETE" style="display: inline;">
                             <button type="submit" class="btn btn-secondary">Remove</button>
                         </form>
-                        <form action="/prod/cart/{{ .ID }}/update" method="POST" style="display: inline;">
+                        <form action="/prod/cart/{{ .ProductID }}" method="POST" style="display: inline;">
                             <input type="number" name="quantity" value="{{ .Quantity }}" min="1" style="width: 50px; text-align: center;" />
                             <button type="submit" class="btn">Update</button>
                         </form>
@@ -161,7 +225,6 @@
                 {{ else }}
                     <button type="submit" class="btn">Proceed to Checkout</button>
                 {{ end }}
-                <!-- <button type="submit" class="btn" {{ if eq .CartTotal 0.0 }}disabled{{ end }}>Proceed to Checkout</button> -->
             </form>
         </div>
     </div>
