@@ -34,6 +34,17 @@ func (s *CartService) addOrUpdateCartItemService(cartID, productID, quantity int
 	return http.StatusOK, nil
 }
 
+/*Remove cart item method */
+func (s *CartService) removeCartItem(cartID, productID int) (int,error){
+   
+	err := s.Repo.removeCartItem(cartID, productID)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to remove cart item: %v", err)
+	}
+
+	return http.StatusOK, nil
+}
+
 func (s *CartService) getAllCartItemsService(cartID int) (*Cart, int, error) {
 	cartList, err := s.Repo.getAllCartItems(cartID)
 	if err != nil {

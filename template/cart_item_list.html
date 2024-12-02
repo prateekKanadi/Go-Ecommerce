@@ -196,7 +196,7 @@
                     <td>${{ .PricePerUnit }}</td>
                     <td>${{ .TotalPrice }}</td>
                     <td class="action-buttons">
-                        <form action="/prod/cart/{{ .ID }}/remove" method="DELETE" style="display: inline;">
+                        <form action="/prod/cart/{{ .ID }}/remove" method="POST" style="display: inline;">
                             <button type="submit" class="btn btn-secondary">Remove</button>
                         </form>
                         <form action="/prod/cart/{{ .ProductID }}" method="POST" style="display: inline;">

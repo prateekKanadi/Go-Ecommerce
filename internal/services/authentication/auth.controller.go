@@ -211,6 +211,7 @@ func loginProdHandler(s *AuthService) http.HandlerFunc {
 				return
 			}
 
+			// Start storing the user object in the session
 			//storing user in session
 			user, res, err := s.UserService.GetUserByEmailService(email)
 
@@ -227,6 +228,7 @@ func loginProdHandler(s *AuthService) http.HandlerFunc {
 			sess.Values["user"] = &userObj
 			sess.Values["userId"] = user.UserID
 
+			// Extract the cart that was stored for the user ..and
 			//storing cart in session
 			cartID, err := s.UserService.Repo.GetCartForUser(user.UserID)
 			if err != nil {

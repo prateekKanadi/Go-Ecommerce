@@ -180,6 +180,8 @@ func (repo *UserRepository) addUser(user User) (int, error) {
 func (repo *UserRepository) RegisterUser(user User) (int, error) {
 	return repo.addUser(user)
 }
+
+/* Login user authentication */
 func (repo *UserRepository) LoginUser(user User) (int, error) {
 	existingUser, err := repo.getUserByEmail(user.Email)
 	if err != nil {
