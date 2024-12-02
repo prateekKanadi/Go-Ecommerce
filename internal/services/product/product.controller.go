@@ -45,7 +45,33 @@ func productsProdHandler(s *ProductService) http.HandlerFunc {
 			return
 		}
 
-		user := sess.Values["user"].(*session.User)
+		var user *session.User
+		isAnon := sess.Values["isAnon"].(bool)
+		if isAnon {
+			// Initialize `user` before using it
+			user = &session.User{
+				IsAdmin:  0,
+				Email:    "",
+				Password: "",
+			}
+
+			userId, err := session.GetSessionUserID(sess)
+			if err != nil {
+				log.Println("UserId is not set in session", err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			user.UserID = userId
+			sess.Values["user"] = &user
+			log.Println("my products Anon userID : ", userId)
+		} else {
+			sessUser, ok := sess.Values["user"].(*session.User)
+			if !ok || sessUser == nil {
+				http.Error(w, `{"success": false, "error": "User not found"}`, http.StatusBadRequest)
+				return
+			}
+			user = sessUser
+		}
 
 		switch r.Method {
 		case http.MethodGet:
