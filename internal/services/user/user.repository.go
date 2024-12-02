@@ -253,3 +253,96 @@ func hashPassword(password string) (string, error) {
 	// Convert the hashed password back to a string
 	return string(hashed), nil
 }
+
+type AddressRepository struct {
+	db *sql.DB
+}
+
+func (repo *UserRepository) GetAddressByUserId(userId int) (Address, error) {
+	var address Address
+	row := repo.db.QueryRow(`
+        SELECT 
+            userId, 
+            houseNo, 
+            landmark, 
+            city, 
+            state, 
+            pincode, 
+            phoneNumber 
+        FROM address 
+        WHERE userId = ?`, userId)
+	err := row.Scan(
+		&address.UserID,
+		&address.HouseNo,
+		&address.Landmark,
+		&address.City,
+		&address.State,
+		&address.Pincode,
+		&address.PhoneNumber,
+	)
+
+	if err == sql.ErrNoRows {
+		return address, fmt.Errorf("no address found for userId %d: %v", userId, err)
+	} else if err != nil {
+		log.Println(err)
+		return address, err
+	}
+	return address, nil
+}
+
+func (repo *UserRepository) UpdateAddressByUserId(userId int, address Address) error {
+	_, err := repo.db.Exec(`
+		UPDATE address 
+		SET 
+			houseNo = ?, 
+			landmark = ?, 
+			city = ?, 
+			state = ?, 
+			pincode = ?, 
+			phoneNumber = ? 
+		WHERE userId = ?`,
+		address.HouseNo,
+		address.Landmark,
+		address.City,
+		address.State,
+		address.Pincode,
+		address.PhoneNumber,
+		userId)
+	if err != nil {
+		log.Println("Error updating address:", err)
+		return fmt.Errorf("failed to update address for userId %d: %v", userId, err)
+	}
+
+	return nil
+}
+
+func (repo *UserRepository) AddAddressByUser(userId int, address Address) (int, error) {
+	// Execute the SQL INSERT query to add a new address for the given userId.
+	result, err := repo.db.Exec(`
+		INSERT INTO address 
+		(userId, houseNo, landmark, city, state, pincode, phoneNumber) 
+		VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		userId,
+		address.HouseNo,
+		address.Landmark,
+		address.City,
+		address.State,
+		address.Pincode,
+		address.PhoneNumber)
+
+	// If there was an error executing the query, return the error.
+	if err != nil {
+		log.Println("Error adding address:", err)
+		return 0, fmt.Errorf("failed to add address for userId %d: %v", userId, err)
+	}
+
+	// Get the last inserted ID to return the newly created address's ID.
+	insertedId, err := result.LastInsertId()
+	if err != nil {
+		log.Println("Error fetching last insert ID:", err)
+		return 0, fmt.Errorf("failed to fetch the last insert ID: %v", err)
+	}
+
+	// Return the newly inserted address ID (int).
+	return int(insertedId), nil
+}

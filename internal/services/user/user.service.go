@@ -95,3 +95,27 @@ func (s *UserService) removeUserService(userID int) (int, error) {
 	}
 	return http.StatusOK, nil
 }
+
+func (s *UserService) GetAddressByUserId(userID int) (Address, error) {
+	address, err := s.Repo.GetAddressByUserId(userID)
+	if err != nil {
+		return address, err
+	}
+	return address, nil
+}
+
+func (s *UserService) UpdateAddressByUserId(userId int, address Address) error {
+	err := s.Repo.UpdateAddressByUserId(userId, address)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *UserService) AddAddressByUser(userId int, address Address) (int, error) {
+	id, err := s.Repo.AddAddressByUser(userId, address)
+	if err != nil {
+		return id, err
+	}
+	return id, nil
+}
