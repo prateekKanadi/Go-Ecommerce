@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Address</title>
+    <style>
+        /* Body styling */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        /* Registration container styling */
+        .address-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px; /* Increased to accommodate two-column layout */
+            text-align: center;
+        }
+
+        .address-container h2 {
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            color: #4CAF50;
+            font-weight: 600;
+        }
+
+        /* Error message styling */
+        .error-message {
+            color: #d9534f;
+            background-color: #f2dede;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        /* Two-column layout */
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 12px;
+        }
+
+        .form-row input {
+            width: 48%; /* Distribute fields in two columns */
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        /* Submit button styling */
+        .address-container input[type="submit"], .address-container button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            border: none;
+            color: #fff;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 12px;
+        }
+
+        .address-container input[type="submit"]:hover, .address-container button:hover {
+            background-color: #45a049;
+        }
+
+        /* Link styling */
+        .address-container a {
+            display: block;
+            margin-top: 20px;
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+        .address-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="address-container">
+        <h2>Update Your Address</h2>
+
+        <!-- Display error message if any -->
+        {{if .Error}}
+        <div class="error-message">{{.Error}}</div>
+        {{end}}
+
+        <form method="POST" action="/prod/auth/address/update">
+            <!-- First row of inputs -->
+            <div class="form-row">
+                <input type="text" name="houseNo" placeholder="House Number" value="{{.Address.HouseNo}}" required>
+                <input type="text" name="landmark" placeholder="Landmark" value="{{.Address.Landmark}}">
+            </div>
+
+            <!-- Second row of inputs -->
+            <div class="form-row">
+                <input type="text" name="city" placeholder="City" value="{{.Address.City}}" required>
+                <input type="text" name="state" placeholder="State" value="{{.Address.State}}" required>
+            </div>
+
+            <!-- Third row of inputs -->
+            <div class="form-row">
+                <input type="text" name="pincode" placeholder="Pincode" value="{{.Address.Pincode}}" required>
+                <input type="text" name="phoneNumber" placeholder="Phone Number" value="{{.Address.PhoneNumber}}" required>
+            </div>
+
+            <!-- Submit button -->
+            <button type="submit">Update Address</button>
+        </form>
+
+        <a href="/prod/users/dashboard">Back to Dashboard</a>
+    </div>
+
+</body>
+</html>
