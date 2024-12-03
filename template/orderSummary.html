@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Summary</title>
+    <style>
+        /* Body styling */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Header styling */
+        header {
+            width: 100%;
+            background-color: #fff;
+            padding: 15px 20px;  /* Adjusted padding */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: flex-start; /* Align buttons to the left */
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .welcome-message {
+            font-size: 1.2em;
+            color: #5a67d8;
+            margin-right: 700px;  /* Space between welcome message and buttons */
+            margin-bottom: 15px; /* Added space between the welcome message and buttons */
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;  /* Increased gap between buttons for better spacing */
+            margin-left: 20px; /* Ensured buttons are not flush against the edge */
+            flex-wrap: wrap; /* Ensures buttons wrap if they overflow */
+        }
+
+        /* Adjust container to prevent overflowing */
+        header .btn-container {
+            overflow: hidden; /* Ensure no overflow */
+        }
+
+        /* Container styling */
+        .product-details-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 800px;
+            margin-top: 100px; /* Adjusted for header */
+        }
+
+        .product-details-container h1 {
+            color: #02040c;
+            font-size: 2em;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Details Section */
+        .order-summary {
+            margin-bottom: 20px;
+        }
+
+        .order-summary div {
+            margin-bottom: 15px;
+        }
+
+        .order-summary label {
+            font-weight: bold;
+        }
+
+        .order-summary .value {
+            color: #555;
+        }
+
+        /* Button styling */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #5a67d8;
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1em;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #4c51bf;
+        }
+
+        /* Go Back Button */
+        .btn-back {
+            background-color: #e53e3e;
+        }
+
+        .btn-back:hover {
+            background-color: #c53030;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <div class="welcome-message">
+            Order Summary Page
+        </div>
+        <div class="btn-container">
+            <a href="/prod/users/dashboard" class="btn" title="View My Products">Dashboard</a>
+            <!-- New Logout Button -->
+            <form action="/prod/auth/logout" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <div class="order-summary-container">
+        <h1>Order Summary</h1>
+
+        <div class="order-summary">
+            <div>
+                <label>Order Number:</label>
+                <span class="value">{{ .Order.OrderID }}</span>
+            </div>
+            <div>
+                <label>Order Date:</label>
+                <span class="value">{{ .Order.CreatedAt }}</span>
+            </div>
+            <div>
+                <label>Shipping Address:</label>
+                <span class="value">${{ .Order.ShippingAddress }}</span>
+            </div>
+            <div>
+                <label>Shipping Method:</label>
+                <span class="value">{{ .Order.DeliveryMode }}</span>
+            </div>
+            <div>
+                <label>Payment Method:</label>
+                <span class="value">{{ .Order.PaymentMode }}</span>
+            </div>
+            <div>
+                <label>Total Price:</label>
+                <span class="value">{{ .Order.OrderTotal }}</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JavaScript to handle method switching -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // For Edit button (simulating PUT request)
+            const editForms = document.querySelectorAll('.edit-form');
+            editForms.forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    form.method = 'PUT'; // Change method to PUT for Edit
+                    form.submit(); // Submit with PUT method
+                });
+            });
+
+            // For Delete button (simulating DELETE request)
+            const deleteForms = document.querySelectorAll('.delete-form');
+            deleteForms.forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    form.method = 'DELETE'; // Change method to DELETE for Delete
+                    form.submit(); // Submit with DELETE method
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>

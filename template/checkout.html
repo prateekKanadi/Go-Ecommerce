@@ -130,7 +130,9 @@
             <p>Taxes <span>€0.00</span></p>
             <hr>
             <p><strong>Total</strong> <span><strong>€20.00</strong></span></p>
-            <a href="#" class="button" onclick="checkout()">Checkout</a>
+            <form action="/prod/orderSummary" method="POST" style="display: inline;">
+                    <button type="submit" class="btn">Checkout</button>
+            </form>
         </div>
     </div>
 
@@ -152,29 +154,6 @@
                     document.getElementById('shipping-address').innerHTML = '<p>Error loading address.</p>';
                 });
         });
-
-        // Function to handle the checkout process
-        function checkout() {
-            const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
-            alert('Selected Delivery: ' + deliveryType);
-
-            // Send delivery type to the server for processing (example only)
-            fetch('/api/checkout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    deliveryType: deliveryType
-                })
-            }).then(response => {
-                if (response.ok) {
-                    alert('Checkout successful!');
-                } else {
-                    alert('Checkout failed!');
-                }
-            });
-        }
     </script>
 </body>
 </html>

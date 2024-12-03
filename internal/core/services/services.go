@@ -6,6 +6,7 @@ import (
 	"github.com/ecommerce/internal/services/authentication"
 	"github.com/ecommerce/internal/services/cart"
 	"github.com/ecommerce/internal/services/checkout"
+	"github.com/ecommerce/internal/services/order"
 	"github.com/ecommerce/internal/services/product"
 	"github.com/ecommerce/internal/services/user"
 )
@@ -16,6 +17,7 @@ type ServiceRegistry struct {
 	ProductService  *product.ProductService
 	CartService     *cart.CartService
 	CheckoutService *checkout.CheckoutService
+	OrderService    *order.OrderService
 }
 
 func InitializeServices(db *sql.DB) *ServiceRegistry {
@@ -38,6 +40,10 @@ func InitializeServices(db *sql.DB) *ServiceRegistry {
 	checkoutRepo := checkout.NewCheckoutRepository(db)
 	checkoutService := checkout.NewCheckoutService(checkoutRepo)
 
+	// Initialize order repository and service
+	orderRepo := order.NewOrderRepository(db)
+	orderService := order.NewOrderService(orderRepo)
+
 	// Return the ServiceRegistry with all services initialized
 	return &ServiceRegistry{
 		UserService:     userService,
@@ -45,5 +51,6 @@ func InitializeServices(db *sql.DB) *ServiceRegistry {
 		ProductService:  productService,
 		CartService:     cartService,
 		CheckoutService: checkoutService,
+		OrderService:    orderService,
 	}
 }
