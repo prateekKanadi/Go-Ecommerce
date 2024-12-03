@@ -89,7 +89,7 @@ func productsProdHandler(s *ProductService) http.HandlerFunc {
 				return
 			}
 
-			err = tmpl.Execute(w, map[string]interface{}{"Products": productList, "IsAdmin": user.IsAdmin})
+			err = tmpl.Execute(w, map[string]interface{}{"Products": productList, "IsAdmin": user.IsAdmin, "isAnon": isAnon})
 			if err != nil {
 				log.Println("Template execution error:", err)
 				http.Error(w, "Error rendering product list page", http.StatusInternalServerError)

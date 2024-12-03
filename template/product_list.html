@@ -197,7 +197,11 @@
             Product Listing Page
         </div>
         <div class="btn-container">
-            <a href="/prod/users/dashboard" class="btn" title="View My Products">Dashboard</a>
+            {{ if $.isAnon }}
+                <a href="/" class="btn" title="View Home Page">Home</a>
+            {{ else }}
+                <a href="/prod/users/dashboard" class="btn" title="View My Products">Dashboard</a>
+            {{ end }}
             <a href="/prod/cart" class="btn" title="View My Cart">My Cart</a>
             <!-- New Logout Button -->
             <form action="/prod/auth/logout" method="POST" style="display: inline;">
