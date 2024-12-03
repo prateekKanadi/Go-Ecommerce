@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .left-section, .right-section {
+            width: 100%;
+            max-width: 600px;
+        }
+        .right-section {
+            padding: 20px;
+            border-left: 1px solid #ddd;
+        }
+        h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .summary {
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .summary p {
+            display: flex;
+            justify-content: space-between;
+        }
+        .button {
+            display: block;
+            background-color: #000;
+            color: #fff;
+            padding: 10px 20px;
+            text-align: center;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-section">
+            <!-- Shipping Address Section
+            <div class="section">
+                <h2>Shipping Address</h2>
+                <div id="shipping-address"> -->
+                    <!-- Address will be dynamically loaded here -->
+                    <!-- <p>Loading address...</p>
+                </div>
+            </div> -->
+
+
+            <div class="shipping-details">
+                <h2>Shipping Address</h2>
+                <div>
+                    <label>House No:</label>
+                    <span class="value">{{ .Address.HouseNo }}</span>
+                </div>
+                <div>
+                    <label>Landmark:</label>
+                    <span class="value">{{ .Address.Landmark }}</span>
+                </div>
+                <div>
+                    <label>City:</label>
+                    <span class="value">{{ .Address.City }}</span>
+                </div>
+                <div>
+                    <label>State:</label>
+                    <span class="value">{{ .Address.State }}</span>
+                </div>
+                <div>
+                    <label>Pincode:</label>
+                    <span class="value">{{ .Address.Pincode }}</span>
+                </div>
+                <div>
+                    <label>Contact No:</label>
+                    <span class="value">{{ .Address.PhoneNumber }}</span>
+                </div>
+            </div>
+            <!-- Delivery Section -->
+            <div class="section">
+                <h2>Delivery</h2>
+                <form id="delivery-form">
+                    <label>
+                        <input type="radio" name="delivery" value="Standard" checked> PostFake Standard - €10.00
+                    </label>
+                    <label>
+                        <input type="radio" name="delivery" value="Express"> PostFake Express - €15.00
+                    </label>
+                </form>
+            </div>
+
+            <!-- Payment Section -->
+            <div class="section">
+                <h2>Payment</h2>
+                <p style="color: orange;">CASH ON DELIVERY</p>
+            </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="right-section">
+            <h2>Summary</h2>
+            <p>Subtotal <span>€10.00</span></p>
+            <p>Shipping <span>€10.00</span></p>
+            <p>Taxes <span>€0.00</span></p>
+            <hr>
+            <p><strong>Total</strong> <span><strong>€20.00</strong></span></p>
+            <a href="#" class="button" onclick="checkout()">Checkout</a>
+        </div>
+    </div>
+
+    <script>
+        // Fetch shipping address from a server-side API
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/shipping-address')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('shipping-address').innerHTML = `
+                        <p><strong>${data.name}</strong></p>
+                        <p>${data.address}</p>
+                        <p>${data.zip}, ${data.city}</p>
+                        <p>${data.phone}</p>
+                        <p>${data.email}</p>
+                    `;
+                })
+                .catch(error => {
+                    document.getElementById('shipping-address').innerHTML = '<p>Error loading address.</p>';
+                });
+        });
+
+        // Function to handle the checkout process
+        function checkout() {
+            const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
+            alert('Selected Delivery: ' + deliveryType);
+
+            // Send delivery type to the server for processing (example only)
+            fetch('/api/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    deliveryType: deliveryType
+                })
+            }).then(response => {
+                if (response.ok) {
+                    alert('Checkout successful!');
+                } else {
+                    alert('Checkout failed!');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
