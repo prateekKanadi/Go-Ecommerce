@@ -44,11 +44,11 @@ func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int)
 }
 
 // --------------------REMOVE-CART-ITEM--------------------
-func(repo *CartRepository) removeCartItem(cartID, productID int) error{
+func (repo *CartRepository) removeCartItem(cartID, productID int) error {
 
 	var query string
 	query = `DELETE FROM cart_items WHERE cart_id=? AND id=?`
-	_,err := repo.db.Exec(query,cartID,productID)
+	_, err := repo.db.Exec(query, cartID, productID)
 	if err != nil {
 		return fmt.Errorf("failed to delete cart item: %v", err)
 	}

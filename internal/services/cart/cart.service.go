@@ -4,22 +4,26 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/ecommerce/internal/services/product"
 )
 
 // CartService handles business logic for product-related operations.
 type CartService struct {
-	Repo *CartRepository
+	Repo           *CartRepository
+	ProductService *product.ProductService
 }
 
 // NewCartService creates a new CartService.
-func NewCartService(repo *CartRepository) *CartService {
+func NewCartService(repo *CartRepository, productService *product.ProductService) *CartService {
 	return &CartService{
-		Repo: repo,
+		Repo:           repo,
+		ProductService: productService,
 	}
 }
 
 // AddOrUpdateCartItem adds a product to the cart or updates the quantity if it already exists in the cart.
-func (s *CartService) addOrUpdateCartItemService(cartID, productID, quantity int) (int, error) {
+func (s *CartService) AddOrUpdateCartItemService(cartID, productID, quantity int) (int, error) {
 	// Ensure the quantity is greater than zero
 	if quantity <= 0 {
 		return http.StatusBadRequest, fmt.Errorf("invalid quantity: must be greater than zero")
@@ -35,8 +39,8 @@ func (s *CartService) addOrUpdateCartItemService(cartID, productID, quantity int
 }
 
 /*Remove cart item method */
-func (s *CartService) removeCartItem(cartID, productID int) (int,error){
-   
+func (s *CartService) removeCartItem(cartID, productID int) (int, error) {
+
 	err := s.Repo.removeCartItem(cartID, productID)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to remove cart item: %v", err)

@@ -148,7 +148,7 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		product, res, err := s.getProductService(productID)
+		product, res, err := s.GetProductService(productID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, err.Error(), res)
@@ -292,7 +292,7 @@ func productHandler(s *ProductService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		product, res, err := s.getProductService(productID)
+		product, res, err := s.GetProductService(productID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, err.Error(), res)

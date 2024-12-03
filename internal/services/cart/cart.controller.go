@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/ecommerce/internal/core/session"
 	"github.com/gorilla/mux"
@@ -73,21 +72,63 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 				return
 			}
 
-			cartList, res, err := s.getAllCartItemsService(cartID)
-			if err != nil {
-				log.Println(err)
-				http.Error(w, err.Error(), res)
-				return
-			}
-			// cartList.CartTotal = 0.0
-			err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartList.Items,
-				"IsAdmin": user.IsAdmin, "CartTotal": cartList.CartTotal, "isAnon": isAnon})
+			if isAnon {
+				var cartTotal float64
+				for i, item := range cart.Items {
+					product, res, err := s.ProductService.GetProductService(item.ProductID)
+					if err != nil {
+						log.Println(err)
+						http.Error(w, err.Error(), res)
+						return
+					}
+					cart.Items[i].ProductName = product.ProductName
+					cart.Items[i].PricePerUnit = product.PricePerUnit
+					totalPrice := item.PricePerUnit * float64(item.Quantity)
+					cart.Items[i].TotalPrice = totalPrice
+					cartTotal += totalPrice
+				}
+				cart.CartTotal = cartTotal
+				cartList := cart
 
-			if err != nil {
-				log.Println("Template execution error:", err)
-				http.Error(w, "Error rendering cart list page", http.StatusInternalServerError)
-				return
+				//updating values in session
+				sess.Values["cart"] = &cart
+
+				// saving session
+				err = sess.Save(r, w)
+
+				if err != nil {
+					log.Println(err)
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartList.Items,
+					"IsAdmin": user.IsAdmin, "CartTotal": cartList.CartTotal, "isAnon": isAnon})
+
+				if err != nil {
+					log.Println("Template execution error:", err)
+					http.Error(w, "Error rendering cart list page", http.StatusInternalServerError)
+					return
+				}
+			} else {
+				cartListObj, res, err := s.getAllCartItemsService(cartID)
+				if err != nil {
+					log.Println(err)
+					http.Error(w, err.Error(), res)
+					return
+				}
+				cartList := cartListObj
+
+				err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartList.Items,
+					"IsAdmin": user.IsAdmin, "CartTotal": cartList.CartTotal, "isAnon": isAnon})
+
+				if err != nil {
+					log.Println("Template execution error:", err)
+					http.Error(w, "Error rendering cart list page", http.StatusInternalServerError)
+					return
+				}
 			}
+
 			return
 		case http.MethodOptions:
 			return
@@ -106,6 +147,9 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		//extracting isAnon flag from session
+		isAnon := sess.Values["isAnon"].(bool)
+
 		log.Println("cart-sess.Values[\"user\"]: ", sess.Values["user"])
 		user, ok := sess.Values["user"].(*session.User)
 		if !ok || user == nil {
@@ -117,6 +161,13 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 		cart, ok := sess.Values["cart"].(*session.Cart)
 		if !ok || cart == nil {
 			http.Error(w, `{"success": false, "error": "Cart not found"}`, http.StatusBadRequest)
+			return
+		}
+
+		// Validate IDCountMap
+		IDCountMap, ok := sess.Values["IDCountMap"].(*session.IDCountMap)
+		if !ok || IDCountMap == nil {
+			http.Error(w, `{"success": false, "error": "IDCountMap not found"}`, http.StatusBadRequest)
 			return
 		}
 
@@ -151,18 +202,62 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 				}
 			}
 
-			// hardcoded quantity set to 1
-			// quantity := 1
 			log.Println("cart-productId", productID)
 			log.Println("cart-cartID", cartID)
 
-			// Call the AddOrUpdateCartItem method
-			status, err := s.addOrUpdateCartItemService(cartID, productID, quantity)
-			if err != nil {
-				// Handle the error (e.g., return an error response)
-				log.Println("Error adding/updating cart item:", err)
-				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), status)
-				return
+			if isAnon {
+				cartItemID, exists := (*IDCountMap)[productID]
+				if exists {
+					if quantity > 1 {
+						cart.Items[cartItemID].Quantity = quantity
+					} else {
+						cart.Items[cartItemID].Quantity += quantity
+					}
+
+					//updating values in session
+					sess.Values["cart"] = &cart
+				} else {
+					//generate cartItemID
+					cartItemID := len(cart.Items)
+
+					//map the productId with index of cart-items slice (cartItemID)
+					(*IDCountMap)[productID] = cartItemID
+
+					//initialize Cartitem object
+					item := session.CartItem{
+						ID:           cartItemID,
+						CartID:       cartID,
+						ProductID:    productID,
+						Quantity:     quantity,
+						ProductName:  "Product A",
+						PricePerUnit: 68.0,
+						TotalPrice:   0.0, // Quantity * PricePerUnit
+					}
+					// item.TotalPrice = float64(quantity) * item.PricePerUnit
+					cart.Items = append(cart.Items, item)
+
+					//updating values in session
+					sess.Values["cart"] = &cart
+					sess.Values["IDCountMap"] = &IDCountMap
+					fmt.Println("New Cart-Item added :", cart.Items[cartItemID])
+				}
+				// saving session
+				err = sess.Save(r, w)
+
+				if err != nil {
+					log.Println(err)
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			} else {
+				// Call the AddOrUpdateCartItem method
+				status, err := s.AddOrUpdateCartItemService(cartID, productID, quantity)
+				if err != nil {
+					// Handle the error (e.g., return an error response)
+					log.Println("Error adding/updating cart item:", err)
+					http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), status)
+					return
+				}
 			}
 
 			// Success response
@@ -261,7 +356,7 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 			// json.NewEncoder(w).Encode(map[string]interface{}{
 			// 	"success": true,
 			// 	"message": "Cart item deleted successfully"})
-			time.Sleep(1 * time.Second)
+			// time.Sleep(1 * time.Second)
 			http.Redirect(w, r, "/prod/cart", http.StatusFound)
 
 			// Call the AddOrUpdateCartItem method

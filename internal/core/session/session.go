@@ -20,8 +20,23 @@ type (
 	}
 
 	Cart struct {
-		CartID int
+		CartID    int
+		Items     []CartItem
+		CartTotal float64
 	}
+
+	CartItem struct {
+		ID           int
+		CartID       int
+		ProductID    int
+		Quantity     int
+		ProductName  string
+		PricePerUnit float64
+		TotalPrice   float64
+	}
+
+	// Declare a custom type for the map
+	IDCountMap map[int]int
 )
 
 func Init(config *configuration.Config) (*sessions.CookieStore, error) {
@@ -41,6 +56,7 @@ func Init(config *configuration.Config) (*sessions.CookieStore, error) {
 func registerTypes() {
 	gob.Register(&User{})
 	gob.Register(&Cart{})
+	gob.Register(new(IDCountMap))
 }
 
 // Helper function to get session from request context
@@ -92,6 +108,10 @@ func InitAnonUserSession(sess *sessions.Session) {
 		Password: "",
 	}
 
+	// Initialize the map using make (allocate memory for the map)
+	IDCountMap := new(IDCountMap)
+
+	sess.Values["IDCountMap"] = &IDCountMap
 	sess.Values["user"] = &user
 	sess.Values["cart"] = &cart
 }
