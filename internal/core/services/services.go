@@ -34,9 +34,8 @@ func InitializeServices(db *sql.DB) *ServiceRegistry {
 	productRepo := product.NewProductRepository(db)
 	productService := product.NewProductService(productRepo)
 
-	// Initialize checkout repository and service
-	checkoutRepo := checkout.NewCheckoutRepository(db)
-	checkoutService := checkout.NewCheckoutService(checkoutRepo)
+	// Initialize checkout service
+	checkoutService := checkout.NewCheckoutService(userService,cartService)
 
 	// Return the ServiceRegistry with all services initialized
 	return &ServiceRegistry{
