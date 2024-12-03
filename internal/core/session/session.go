@@ -3,6 +3,7 @@ package session
 import (
 	"encoding/gob"
 	"fmt"
+	"math/rand"
 	"net/http"
 
 	"github.com/ecommerce/configuration"
@@ -69,4 +70,28 @@ func GetSessionUserID(session *sessions.Session) (int, error) {
 	}
 
 	return userId, nil
+}
+
+func InitAnonUserSession(sess *sessions.Session) {
+	// Seed the random number generator with the current time
+	anonUserId := rand.Int() // generates a random integer
+
+	sess.Values["userId"] = anonUserId
+	sess.Values["isAnon"] = true
+
+	// Initialize `cart` before using it
+	cart := &Cart{
+		CartID: anonUserId,
+	}
+
+	// Initialize `user` before using it
+	user := &User{
+		UserID:   anonUserId,
+		IsAdmin:  0,
+		Email:    "",
+		Password: "",
+	}
+
+	sess.Values["user"] = &user
+	sess.Values["cart"] = &cart
 }

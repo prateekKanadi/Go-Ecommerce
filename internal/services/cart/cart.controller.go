@@ -1,13 +1,13 @@
 package cart
 
 import (
-	"time"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/ecommerce/internal/core/session"
 	"github.com/gorilla/mux"
@@ -41,11 +41,17 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		log.Println("cart-sess.Values[\"user\"]: ", sess.Values["user"])
+
+		//extracting isAnon flag from session
+		isAnon := sess.Values["isAnon"].(bool)
+		// Validate user
 		user, ok := sess.Values["user"].(*session.User)
 		if !ok || user == nil {
 			http.Error(w, `{"success": false, "error": "User not found"}`, http.StatusBadRequest)
 			return
+		}
+		if isAnon {
+			log.Println("cartpage Anon userID : ", user.UserID)
 		}
 
 		// Validate cart
@@ -75,7 +81,7 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 			}
 			// cartList.CartTotal = 0.0
 			err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartList.Items,
-				"IsAdmin": user.IsAdmin, "CartTotal": cartList.CartTotal})
+				"IsAdmin": user.IsAdmin, "CartTotal": cartList.CartTotal, "isAnon": isAnon})
 
 			if err != nil {
 				log.Println("Template execution error:", err)
@@ -208,7 +214,6 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 		//Get cart ID from session
 		cartID := cart.CartID
 
-		
 		switch r.Method {
 		case http.MethodPost:
 			// Get product ID from URL

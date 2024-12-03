@@ -45,32 +45,15 @@ func productsProdHandler(s *ProductService) http.HandlerFunc {
 			return
 		}
 
-		var user *session.User
+		//extracting isAnon flag from session
 		isAnon := sess.Values["isAnon"].(bool)
+		user, ok := sess.Values["user"].(*session.User)
+		if !ok || user == nil {
+			http.Error(w, `{"success": false, "error": "User not found"}`, http.StatusBadRequest)
+			return
+		}
 		if isAnon {
-			// Initialize `user` before using it
-			user = &session.User{
-				IsAdmin:  0,
-				Email:    "",
-				Password: "",
-			}
-
-			userId, err := session.GetSessionUserID(sess)
-			if err != nil {
-				log.Println("UserId is not set in session", err)
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			user.UserID = userId
-			sess.Values["user"] = &user
-			log.Println("my products Anon userID : ", userId)
-		} else {
-			sessUser, ok := sess.Values["user"].(*session.User)
-			if !ok || sessUser == nil {
-				http.Error(w, `{"success": false, "error": "User not found"}`, http.StatusBadRequest)
-				return
-			}
-			user = sessUser
+			log.Println("my products Anon userID : ", user.UserID)
 		}
 
 		switch r.Method {
@@ -146,7 +129,16 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 			return
 		}
 
-		user := sess.Values["user"].(*session.User)
+		//extracting isAnon flag from session
+		isAnon := sess.Values["isAnon"].(bool)
+		user, ok := sess.Values["user"].(*session.User)
+		if !ok || user == nil {
+			http.Error(w, `{"success": false, "error": "User not found"}`, http.StatusBadRequest)
+			return
+		}
+		if isAnon {
+			log.Println("my product details Anon userID : ", user.UserID)
+		}
 
 		vars := mux.Vars(r)
 		productID, err := strconv.Atoi(vars["id"])
@@ -173,7 +165,7 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 				return
 			}
 
-			err = tmpl.Execute(w, map[string]interface{}{"Product": product, "IsAdmin": user.IsAdmin})
+			err = tmpl.Execute(w, map[string]interface{}{"Product": product, "IsAdmin": user.IsAdmin, "isAnon": isAnon})
 			if err != nil {
 				log.Println("Template execution error:", err)
 				http.Error(w, "Error rendering product details page", http.StatusInternalServerError)

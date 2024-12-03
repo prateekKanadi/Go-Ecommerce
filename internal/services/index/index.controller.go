@@ -7,8 +7,6 @@ import (
 	"text/template"
 	"time"
 
-	"math/rand"
-
 	"github.com/ecommerce/internal/core/session"
 	"github.com/gorilla/mux"
 )
@@ -35,19 +33,19 @@ func homePageHandler() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		// Seed the random number generator with the current time
-		anonUserId := rand.Int() // generates a random integer
 
-		sess.Values["userId"] = anonUserId
-		sess.Values["isAnon"] = true
+		//creating anonymous session values and storing in session
+		if sess.Values["isAnon"] == nil && sess.Values["userId"] == nil {
+			//initializing session with anon user credentials
+			session.InitAnonUserSession(sess)
 
-		// saving session
-		err = sess.Save(r, w)
-
-		if err != nil {
-			log.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			// saving session
+			err := sess.Save(r, w)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		}
 
 		userId := sess.Values["userId"]
