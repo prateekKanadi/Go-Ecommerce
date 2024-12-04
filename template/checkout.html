@@ -3,80 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            max-width: 1200px;
-            margin: auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .left-section, .right-section {
-            width: 100%;
-            max-width: 600px;
-        }
-        .right-section {
-            padding: 20px;
-            border-left: 1px solid #ddd;
-        }
-        h2 {
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-        .section {
-            margin-bottom: 20px;
-        }
-        .section label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .summary {
-            border-top: 1px solid #ddd;
-            padding-top: 20px;
-        }
-        .summary p {
-            display: flex;
-            justify-content: space-between;
-        }
-        .button {
-            display: block;
-            background-color: #000;
-            color: #fff;
-            padding: 10px 20px;
-            text-align: center;
-            border-radius: 4px;
-            text-decoration: none;
-            margin-top: 20px;
-        }
-    </style>
+    <title>Checkout Page</title><style>
+   /* Body Styling */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #e9cccd 0%, #fad0c4 100%); /* Soft pastel gradient */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Full height of the viewport */
+}
+
+/* Container Styling */
+.container {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);  /* Soft white gradient */
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between; /* Ensure even spacing */
+    gap: 20px;
+    flex-wrap: nowrap; /* Keep left and right sections side by side */
+    min-height: 60vh; /* Ensures it takes a good height */
+    align-self: center; /* Vertically center it */
+}
+
+/* Left and Right Sections */
+.left-section, .right-section {
+    width: 48%;
+    padding: 20px;
+    background-color: #edf3ee;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Adjust Right Section */
+.right-section {
+    border-left: 3px solid #f1f2f5;
+}
+
+/* Adjust Left Section */
+.left-section {
+    display: flex;
+    /* background: linear-gradient(135deg, #79c2c6,  #79c2c6); */
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.right-section {
+    display: flex;
+    /* background: linear-gradient(135deg, #79c2c6,  #79c2c6); */
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Button Styling */
+.button {
+    background-color: #007bff;
+    color: white;
+    padding: 14px;
+    text-align: center;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 1.2em;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+    margin-top: auto; /* Push the button to the bottom */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column; /* Stack sections vertically */
+        align-items: center;
+        min-height: auto; /* Adjust height for small screens */
+        margin: 20px;
+    }
+
+    .left-section, .right-section {
+        width: 100%;
+        border-left: none;
+    }
+}
+
+    </style>    
+    
 </head>
 <body>
     <div class="container">
         <div class="left-section">
-            <!-- Shipping Address Section
-            <div class="section">
-                <h2>Shipping Address</h2>
-                <div id="shipping-address"> -->
-                    <!-- Address will be dynamically loaded here -->
-                    <!-- <p>Loading address...</p>
-                </div>
-            </div> -->
-
-
             <div class="shipping-details">
-                <h2>Shipping Address</h2>
+                <h2>Shipping Address <button id="edit-button" type="submit">Edit</button></h2>
                 <div>
                     <label>House No:</label>
                     <span class="value">{{ .Address.HouseNo }}</span>
@@ -102,15 +124,16 @@
                     <span class="value">{{ .Address.PhoneNumber }}</span>
                 </div>
             </div>
+
             <!-- Delivery Section -->
             <div class="section">
                 <h2>Delivery</h2>
-                <form id="delivery-form">
+                <form id="delivery-form" action="/prod/checkout" method="POST" style="display: inline;">
                     <label>
-                        <input type="radio" name="delivery" value="Standard" checked> PostFake Standard - €10.00
+                        <input type="radio" name="delivery" value="10" checked> Standard - $10.00
                     </label>
                     <label>
-                        <input type="radio" name="delivery" value="Express"> PostFake Express - €15.00
+                        <input type="radio" name="delivery" value="15"> Express - $15.00
                     </label>
                 </form>
             </div>
@@ -118,48 +141,55 @@
             <!-- Payment Section -->
             <div class="section">
                 <h2>Payment</h2>
-                <p style="color: orange;">CASH ON DELIVERY</p>
+                <p style="color: green">CASH ON DELIVERY</p>
             </div>
         </div>
 
         <!-- Summary Section -->
         <div class="right-section">
             <h2>Summary</h2>
-            <p>Subtotal <span>€10.00</span></p>
-            <p>Shipping <span>€10.00</span></p>
-            <p>Taxes <span>€0.00</span></p>
+            <p>Subtotal : $<span id="subtotal">{{.CheckoutData}}</span></p>
+            <p>Delivery Fee : $<span id="delivery-fee">10</span></p>
             <hr>
-            <p><strong>Total</strong> <span><strong>€20.00</strong></span></p>
-            <form action="/prod/orderSummary" method="POST" style="display: inline;">
-                    <button type="submit" class="btn">Checkout</button>
-            </form>
-        </div>
-        <form action="/create-order" method="POST">
-            <!-- Hidden fields for the total order value -->
-            <input type="hidden" name="orderTotal" value="{{.OrderTotal}}">
-            <input type="hidden" name="orderValue" value="{{.OrderValue}}">
-            <input type="hidden" name="deliveryMode" value="{{.deliveryMode}}">
-            <input type="hidden" name="paymentMode" value="{{.paymentMode}}">
+            <p ><strong>Total : $</strong> <span id="total"><strong>110</strong></span></p>
+            <form id="checkout-form" action="/prod/orderSummary" method="POST" style="display: inline;">
+                <input type="hidden" name="orderTotal" id="orderTotal">
+                <input type="hidden" name="orderValue" value="{{.CheckoutData}}">
+                <input type="hidden" name="deliveryMode" id="deliveryMode" value="10">
+                <input type="hidden" name="paymentMode" value="CASH ON DELIVERY">
+            <button type="submit" class="button">Checkout</button>
         </form>
+        </div>
     </div>
 
     <script>
-        // Fetch shipping address from a server-side API
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/api/shipping-address')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('shipping-address').innerHTML = `
-                        <p><strong>${data.name}</strong></p>
-                        <p>${data.address}</p>
-                        <p>${data.zip}, ${data.city}</p>
-                        <p>${data.phone}</p>
-                        <p>${data.email}</p>
-                    `;
-                })
-                .catch(error => {
-                    document.getElementById('shipping-address').innerHTML = '<p>Error loading address.</p>';
-                });
+        function updateTotal() {
+            const subtotal = parseFloat(document.getElementById('subtotal').textContent);
+            const deliveryFee = parseFloat(document.querySelector('input[name="delivery"]:checked').value);
+            const total = subtotal + deliveryFee;
+
+            document.getElementById('delivery-fee').textContent = deliveryFee;
+            document.getElementById('total').textContent = total.toFixed(2);
+            document.getElementById('orderTotal').value = total.toFixed(2);
+            const deliveryMode = document.querySelector('input[name="delivery"]:checked').value;
+            if (deliveryMode === "10") {
+                document.getElementById('deliveryMode').value = "Standard";
+                }
+            else if (deliveryMode === "15") {
+                document.getElementById('deliveryMode').value = "Express";
+                }
+        }
+
+        // Update total when delivery option is changed
+        document.querySelectorAll('input[name="delivery"]').forEach(radio => {
+            radio.addEventListener('change', updateTotal);
+        });
+
+        // Initial total calculation
+        updateTotal();
+
+        document.getElementById('edit-button').addEventListener('click', function() {
+            window.open('/prod/checkout/updateAddress', '_blank');
         });
     </script>
 </body>

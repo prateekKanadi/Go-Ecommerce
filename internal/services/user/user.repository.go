@@ -142,11 +142,6 @@ func (repo *UserRepository) updateUser(user User) error {
 		return err_e
 	}
 
-	// if err_p != nil {
-	// 	log.Println(err_p.Error())
-	// 	return err_p
-	// }
-
 	return nil
 }
 

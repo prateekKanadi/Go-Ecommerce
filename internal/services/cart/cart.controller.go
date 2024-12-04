@@ -213,7 +213,7 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), http.StatusNotFound)
 				return
 			}
-
+			
 			err = r.ParseForm()
 			if err != nil {
 				log.Println(err)
