@@ -19,7 +19,7 @@ const (
 )
 
 func main() {
-	fmt.Println("Hello! dev-anand")
+	fmt.Println("Hello!")
 
 	//setup configuration
 	setupRes, err := setup.InitializeAll(configFilePath)

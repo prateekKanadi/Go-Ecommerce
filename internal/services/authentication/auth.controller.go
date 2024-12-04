@@ -94,6 +94,14 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 				return
 			}
 
+			existingUser, res, err := s.UserService.GetUserByEmailService(email)
+			if existingUser != nil && res == http.StatusOK && err == nil {
+				err := errors.New("User already Exist")
+				log.Println(err)
+				tmpl.Execute(w, map[string]string{"Error": err.Error()})
+				return
+			}
+
 			//register user
 			newUser := user.User{Email: email, Password: password, Name: name}
 			userID, res, err := s.registerUserService(newUser)
