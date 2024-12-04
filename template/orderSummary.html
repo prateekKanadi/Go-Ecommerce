@@ -161,6 +161,26 @@
                 <label>Total Price:</label>
                 <span class="value">{{ .Order.OrderTotal }}</span>
             </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product ID</th>
+                        <th>Quantity</th>
+                        <th>Price Per Unit</th>
+                        <th>Total Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Order.Items}} <!-- Loop through order items -->
+                    <tr>
+                        <td>{{.ProductID}}</td> <!-- Product ID -->
+                        <td>{{.Quantity}}</td> <!-- Quantity -->
+                        <td>${{.PricePerUnit}}</td> <!-- Price per unit -->
+                        <td>${{.TotalPrice}}</td> <!-- Total price for this item -->
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
         </div>
 
     </div>

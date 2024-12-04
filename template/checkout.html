@@ -134,6 +134,13 @@
                     <button type="submit" class="btn">Checkout</button>
             </form>
         </div>
+        <form action="/create-order" method="POST">
+            <!-- Hidden fields for the total order value -->
+            <input type="hidden" name="orderTotal" value="{{.OrderTotal}}">
+            <input type="hidden" name="orderValue" value="{{.OrderValue}}">
+            <input type="hidden" name="deliveryMode" value="{{.deliveryMode}}">
+            <input type="hidden" name="paymentMode" value="{{.paymentMode}}">
+        </form>
     </div>
 
     <script>

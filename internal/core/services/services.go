@@ -42,7 +42,7 @@ func InitializeServices(db *sql.DB) *ServiceRegistry {
 
 	// Initialize order repository and service
 	orderRepo := order.NewOrderRepository(db)
-	orderService := order.NewOrderService(orderRepo)
+	orderService := order.NewOrderService(userService, cartService, orderRepo)
 
 	// Return the ServiceRegistry with all services initialized
 	return &ServiceRegistry{

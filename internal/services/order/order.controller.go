@@ -1,10 +1,12 @@
 package order
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/ecommerce/internal/core/session"
 	"github.com/gorilla/mux"
@@ -34,11 +36,26 @@ func initiateOrderHandler(s *OrderService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
 		user := sess.Values["user"].(*session.User)
 		//get order id
-		var orderId = user.UserID
-		orderDetails, res, err := s.getOrderService(orderId)
+		var userID = user.UserID
+		err = r.ParseForm()
+		if err != nil {
+			err := errors.New("Error parsing form data")
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		orderTotalStr := r.FormValue("orderTotal")
+		orderTotal, err := strconv.ParseFloat(orderTotalStr, 64)
+		orderValueStr := r.FormValue("orderValue")
+		orderValue, err := strconv.ParseFloat(orderValueStr, 64)
+		deliveryMode := r.FormValue("deliveryMode")
+		paymentMode := r.FormValue("paymentMode")
+		orderId, res, err := s.createOrderService(userID, deliveryMode, paymentMode, orderValue, orderTotal)
+		orderDetail, res, err := s.getOrderService(orderId)
+		orderDetails, res, err := s.createOrderItemsService(orderId, userID, orderDetail)
+
 		if err != nil {
 			log.Println(err)
 			http.Error(w, err.Error(), res)
