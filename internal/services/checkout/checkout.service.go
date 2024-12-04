@@ -24,7 +24,7 @@ func NewCheckoutService(userService *user.UserService, cartService *cart.CartSer
 func (s *CheckoutService) getAddressDetailsOfUser(userId int) (*user.Address,int,error){
 	addressDetails, err := s.UserService.Repo.GetAddressByUserId(userId)
 	if err != nil {
-		log.Printf("Error fetching products: %v", err)
+		log.Printf("Error fetching user details: %v", err)
 		return nil, http.StatusInternalServerError, err
 	}
 
@@ -34,7 +34,7 @@ func (s *CheckoutService) getAddressDetailsOfUser(userId int) (*user.Address,int
 func (s *CheckoutService) getCartDetailsOfUser(cartId int) (*cart.Cart,error){
 	cartData,err := s.CartService.Repo.GetAllCartItems(cartId)
 	if err != nil {
-		log.Printf("Error fetching products: %v", err)
+		log.Printf("Error fetching cart details of user: %v", err)
 		return nil, err
 	}
 	return cartData,nil

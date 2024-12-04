@@ -7,17 +7,18 @@ import (
 	"net/http"
 
 	"github.com/ecommerce/internal/core/session"
+	User "github.com/ecommerce/internal/services/user"
 	"github.com/gorilla/mux"
 )
 
-type AddressData struct {
-	HouseNo     string
-	Landmark    string
-	City        string
-	State       string
-	Pincode     string
-	PhoneNumber string
-}
+// type AddressData struct {
+// 	HouseNo     string
+// 	Landmark    string
+// 	City        string
+// 	State       string
+// 	Pincode     string
+// 	PhoneNumber string
+// }
 
 const (
 	checkoutBasePath      = "checkout"
@@ -35,6 +36,8 @@ func SetupCheckoutRoutes(r *mux.Router, s *CheckoutService) {
 	prodCheckoutRouter.HandleFunc(updateAddressBasePath, updateAddressAtCheckoutProdHandler(s))
 }
 
+
+// Update Address at checkout Handler function
 func updateAddressAtCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -55,14 +58,19 @@ func updateAddressAtCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 		}
 		user := sess.Values["user"].(*session.User)
 		cart := sess.Values["cart"].(*session.Cart)
-
-		_ = user.UserID
 		_ = cart.CartID
 
 		switch r.Method {
 		case http.MethodGet:
 
-			err = tmpl.Execute(w, nil)
+			var userId = user.UserID
+			addressDetails, res, err := s.getAddressDetailsOfUser(userId)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, err.Error(), res)
+				return
+			}
+			err = tmpl.Execute(w, map[string]interface{}{"Address": addressDetails})
 
 			if err != nil {
 				log.Println("Template execution error:", err)
@@ -78,6 +86,7 @@ func updateAddressAtCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 	}
 }
 
+// Initiate Checkout Handler
 func initiateCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -120,11 +129,6 @@ func initiateCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 
 		fmt.Println("Cart Total is ", cartData.CartTotal)
 
-		// // extracting data of form values
-		// email := r.FormValue("delivery-standard")
-		// password := r.FormValue("delivery-express")
-		// fmt.Println("Form value extracted : ", email, password)
-
 		switch r.Method {
 		case http.MethodGet:	
 			err = tmpl.Execute(w, map[string]interface{}{"Address": addressDetails, "CheckoutData": cartData.CartTotal})
@@ -134,10 +138,10 @@ func initiateCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 				return
 			}
 			return
-		case http.MethodPost:
-			fmt.Println("Change address POST request being handled")
-			
 
+		case http.MethodPost:
+
+			fmt.Println("Change address POST request being handled")
 			// Take the updated address
 			houseNo := r.FormValue("houseNo")
 			landmark := r.FormValue("landmark")
@@ -146,7 +150,7 @@ func initiateCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 			pincode := r.FormValue("pincode")
 			phoneNumber := r.FormValue("phoneNumber")
 
-			addressData := AddressData{
+			addressData := User.Address{
 				HouseNo: houseNo,
 				Landmark: landmark,
 				City: city,
@@ -154,12 +158,13 @@ func initiateCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 				Pincode: pincode,
 				PhoneNumber: phoneNumber,
 			}
+
 			fmt.Println("All the data is received ",houseNo, landmark, city , pincode , state , phoneNumber)
 			err = tmpl.Execute(w,map[string]interface{}{"Address":addressData, "CheckoutData": cartData.CartTotal})
 
 			if err != nil {
 				log.Println("Template execution error:", err)
-				http.Error(w, "Error rendering product list page", http.StatusInternalServerError)
+				http.Error(w, "Error rendering checkout page", http.StatusInternalServerError)
 				return
 			}
 			return
