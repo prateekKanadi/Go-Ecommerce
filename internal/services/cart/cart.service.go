@@ -23,14 +23,14 @@ func NewCartService(repo *CartRepository, productService *product.ProductService
 }
 
 // AddOrUpdateCartItem adds a product to the cart or updates the quantity if it already exists in the cart.
-func (s *CartService) AddOrUpdateCartItemService(cartID, productID, quantity int) (int, error) {
+func (s *CartService) AddOrUpdateCartItemService(cartID, productID, quantity int, isFormQuantityNotNull bool) (int, error) {
 	// Ensure the quantity is greater than zero
 	if quantity <= 0 {
 		return http.StatusBadRequest, fmt.Errorf("invalid quantity: must be greater than zero")
 	}
 
 	// Call the repository to perform the upsert
-	err := s.Repo.addOrUpdateCartItem(cartID, productID, quantity)
+	err := s.Repo.addOrUpdateCartItem(cartID, productID, quantity, isFormQuantityNotNull)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to add or update cart item: %v", err)
 	}
@@ -39,9 +39,9 @@ func (s *CartService) AddOrUpdateCartItemService(cartID, productID, quantity int
 }
 
 /*Remove cart item method */
-func (s *CartService) removeCartItem(cartID, productID int) (int, error) {
+func (s *CartService) removeCartItem(cartID, cartItemID int) (int, error) {
 
-	err := s.Repo.removeCartItem(cartID, productID)
+	err := s.Repo.removeCartItem(cartID, cartItemID)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to remove cart item: %v", err)
 	}

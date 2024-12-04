@@ -152,18 +152,20 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 			if len(cart.Items) > 0 {
 				// Now, add cart-items (if any) from anon-user session
 				for _, item := range cart.Items {
-					time.Sleep(10 * time.Microsecond)
-					// Call the addOrUpdateCartItemService method for each item
-					status, err := s.CartService.AddOrUpdateCartItemService(cart.CartID, item.ProductID, item.Quantity)
-					if err != nil {
-						// Log the error and continue with the next item
-						log.Printf("Error adding/updating cart item (CartID: %d, ProductID: %d, Quantity: %d): %v",
-							cart.CartID, item.ProductID, item.Quantity, err)
-						http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), status)
-						return
+					if item.Quantity > 0 {
+						time.Sleep(10 * time.Microsecond)
+						// Call the addOrUpdateCartItemService method for each item
+						status, err := s.CartService.AddOrUpdateCartItemService(cart.CartID, item.ProductID, item.Quantity, true)
+						if err != nil {
+							// Log the error and continue with the next item
+							log.Printf("Error adding/updating cart item (CartID: %d, ProductID: %d, Quantity: %d): %v",
+								cart.CartID, item.ProductID, item.Quantity, err)
+							http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), status)
+							return
+						}
+						log.Printf("Successfully added/updated cart item (CartID: %d, ProductID: %d, Quantity: %d)",
+							cart.CartID, item.ProductID, item.Quantity)
 					}
-					log.Printf("Successfully added/updated cart item (CartID: %d, ProductID: %d, Quantity: %d)",
-						cart.CartID, item.ProductID, item.Quantity)
 				}
 				sess.Values["cart"] = &cart
 			} else {
