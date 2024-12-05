@@ -91,6 +91,11 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 						cart.Items[i].TotalPrice = totalPrice
 						cartTotal += totalPrice
 						items = append(items, cart.Items[i])
+                        initialRoundOf := totalPrice 
+						// Amount rounded off to 2 decimal places
+						roundedoffTotal := fmt.Sprintf("%.2f", initialRoundOf)
+						finalRoundedOffFloat, err := strconv.ParseFloat(roundedoffTotal, 64)
+						items[len(items)-1].TotalPrice = finalRoundedOffFloat
 					}
 				}
 				cart.CartTotal = cartTotal
@@ -110,8 +115,18 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 					return
 				}
 
+				// Amount rounded off to 2 decimal places
+				roundedoffTotal := fmt.Sprintf("%.2f", cartList.CartTotal)
+				finalRoundedOffFloat, err := strconv.ParseFloat(roundedoffTotal, 64)
+
+				fmt.Println("Final rounded off amount in cart page is : ", finalRoundedOffFloat)
+				if err != nil {
+					fmt.Println("Couldn't convert string to float")
+					return
+				}
+
 				err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartList.Items,
-					"IsAdmin": user.IsAdmin, "CartTotal": cartList.CartTotal, "isAnon": isAnon})
+					"IsAdmin": user.IsAdmin, "CartTotal": finalRoundedOffFloat, "isAnon": isAnon})
 
 				if err != nil {
 					log.Println("Template execution error:", err)
@@ -127,8 +142,17 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 				}
 				cartList := cartListObj
 
+				// Amount rounded off to 2 decimal places
+				roundedoffTotal := fmt.Sprintf("%.2f", cartList.CartTotal)
+				finalRoundedOffFloat, err := strconv.ParseFloat(roundedoffTotal, 64)
+
+				fmt.Println("Final rounded off amount in cart page is : ", finalRoundedOffFloat)
+				if err != nil {
+					fmt.Println("Couldn't convert string to float")
+					return
+				}
 				err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartList.Items,
-					"IsAdmin": user.IsAdmin, "CartTotal": cartList.CartTotal, "isAnon": isAnon})
+					"IsAdmin": user.IsAdmin, "CartTotal": finalRoundedOffFloat})
 
 				if err != nil {
 					log.Println("Template execution error:", err)

@@ -128,10 +128,13 @@ func initiateCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 		}
 
 		fmt.Println("Cart Total is ", cartData.CartTotal)
-
+		
+		// Amount rounded off to 2 decimal places
+		roundedoffTotal := fmt.Sprintf("%.2f", cartData.CartTotal)
+		fmt.Println("Round off Total is ", roundedoffTotal)
 		switch r.Method {
 		case http.MethodGet:	
-			err = tmpl.Execute(w, map[string]interface{}{"Address": addressDetails, "CheckoutData": cartData.CartTotal})
+			err = tmpl.Execute(w, map[string]interface{}{"Address": addressDetails, "CheckoutData": roundedoffTotal})
 			if err != nil {
 				log.Println("Template execution error:", err)
 				http.Error(w, "Error rendering product list page", http.StatusInternalServerError)
