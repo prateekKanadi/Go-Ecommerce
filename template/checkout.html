@@ -231,7 +231,7 @@ body {
             <p>Delivery Fee : $<span id="delivery-fee">10</span></p>
             <hr>
             <p ><strong>Total : $</strong> <span id="total"><strong>110</strong></span></p>
-            <form id="checkout-form" action="/prod/orderSummary" method="POST" style="display: inline;">
+            <form id="checkout-form" action="/prod/order/orderSummary" method="POST" style="display: inline;">
                 <input type="hidden" name="orderTotal" id="orderTotal">
                 <input type="hidden" name="orderValue" value="{{.CheckoutData}}">
                 <input type="hidden" name="deliveryMode" id="deliveryMode" value="10">

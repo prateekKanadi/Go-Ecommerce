@@ -1,6 +1,7 @@
 package order
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -172,4 +173,91 @@ func (repo *OrderRepository) GetAddressAsString(userId int) (string, error) {
 		address.PhoneNumber)
 
 	return addressString, nil
+}
+
+func (repo *OrderRepository) GetAllOrdersAndOrderItemsByUserID(userID int) ([]Order, error) {
+	var orders []Order
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	query := `
+        SELECT
+            o.OrderID,
+            o.UserID,
+            o.DeliveryMode,
+            o.PaymentMode,
+            o.OrderValue,
+            o.ShippingAddress,
+            o.OrderTotal,
+            oi.ProductID,
+            oi.Quantity,
+            oi.PricePerUnit,
+            oi.TotalPrice
+        FROM
+            orders o
+        JOIN
+            order_items oi ON o.OrderID = oi.OrderID
+        WHERE
+            o.UserID = ?`
+
+	rows, err := repo.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var orderMap = make(map[int]*Order)
+
+	for rows.Next() {
+		var orderID, userID, productID, quantity int
+		var deliveryMode, paymentMode, shippingAddress string
+		var orderValue, orderTotal, pricePerUnit, totalPrice float64
+
+		if err := rows.Scan(
+			&orderID,
+			&userID,
+			&deliveryMode,
+			&paymentMode,
+			&orderValue,
+			&shippingAddress,
+			&orderTotal,
+			&productID,
+			&quantity,
+			&pricePerUnit,
+			&totalPrice,
+		); err != nil {
+			return nil, err
+		}
+
+		if _, exists := orderMap[orderID]; !exists {
+			orderMap[orderID] = &Order{
+				OrderID:         orderID,
+				UserID:          userID,
+				DeliveryMode:    deliveryMode,
+				PaymentMode:     paymentMode,
+				OrderValue:      orderValue,
+				ShippingAddress: shippingAddress,
+				OrderTotal:      orderTotal,
+			}
+		}
+
+		item := OrderItem{
+			ProductID:    productID,
+			Quantity:     quantity,
+			PricePerUnit: pricePerUnit,
+			TotalPrice:   totalPrice,
+		}
+
+		orderMap[orderID].Items = append(orderMap[orderID].Items, item)
+	}
+
+	for _, order := range orderMap {
+		orders = append(orders, *order)
+	}
+
+	if len(orders) == 0 {
+		return nil, fmt.Errorf("no orders found for userID %d", userID)
+	}
+
+	return orders, nil
 }

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order History</title>
+    <style>
+        /* General styling */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+            flex-direction: column;
+        }
+
+        /* Header styling */
+        header {
+            width: 100%;
+            background-color: #fff;
+            padding: 15px 20px;  /* Adjusted padding */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: flex-start; /* Align buttons to the left */
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .welcome-message {
+            font-size: 1.2em;
+            color: #5a67d8;
+            margin-right: 800px;  /* Space between welcome message and buttons */
+            margin-bottom: 15px; /* Added space between the welcome message and buttons */
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;  /* Increased gap between buttons for better spacing */
+            margin-left: 20px; /* Ensured buttons are not flush against the edge */
+            flex-wrap: wrap; /* Ensures buttons wrap if they overflow */
+        }
+
+        .btn {
+            padding: 8px 15px; /* Reduced padding to fit buttons */
+            background-color: #5a67d8;  /* Set all buttons to this color */
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #4c51bf;
+        }
+
+        .btn-secondary {
+            background-color: #edf2f7;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+
+        /* Order History Container */
+        .order-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 800px;
+            margin-top: 100px; /* Adjusted for header */
+        }
+
+        .order-container h1 {
+            color: #5a67d8;
+            font-size: 2em;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .order-summary {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .order-details, .shipping-address {
+            width: 48%; /* Adjust width of each section */
+        }
+
+        .order-summary h2 {
+            color: #5a67d8;
+            font-size: 1.5em;
+            font-weight: 500;
+        }
+
+        .order-summary p {
+            font-size: 1em;
+            color: #555;
+        }
+
+        /* Table styling (for rows matching order items) */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #5a67d8;
+            color: #fff;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1; /* Hover effect for rows */
+        }
+
+        /* No orders message */
+        .no-orders {
+            color: #555;
+            font-size: 1.2em;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <div class="welcome-message">
+            Order History
+        </div>
+        <div class="btn-container">
+            <a href="/prod/users/dashboard" class="btn" title="View My Dashboard">Dashboard</a>
+            <a href="/prod/products" class="btn" title="View My Products">Products</a>
+            <form action="/prod/auth/logout" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <!-- Order Container -->
+    <div class="order-container">
+        <h1>Your Order History</h1>
+
+        {{if .Orders}}
+            {{range .Orders}} <!-- Loop over all orders -->
+                <div class="order-summary">
+                    <!-- Order Details on Left -->
+                    <div class="order-details">
+                        <h2>Order ID: {{.OrderID}}</h2>
+                        <p>User ID: {{.UserID}}</p>
+                        <p>Delivery Mode: {{.DeliveryMode}}</p>
+                        <p>Payment Mode: {{.PaymentMode}}</p>
+                        <p>Order Total: ${{.OrderTotal}}</p>
+                        <p>Order Value: ${{.OrderValue}}</p>
+                    </div>
+                    <!-- Shipping Address on Right -->
+                    <div class="shipping-address">
+                        <h2>Shipping Address</h2>
+                        <p>{{.ShippingAddress}}</p>
+                    </div>
+                </div>
+
+                <h3>Order Items</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product ID</th>
+                            <th>Quantity</th>
+                            <th>Price per Unit</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Items}} <!-- Loop over order items -->
+                            <tr>
+                                <td>{{.ProductID}}</td>
+                                <td>{{.Quantity}}</td>
+                                <td>${{.PricePerUnit}}</td>
+                                <td>${{.TotalPrice}}</td>
+                            </tr>
+                        {{else}}
+                            <tr>
+                                <td colspan="4">No items in this order.</td>
+                            </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            {{end}}
+        {{else}}
+            <p class="no-orders">No orders found for your account.</p>
+        {{end}}
+
+    </div>
+
+</body>
+</html>
