@@ -3,7 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout Page</title><style>
+    <title style="color: aquamarine;">Checkout Page</title><style>
+
+        /* Header Styling */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #007bff; /* Blue background */
+    color: white;
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    font-size: 1.1em;
+}
+
+/* Adjust body padding to prevent overlap */
+body {
+    padding-top: 80px; /* Add padding to make space for the fixed header */
+}
+
+/* Welcome Message Styling */
+.welcome-message {
+    font-weight: bold;
+}
+
+/* Button Container Styling */
+.btn-container {
+    display: flex;
+    gap: 10px;
+}
+
+/* Button Styling */
+header .btn, header .btn-secondary {
+    background-color: white;
+    color: #4f8da2;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+header .btn:hover, header .btn-secondary:hover {
+    background-color: #0056b3;
+    color: white;
+}
+
+/* Logout Button Specific Styling */
+header .btn-secondary {
+    background-color: #dc3545;
+    color: white;
+    padding: auto;
+}
+
+header .btn-secondary:hover {
+    background-color: #a71d2a;
+}
+
    /* Body Styling */
 body {
     font-family: 'Poppins', sans-serif;
@@ -95,6 +159,21 @@ body {
     
 </head>
 <body>
+
+    <!-- Header Section -->
+    <header>
+        <div class="welcome-message">
+            Checkout Page
+        </div>
+        <div class="btn-container">
+            <a href="/prod/users/dashboard" class="btn" title="View My Dashboard">Dashboard</a>
+            <a href="/prod/products" class="btn" title="View My Products">Products</a>
+            <form action="/prod/auth/logout" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
+            </form>
+        </div>
+    </header>
+    
     <div class="container">
         <div class="left-section">
             <div class="shipping-details">
