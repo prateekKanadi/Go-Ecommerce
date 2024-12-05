@@ -73,8 +73,18 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 				return
 			}
 
+			
+			// Amount rounded off to 2 decimal places
+			roundedoffTotal := fmt.Sprintf("%.2f", cartList.CartTotal)
+			finalRoundedOffFloat,err  := strconv.ParseFloat(roundedoffTotal,64)
+
+			fmt.Println("Final rounded off amount in cart page is : ",finalRoundedOffFloat)
+			if err!=nil{
+				fmt.Println("Couldn't convert string to float")
+				return
+			}
 			err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartList.Items,
-				"IsAdmin": user.IsAdmin, "CartTotal": cartList.CartTotal})
+				"IsAdmin": user.IsAdmin, "CartTotal": finalRoundedOffFloat})
 
 			if err != nil {
 				log.Println("Template execution error:", err)
@@ -213,7 +223,7 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), http.StatusNotFound)
 				return
 			}
-			
+
 			err = r.ParseForm()
 			if err != nil {
 				log.Println(err)

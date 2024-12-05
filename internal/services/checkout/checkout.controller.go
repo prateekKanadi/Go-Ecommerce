@@ -128,6 +128,8 @@ func initiateCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 		}
 
 		fmt.Println("Cart Total is ", cartData.CartTotal)
+		
+		// Amount rounded off to 2 decimal places
 		roundedoffTotal := fmt.Sprintf("%.2f", cartData.CartTotal)
 		fmt.Println("Round off Total is ", roundedoffTotal)
 		switch r.Method {
