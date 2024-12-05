@@ -116,6 +116,11 @@ func (repo *OrderRepository) createOrderItems(cartList *cart.Cart, orderId int, 
 			time.Now(),
 			time.Now(),
 		)
+		query = `DELETE FROM cart_items WHERE cart_id=? AND id=?`
+		_, err := repo.db.Exec(query, cartItem.CartID, cartItem.ID)
+		if err != nil {
+			return Order{}, fmt.Errorf("failed to delete cart item: %v", err)
+		}
 	}
 
 	return orderDetail, nil
