@@ -197,8 +197,9 @@
                 <tr>
                     <td>{{ .ProductName }}</td>
                     <td>{{ .Quantity }}</td>
-                    <td>${{ .PricePerUnit }}</td>
-                    <td>${{ .TotalPrice }}</td>
+                    <td data-price="{{ .PricePerUnit }}"></td>
+                    <td data-price="{{ .TotalPrice }}"></td>                    
+
                     <td class="action-buttons">
                         <form action="/prod/cart/{{ .ID }}/remove" method="POST" style="display: inline;">
                             <button type="submit" class="btn btn-secondary">Remove</button>
@@ -242,6 +243,13 @@
             {{ end }}            
         </div>
     </div>
+
+    <script>
+        document.querySelectorAll('td[data-price]').forEach(cell => {
+            const rawValue = parseFloat(cell.dataset.price); // Access the raw value
+            cell.textContent = `$${rawValue.toFixed(2)}`; // Format and display it
+        });
+    </script>
 
 </body>
 </html>
