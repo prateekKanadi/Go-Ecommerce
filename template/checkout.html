@@ -230,8 +230,14 @@ body {
             <p>Subtotal : $<span id="subtotal">{{.CheckoutData}}</span></p>
             <p>Delivery Fee : $<span id="delivery-fee">10</span></p>
             <hr>
-            <p><strong>Total : $</strong> <span id="total"><strong>110</strong></span></p>
-            <a href="#" class="button">Checkout</a>
+            <p ><strong>Total : $</strong> <span id="total"><strong>110</strong></span></p>
+            <form id="checkout-form" action="/prod/orderSummary" method="POST" style="display: inline;">
+                <input type="hidden" name="orderTotal" id="orderTotal">
+                <input type="hidden" name="orderValue" value="{{.CheckoutData}}">
+                <input type="hidden" name="deliveryMode" id="deliveryMode" value="10">
+                <input type="hidden" name="paymentMode" value="CASH ON DELIVERY">
+            <button type="submit" class="button">Checkout</button>
+        </form>
         </div>
     </div>
 
@@ -243,6 +249,14 @@ body {
 
             document.getElementById('delivery-fee').textContent = deliveryFee;
             document.getElementById('total').textContent = total.toFixed(2);
+            document.getElementById('orderTotal').value = total.toFixed(2);
+            const deliveryMode = document.querySelector('input[name="delivery"]:checked').value;
+            if (deliveryMode === "10") {
+                document.getElementById('deliveryMode').value = "Standard";
+                }
+            else if (deliveryMode === "15") {
+                document.getElementById('deliveryMode').value = "Express";
+                }
         }
 
         // Update total when delivery option is changed

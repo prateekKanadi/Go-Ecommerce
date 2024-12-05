@@ -154,9 +154,11 @@ func (repo *UserRepository) addUser(user User) (int, error) {
 
 	result, err := repo.db.Exec(`INSERT INTO users  
 	(email,
-	password) VALUES (?, ?)`,
+	password,
+	name) VALUES (?, ?, ?)`,
 		user.Email,
-		hashedPass)
+		hashedPass,
+		user.Name)
 	if err != nil {
 		log.Println(err.Error())
 		return 0, err

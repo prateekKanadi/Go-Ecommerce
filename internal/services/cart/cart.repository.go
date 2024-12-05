@@ -22,9 +22,9 @@ func NewCartRepository(db *sql.DB) *CartRepository {
 }
 
 // ------------CART-ITEM RELATED------------
-func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int) error {
+func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int, isFormQuantityNotNull bool) error {
 	var query string
-	if quantity > 1 {
+	if isFormQuantityNotNull {
 		query = `INSERT INTO cart_items (cart_id, product_id, quantity)
 	VALUES (?, ?, ?)
 	ON DUPLICATE KEY UPDATE quantity = VALUES(quantity), updated_at = CURRENT_TIMESTAMP
@@ -44,11 +44,11 @@ func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int)
 }
 
 // --------------------REMOVE-CART-ITEM--------------------
-func(repo *CartRepository) removeCartItem(cartID, cartItemID int) error{
+func (repo *CartRepository) removeCartItem(cartID, cartItemID int) error {
 
 	var query string
 	query = `DELETE FROM cart_items WHERE cart_id=? AND id=?`
-	_,err := repo.db.Exec(query,cartID,cartItemID)
+	_, err := repo.db.Exec(query, cartID, cartItemID)
 	if err != nil {
 		return fmt.Errorf("failed to delete cart item: %v", err)
 	}

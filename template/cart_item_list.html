@@ -166,11 +166,15 @@
             My Cart Page
         </div>
         <div class="btn-container">
-            <a href="/prod/users/dashboard" class="btn" title="View My Dashboard">Dashboard</a>
+            {{ if $.isAnon }}
+                <a href="/" class="btn" title="View Home Page">Home</a>                
+            {{ else }}
+                <a href="/prod/users/dashboard" class="btn" title="View My Products">Dashboard</a>
+                <form action="/prod/auth/logout" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
+                </form>
+            {{ end }}
             <a href="/prod/products" class="btn" title="View My Products">Products</a>
-            <form action="/prod/auth/logout" method="POST" style="display: inline;">
-                <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
-            </form>
         </div>
     </header>
 
@@ -219,13 +223,23 @@
 
         <div style="text-align: center; margin-top: 20px;">
             <a href="/prod/products" class="btn">Continue Shopping</a>
-            <form action="/prod/checkout" method="GET" style="display: inline;">
-                {{ if eq .CartTotal 0.0 }}
-                    <button type="submit" class="btn-disabled" disabled>Proceed to Checkout</button>
-                {{ else }}
-                    <button type="submit" class="btn">Proceed to Checkout</button>
-                {{ end }}
-            </form>
+            {{ if $.isAnon }}
+                <form action="/" method="GET" style="display: inline;">
+                    {{ if eq .CartTotal 0.0 }}
+                        <button type="submit" class="btn-disabled" disabled>Proceed to Checkout</button>
+                    {{ else }}
+                        <button type="submit" class="btn">Proceed to Checkout</button>
+                    {{ end }}
+                </form>
+            {{ else }}
+                <form action="/prod/checkout" method="GET" style="display: inline;">
+                    {{ if eq .CartTotal 0.0 }}
+                        <button type="submit" class="btn-disabled" disabled>Proceed to Checkout</button>
+                    {{ else }}
+                        <button type="submit" class="btn">Proceed to Checkout</button>
+                    {{ end }}
+                </form>
+            {{ end }}            
         </div>
     </div>
 
