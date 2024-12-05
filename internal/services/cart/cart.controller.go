@@ -333,10 +333,10 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 
 		switch r.Method {
 		case http.MethodPost:
-			// Get product ID from URL
+			// Get cart-item ID from URL
 			cartItemID, err := strconv.Atoi(mux.Vars(r)["id"])
 			if err != nil {
-				log.Println("Invalid cartItemID :", err)
+				log.Println("Invalid cartItem ID:", err)
 				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), http.StatusNotFound)
 				return
 			}
