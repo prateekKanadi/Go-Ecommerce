@@ -44,11 +44,11 @@ func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int)
 }
 
 // --------------------REMOVE-CART-ITEM--------------------
-func(repo *CartRepository) removeCartItem(cartID, productID int) error{
+func (repo *CartRepository) removeCartItem(cartID, cartItemID int) error {
 
 	var query string
 	query = `DELETE FROM cart_items WHERE cart_id=? AND id=?`
-	_,err := repo.db.Exec(query,cartID,productID)
+	_, err := repo.db.Exec(query, cartID, cartItemID)
 	if err != nil {
 		return fmt.Errorf("failed to delete cart item: %v", err)
 	}
@@ -56,7 +56,7 @@ func(repo *CartRepository) removeCartItem(cartID, productID int) error{
 }
 
 // get all products from cart_items JOIN products table
-func (repo *CartRepository) getAllCartItems(cartID int) (*Cart, error) {
+func (repo *CartRepository) GetAllCartItems(cartID int) (*Cart, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	query := `

@@ -1,7 +1,6 @@
 package cart
 
 import (
-	"time"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -73,7 +72,7 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 				http.Error(w, err.Error(), res)
 				return
 			}
-			// cartList.CartTotal = 0.0
+
 			err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartList.Items,
 				"IsAdmin": user.IsAdmin, "CartTotal": cartList.CartTotal})
 
@@ -145,8 +144,6 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 				}
 			}
 
-			// hardcoded quantity set to 1
-			// quantity := 1
 			log.Println("cart-productId", productID)
 			log.Println("cart-cartID", cartID)
 
@@ -161,7 +158,6 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 
 			// Success response
 			// Set response content type
-
 			if r.FormValue("quantity") != "" {
 				http.Redirect(w, r, "/prod/cart", http.StatusSeeOther) // 303
 			} else {
@@ -208,17 +204,16 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 		//Get cart ID from session
 		cartID := cart.CartID
 
-		
 		switch r.Method {
 		case http.MethodPost:
-			// Get product ID from URL
-			productID, err := strconv.Atoi(mux.Vars(r)["id"])
+			// Get cart-item ID from URL
+			cartItemID, err := strconv.Atoi(mux.Vars(r)["id"])
 			if err != nil {
-				log.Println("Invalid product ID:", err)
+				log.Println("Invalid cartItem ID:", err)
 				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), http.StatusNotFound)
 				return
 			}
-
+			
 			err = r.ParseForm()
 			if err != nil {
 				log.Println(err)
@@ -226,61 +221,19 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 				return
 			}
 
-			// extracting data of form values
-			// var quantity = 1
-			// if r.FormValue("quantity") != "" {
-			// 	quantity, err = strconv.Atoi(r.FormValue("quantity"))
-			// 	if err != nil {
-			// 		log.Println("Invalid quantity:", err)
-			// 		http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), http.StatusBadRequest)
-			// 		return
-			// 	}
-			// }
-
-			// hardcoded quantity set to 1
-			// quantity := 1
-			log.Println("cart-productId", productID)
+			log.Println("cartItemID", cartItemID)
 			log.Println("cart-cartID", cartID)
 
 			// Call removeCartItem method
-			status, err := s.removeCartItem(cartID, productID)
-			fmt.Println("Item with cartId : ", cartID, " and cartId : ", productID, " was removed successfully")
+			status, err := s.removeCartItem(cartID, cartItemID)
+			fmt.Println("Item with cartId : ", cartID, " and cartItemID : ", cartItemID, " was removed successfully")
 			if err != nil {
-				// Handle the error (e.g., return an error response)
 				log.Println("Error deleting cart item:", err)
 				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), status)
 				return
 			}
 
-			// w.Header().Set("Content-Type", "application/json")
-			// json.NewEncoder(w).Encode(map[string]interface{}{
-			// 	"success": true,
-			// 	"message": "Cart item deleted successfully"})
-			time.Sleep(1 * time.Second)
 			http.Redirect(w, r, "/prod/cart", http.StatusFound)
-
-			// Call the AddOrUpdateCartItem method
-			// status, err := s.addOrUpdateCartItemService(cartID, productID, quantity)
-			// if err != nil {
-			// 	// Handle the error (e.g., return an error response)
-			// 	log.Println("Error adding/updating cart item:", err)
-			// 	http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), status)
-			// 	return
-			// }
-
-			// Success response
-			// Set response content type
-
-			// if r.FormValue("quantity") != "" {
-			// 	http.Redirect(w, r, "/prod/cart", http.StatusSeeOther) // 303
-			// } else {
-			// 	w.Header().Set("Content-Type", "application/json")
-			// 	json.NewEncoder(w).Encode(map[string]interface{}{
-			// 		"success": true,
-			// 		"message": "Cart item added/updated successfully",
-			// 	})
-			// }
-
 		case http.MethodOptions:
 			return
 		default:

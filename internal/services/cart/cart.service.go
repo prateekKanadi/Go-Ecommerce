@@ -35,9 +35,9 @@ func (s *CartService) addOrUpdateCartItemService(cartID, productID, quantity int
 }
 
 /*Remove cart item method */
-func (s *CartService) removeCartItem(cartID, productID int) (int,error){
-   
-	err := s.Repo.removeCartItem(cartID, productID)
+func (s *CartService) removeCartItem(cartID, cartItemID int) (int, error) {
+
+	err := s.Repo.removeCartItem(cartID, cartItemID)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to remove cart item: %v", err)
 	}
@@ -46,7 +46,7 @@ func (s *CartService) removeCartItem(cartID, productID int) (int,error){
 }
 
 func (s *CartService) getAllCartItemsService(cartID int) (*Cart, int, error) {
-	cartList, err := s.Repo.getAllCartItems(cartID)
+	cartList, err := s.Repo.GetAllCartItems(cartID)
 	if err != nil {
 		log.Printf("Error fetching cart items: %v", err)
 		return nil, http.StatusInternalServerError, err

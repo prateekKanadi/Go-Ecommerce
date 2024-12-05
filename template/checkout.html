@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title style="color: aquamarine;">Checkout Page</title><style>
+
+        /* Header Styling */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #007bff; /* Blue background */
+    color: white;
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    font-size: 1.1em;
+}
+
+/* Adjust body padding to prevent overlap */
+body {
+    padding-top: 80px; /* Add padding to make space for the fixed header */
+}
+
+/* Welcome Message Styling */
+.welcome-message {
+    font-weight: bold;
+}
+
+/* Button Container Styling */
+.btn-container {
+    display: flex;
+    gap: 10px;
+}
+
+/* Button Styling */
+header .btn, header .btn-secondary {
+    background-color: white;
+    color: #4f8da2;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+header .btn:hover, header .btn-secondary:hover {
+    background-color: #0056b3;
+    color: white;
+}
+
+/* Logout Button Specific Styling */
+header .btn-secondary {
+    background-color: #dc3545;
+    color: white;
+    padding: auto;
+}
+
+header .btn-secondary:hover {
+    background-color: #a71d2a;
+}
+
+   /* Body Styling */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #e9cccd 0%, #fad0c4 100%); /* Soft pastel gradient */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Full height of the viewport */
+}
+
+/* Container Styling */
+.container {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);  /* Soft white gradient */
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between; /* Ensure even spacing */
+    gap: 20px;
+    flex-wrap: nowrap; /* Keep left and right sections side by side */
+    min-height: 60vh; /* Ensures it takes a good height */
+    align-self: center; /* Vertically center it */
+}
+
+/* Left and Right Sections */
+.left-section, .right-section {
+    width: 48%;
+    padding: 20px;
+    background-color: #edf3ee;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Adjust Right Section */
+.right-section {
+    border-left: 3px solid #f1f2f5;
+}
+
+/* Adjust Left Section */
+.left-section {
+    display: flex;
+    /* background: linear-gradient(135deg, #79c2c6,  #79c2c6); */
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.right-section {
+    display: flex;
+    /* background: linear-gradient(135deg, #79c2c6,  #79c2c6); */
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Button Styling */
+.button {
+    background-color: #007bff;
+    color: white;
+    padding: 14px;
+    text-align: center;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 1.2em;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+    margin-top: auto; /* Push the button to the bottom */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column; /* Stack sections vertically */
+        align-items: center;
+        min-height: auto; /* Adjust height for small screens */
+        margin: 20px;
+    }
+
+    .left-section, .right-section {
+        width: 100%;
+        border-left: none;
+    }
+}
+
+    </style>    
+    
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <div class="welcome-message">
+            Checkout Page
+        </div>
+        <div class="btn-container">
+            <a href="/prod/users/dashboard" class="btn" title="View My Dashboard">Dashboard</a>
+            <a href="/prod/products" class="btn" title="View My Products">Products</a>
+            <form action="/prod/auth/logout" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
+            </form>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="left-section">
+            <div class="shipping-details">
+                <h2>Shipping Address <button id="edit-button" type="submit">Edit</button></h2>
+                <div>
+                    <label>House No:</label>
+                    <span class="value">{{ .Address.HouseNo }}</span>
+                </div>
+                <div>
+                    <label>Landmark:</label>
+                    <span class="value">{{ .Address.Landmark }}</span>
+                </div>
+                <div>
+                    <label>City:</label>
+                    <span class="value">{{ .Address.City }}</span>
+                </div>
+                <div>
+                    <label>State:</label>
+                    <span class="value">{{ .Address.State }}</span>
+                </div>
+                <div>
+                    <label>Pincode:</label>
+                    <span class="value">{{ .Address.Pincode }}</span>
+                </div>
+                <div>
+                    <label>Contact No:</label>
+                    <span class="value">{{ .Address.PhoneNumber }}</span>
+                </div>
+            </div>
+
+            <!-- Delivery Section -->
+            <div class="section">
+                <h2>Delivery</h2>
+                <form id="delivery-form" action="/prod/checkout" method="POST" style="display: inline;">
+                    <label>
+                        <input type="radio" name="delivery" value="10" checked> Standard - $10.00
+                    </label>
+                    <label>
+                        <input type="radio" name="delivery" value="15"> Express - $15.00
+                    </label>
+                </form>
+            </div>
+
+            <!-- Payment Section -->
+            <div class="section">
+                <h2>Payment</h2>
+                <p style="color: green">CASH ON DELIVERY</p>
+            </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="right-section">
+            <h2>Summary</h2>
+            <p>Subtotal : $<span id="subtotal">{{.CheckoutData}}</span></p>
+            <p>Delivery Fee : $<span id="delivery-fee">10</span></p>
+            <hr>
+            <p ><strong>Total : $</strong> <span id="total"><strong>110</strong></span></p>
+            <form id="checkout-form" action="/prod/orderSummary" method="POST" style="display: inline;">
+                <input type="hidden" name="orderTotal" id="orderTotal">
+                <input type="hidden" name="orderValue" value="{{.CheckoutData}}">
+                <input type="hidden" name="deliveryMode" id="deliveryMode" value="10">
+                <input type="hidden" name="paymentMode" value="CASH ON DELIVERY">
+            <button type="submit" class="button">Checkout</button>
+        </form>
+        </div>
+    </div>
+
+    <script>
+        function updateTotal() {
+            const subtotal = parseFloat(document.getElementById('subtotal').textContent);
+            const deliveryFee = parseFloat(document.querySelector('input[name="delivery"]:checked').value);
+            const total = subtotal + deliveryFee;
+
+            document.getElementById('delivery-fee').textContent = deliveryFee;
+            document.getElementById('total').textContent = total.toFixed(2);
+            document.getElementById('orderTotal').value = total.toFixed(2);
+            const deliveryMode = document.querySelector('input[name="delivery"]:checked').value;
+            if (deliveryMode === "10") {
+                document.getElementById('deliveryMode').value = "Standard";
+                }
+            else if (deliveryMode === "15") {
+                document.getElementById('deliveryMode').value = "Express";
+                }
+        }
+
+        // Update total when delivery option is changed
+        document.querySelectorAll('input[name="delivery"]').forEach(radio => {
+            radio.addEventListener('change', updateTotal);
+        });
+
+        // Initial total calculation
+        updateTotal();
+
+        document.getElementById('edit-button').addEventListener('click', function() {
+            window.open('/prod/checkout/updateAddress', '_blank');
+        });
+    </script>
+</body>
+</html>
