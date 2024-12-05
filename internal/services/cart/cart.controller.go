@@ -40,11 +40,17 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		log.Println("cart-sess.Values[\"user\"]: ", sess.Values["user"])
+
+		//extracting isAnon flag from session
+		isAnon := sess.Values["isAnon"].(bool)
+		// Validate user
 		user, ok := sess.Values["user"].(*session.User)
 		if !ok || user == nil {
 			http.Error(w, `{"success": false, "error": "User not found"}`, http.StatusBadRequest)
 			return
+		}
+		if isAnon {
+			log.Println("cartpage Anon userID : ", user.UserID)
 		}
 
 		// Validate cart
@@ -66,21 +72,70 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 				return
 			}
 
-			cartList, res, err := s.getAllCartItemsService(cartID)
-			if err != nil {
-				log.Println(err)
-				http.Error(w, err.Error(), res)
-				return
+			if isAnon {
+				var cartTotal float64
+				var items []session.CartItem
+				// cartListObj := &session.Cart{}
+				for i, item := range cart.Items {
+					if (item.Quantity) > 0 {
+						product, res, err := s.ProductService.GetProductService(item.ProductID)
+						if err != nil {
+							log.Println(err)
+							http.Error(w, err.Error(), res)
+							return
+						}
+						cart.Items[i].ProductName = product.ProductName
+						cart.Items[i].PricePerUnit = product.PricePerUnit
+						totalPrice := cart.Items[i].PricePerUnit * float64(item.Quantity)
+						cart.Items[i].TotalPrice = totalPrice
+						cartTotal += totalPrice
+						items = append(items, cart.Items[i])
+					}
+				}
+				cart.CartTotal = cartTotal
+				cartListObj := cart
+				cartListObj.Items = items
+				cartList := cartListObj
+
+				//updating values in session
+				sess.Values["cart"] = &cart
+
+				// saving session
+				err = sess.Save(r, w)
+
+				if err != nil {
+					log.Println(err)
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartList.Items,
+					"IsAdmin": user.IsAdmin, "CartTotal": cartList.CartTotal, "isAnon": isAnon})
+
+				if err != nil {
+					log.Println("Template execution error:", err)
+					http.Error(w, "Error rendering cart list page", http.StatusInternalServerError)
+					return
+				}
+			} else {
+				cartListObj, res, err := s.getAllCartItemsService(cartID)
+				if err != nil {
+					log.Println(err)
+					http.Error(w, err.Error(), res)
+					return
+				}
+				cartList := cartListObj
+
+				err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartList.Items,
+					"IsAdmin": user.IsAdmin, "CartTotal": cartList.CartTotal, "isAnon": isAnon})
+
+				if err != nil {
+					log.Println("Template execution error:", err)
+					http.Error(w, "Error rendering cart list page", http.StatusInternalServerError)
+					return
+				}
 			}
 
-			err = tmpl.Execute(w, map[string]interface{}{"CartItems": cartList.Items,
-				"IsAdmin": user.IsAdmin, "CartTotal": cartList.CartTotal})
-
-			if err != nil {
-				log.Println("Template execution error:", err)
-				http.Error(w, "Error rendering cart list page", http.StatusInternalServerError)
-				return
-			}
 			return
 		case http.MethodOptions:
 			return
@@ -99,7 +154,12 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		//extracting isAnon flag from session
+		isAnon := sess.Values["isAnon"].(bool)
+
 		log.Println("cart-sess.Values[\"user\"]: ", sess.Values["user"])
+
+		// Validate user
 		user, ok := sess.Values["user"].(*session.User)
 		if !ok || user == nil {
 			http.Error(w, `{"success": false, "error": "User not found"}`, http.StatusBadRequest)
@@ -110,6 +170,13 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 		cart, ok := sess.Values["cart"].(*session.Cart)
 		if !ok || cart == nil {
 			http.Error(w, `{"success": false, "error": "Cart not found"}`, http.StatusBadRequest)
+			return
+		}
+
+		// Validate IDCountMap
+		IDCountMap, ok := sess.Values["IDCountMap"].(*session.IDCountMap)
+		if !ok || IDCountMap == nil {
+			http.Error(w, `{"success": false, "error": "IDCountMap not found"}`, http.StatusBadRequest)
 			return
 		}
 
@@ -135,7 +202,8 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 
 			// extracting data of form values
 			var quantity = 1
-			if r.FormValue("quantity") != "" {
+			var isFormQuantityNotNull = (r.FormValue("quantity") != "")
+			if isFormQuantityNotNull {
 				quantity, err = strconv.Atoi(r.FormValue("quantity"))
 				if err != nil {
 					log.Println("Invalid quantity:", err)
@@ -147,18 +215,64 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 			log.Println("cart-productId", productID)
 			log.Println("cart-cartID", cartID)
 
-			// Call the AddOrUpdateCartItem method
-			status, err := s.addOrUpdateCartItemService(cartID, productID, quantity)
-			if err != nil {
-				// Handle the error (e.g., return an error response)
-				log.Println("Error adding/updating cart item:", err)
-				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), status)
-				return
+			if isAnon {
+				cartItemID, exists := (*IDCountMap)[productID]
+				if exists {
+					if isFormQuantityNotNull {
+						cart.Items[cartItemID].Quantity = quantity
+					} else {
+						cart.Items[cartItemID].Quantity += quantity
+					}
+
+					//updating values in session
+					sess.Values["cart"] = &cart
+				} else {
+					//generate cartItemID
+					cartItemID := len(cart.Items)
+
+					//map the productId with index of cart-items slice (cartItemID)
+					(*IDCountMap)[productID] = cartItemID
+
+					//initialize Cartitem object
+					item := session.CartItem{
+						ID:           cartItemID,
+						CartID:       cartID,
+						ProductID:    productID,
+						Quantity:     quantity,
+						ProductName:  "",
+						PricePerUnit: 0.0,
+						TotalPrice:   0.0, // Quantity * PricePerUnit
+					}
+					cart.Items = append(cart.Items, item)
+
+					//updating values in session
+					sess.Values["cart"] = &cart
+					sess.Values["IDCountMap"] = &IDCountMap
+					fmt.Println("New Cart-Item added :", cart.Items[cartItemID])
+				}
+				// saving session
+				err = sess.Save(r, w)
+
+				if err != nil {
+					log.Println(err)
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			} else {
+				// Call the AddOrUpdateCartItem method
+				status, err := s.AddOrUpdateCartItemService(cartID, productID, quantity, isFormQuantityNotNull)
+				if err != nil {
+					// Handle the error (e.g., return an error response)
+					log.Println("Error adding/updating cart item:", err)
+					http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), status)
+					return
+				}
 			}
 
 			// Success response
 			// Set response content type
-			if r.FormValue("quantity") != "" {
+
+			if isFormQuantityNotNull {
 				http.Redirect(w, r, "/prod/cart", http.StatusSeeOther) // 303
 			} else {
 				w.Header().Set("Content-Type", "application/json")
@@ -187,7 +301,13 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		//extracting isAnon flag from session
+		isAnon := sess.Values["isAnon"].(bool)
+
 		log.Println("cart-sess.Values[\"user\"]: ", sess.Values["user"])
+
+		// Validate user
 		user, ok := sess.Values["user"].(*session.User)
 		if !ok || user == nil {
 			http.Error(w, `{"success": false, "error": "User not found"}`, http.StatusBadRequest)
@@ -198,6 +318,13 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 		cart, ok := sess.Values["cart"].(*session.Cart)
 		if !ok || cart == nil {
 			http.Error(w, `{"success": false, "error": "Cart not found"}`, http.StatusBadRequest)
+			return
+		}
+
+		// Validate IDCountMap
+		IDCountMap, ok := sess.Values["IDCountMap"].(*session.IDCountMap)
+		if !ok || IDCountMap == nil {
+			http.Error(w, `{"success": false, "error": "IDCountMap not found"}`, http.StatusBadRequest)
 			return
 		}
 
@@ -213,7 +340,7 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), http.StatusNotFound)
 				return
 			}
-			
+
 			err = r.ParseForm()
 			if err != nil {
 				log.Println(err)
@@ -221,16 +348,64 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 				return
 			}
 
-			log.Println("cartItemID", cartItemID)
+			log.Println("cart-cartItemID", cartItemID)
 			log.Println("cart-cartID", cartID)
 
-			// Call removeCartItem method
-			status, err := s.removeCartItem(cartID, cartItemID)
-			fmt.Println("Item with cartId : ", cartID, " and cartItemID : ", cartItemID, " was removed successfully")
-			if err != nil {
-				log.Println("Error deleting cart item:", err)
-				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), status)
-				return
+			if isAnon {
+				// Value to search for
+				targetValue := cartItemID
+
+				// Variable to hold the key
+				var keyFound int
+				var found bool
+
+				for i, item := range cart.Items {
+					if item.ID == targetValue {
+						cart.Items[i].Quantity = -1
+						break
+					}
+				}
+
+				// Iterate over the map
+				for key, value := range *IDCountMap {
+					if value == targetValue {
+						keyFound = key
+						found = true
+						break
+					}
+				}
+
+				// Check if a key was found
+				if found {
+					fmt.Printf("Key for value %d is %d\n", targetValue, keyFound)
+					delete(*IDCountMap, keyFound)
+				} else {
+					fmt.Printf("Value %d not found in the map\n", targetValue)
+				}
+
+				//updating values in session
+				sess.Values["cart"] = &cart
+				sess.Values["IDCountMap"] = &IDCountMap
+
+				// saving session
+				err = sess.Save(r, w)
+
+				if err != nil {
+					log.Println(err)
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+			} else {
+				// Call removeCartItem method
+				status, err := s.removeCartItem(cartID, cartItemID)
+				fmt.Println("Item with cartId : ", cartID, " and cartItemID : ", cartItemID, " was removed successfully")
+				if err != nil {
+					// Handle the error (e.g., return an error response)
+					log.Println("Error deleting cart item:", err)
+					http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), status)
+					return
+				}
 			}
 
 			http.Redirect(w, r, "/prod/cart", http.StatusFound)

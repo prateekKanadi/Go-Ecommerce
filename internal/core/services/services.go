@@ -21,23 +21,23 @@ type ServiceRegistry struct {
 }
 
 func InitializeServices(db *sql.DB) *ServiceRegistry {
+	// Initialize product repository and service
+	productRepo := product.NewProductRepository(db)
+	productService := product.NewProductService(productRepo)
+
 	// Initialize user repository and service
 	userRepo := user.NewUserRepository(db)
 	userService := user.NewUserService(userRepo)
 
 	// Initialize cart repository and service
 	cartRepo := cart.NewCartRepository(db)
-	cartService := cart.NewCartService(cartRepo)
+	cartService := cart.NewCartService(cartRepo, productService)
 
 	// Initialize authentication service
 	authService := authentication.NewAuthService(userService, cartService)
 
-	// Initialize product repository and service
-	productRepo := product.NewProductRepository(db)
-	productService := product.NewProductService(productRepo)
-
 	// Initialize checkout service
-	checkoutService := checkout.NewCheckoutService(userService,cartService)
+	checkoutService := checkout.NewCheckoutService(userService, cartService)
 
 	// Initialize order repository and service
 	orderRepo := order.NewOrderRepository(db)

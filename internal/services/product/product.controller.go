@@ -45,7 +45,16 @@ func productsProdHandler(s *ProductService) http.HandlerFunc {
 			return
 		}
 
-		user := sess.Values["user"].(*session.User)
+		//extracting isAnon flag from session
+		isAnon := sess.Values["isAnon"].(bool)
+		user, ok := sess.Values["user"].(*session.User)
+		if !ok || user == nil {
+			http.Error(w, `{"success": false, "error": "User not found"}`, http.StatusBadRequest)
+			return
+		}
+		if isAnon {
+			log.Println("my products Anon userID : ", user.UserID)
+		}
 
 		switch r.Method {
 		case http.MethodGet:
@@ -63,7 +72,7 @@ func productsProdHandler(s *ProductService) http.HandlerFunc {
 				return
 			}
 
-			err = tmpl.Execute(w, map[string]interface{}{"Products": productList, "IsAdmin": user.IsAdmin})
+			err = tmpl.Execute(w, map[string]interface{}{"Products": productList, "IsAdmin": user.IsAdmin, "isAnon": isAnon})
 			if err != nil {
 				log.Println("Template execution error:", err)
 				http.Error(w, "Error rendering product list page", http.StatusInternalServerError)
@@ -120,7 +129,16 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 			return
 		}
 
-		user := sess.Values["user"].(*session.User)
+		//extracting isAnon flag from session
+		isAnon := sess.Values["isAnon"].(bool)
+		user, ok := sess.Values["user"].(*session.User)
+		if !ok || user == nil {
+			http.Error(w, `{"success": false, "error": "User not found"}`, http.StatusBadRequest)
+			return
+		}
+		if isAnon {
+			log.Println("my product details Anon userID : ", user.UserID)
+		}
 
 		vars := mux.Vars(r)
 		productID, err := strconv.Atoi(vars["id"])
@@ -130,7 +148,7 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		product, res, err := s.getProductService(productID)
+		product, res, err := s.GetProductService(productID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, err.Error(), res)
@@ -147,7 +165,7 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 				return
 			}
 
-			err = tmpl.Execute(w, map[string]interface{}{"Product": product, "IsAdmin": user.IsAdmin})
+			err = tmpl.Execute(w, map[string]interface{}{"Product": product, "IsAdmin": user.IsAdmin, "isAnon": isAnon})
 			if err != nil {
 				log.Println("Template execution error:", err)
 				http.Error(w, "Error rendering product details page", http.StatusInternalServerError)
@@ -274,7 +292,7 @@ func productHandler(s *ProductService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		product, res, err := s.getProductService(productID)
+		product, res, err := s.GetProductService(productID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, err.Error(), res)

@@ -22,9 +22,9 @@ func NewCartRepository(db *sql.DB) *CartRepository {
 }
 
 // ------------CART-ITEM RELATED------------
-func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int) error {
+func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int, isFormQuantityNotNull bool) error {
 	var query string
-	if quantity > 1 {
+	if isFormQuantityNotNull {
 		query = `INSERT INTO cart_items (cart_id, product_id, quantity)
 	VALUES (?, ?, ?)
 	ON DUPLICATE KEY UPDATE quantity = VALUES(quantity), updated_at = CURRENT_TIMESTAMP

@@ -127,6 +127,7 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 
 			sess.Values["user"] = &userObj
 			sess.Values["userId"] = user.UserID
+			sess.Values["isAnon"] = false
 
 			time.Sleep(10 * time.Microsecond)
 			// Now, create a cart for the user
@@ -138,11 +139,41 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 				return
 			}
 
-			//storing cart in session
-			cartObj := session.Cart{
-				CartID: cartID}
+			//-------------------storing cart in session---------------------
+			// Validate cart
+			cart, ok := sess.Values["cart"].(*session.Cart)
+			if !ok || cart == nil {
+				http.Error(w, `{"success": false, "error": "Cart not found"}`, http.StatusBadRequest)
+				return
+			}
+			cart.CartID = cartID
 
-			sess.Values["cart"] = &cartObj
+			// cart-items available in session (ANON-USER-FLOW)
+			if len(cart.Items) > 0 {
+				// Now, add cart-items (if any) from anon-user session
+				for _, item := range cart.Items {
+					if item.Quantity > 0 {
+						time.Sleep(10 * time.Microsecond)
+						// Call the addOrUpdateCartItemService method for each item
+						status, err := s.CartService.AddOrUpdateCartItemService(cart.CartID, item.ProductID, item.Quantity, true)
+						if err != nil {
+							// Log the error and continue with the next item
+							log.Printf("Error adding/updating cart item (CartID: %d, ProductID: %d, Quantity: %d): %v",
+								cart.CartID, item.ProductID, item.Quantity, err)
+							http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), status)
+							return
+						}
+						log.Printf("Successfully added/updated cart item (CartID: %d, ProductID: %d, Quantity: %d)",
+							cart.CartID, item.ProductID, item.Quantity)
+					}
+				}
+				sess.Values["cart"] = &cart
+			} else {
+				cartObj := &session.Cart{
+					CartID: cartID, Items: []session.CartItem{}}
+
+				sess.Values["cart"] = &cartObj
+			}
 
 			// saving session
 			err = sess.Save(r, w)
@@ -262,6 +293,7 @@ func loginProdHandler(s *AuthService) http.HandlerFunc {
 
 			sess.Values["user"] = &userObj
 			sess.Values["userId"] = user.UserID
+			sess.Values["isAnon"] = false
 
 			// Extract the cart that was stored for the user ..and
 			//storing cart in session

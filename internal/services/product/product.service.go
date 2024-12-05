@@ -28,7 +28,7 @@ func (s *ProductService) getAllProductsService() ([]Product, int, error) {
 	return productList, http.StatusOK, nil
 }
 
-func (s *ProductService) getProductService(productID int) (*Product, int, error) {
+func (s *ProductService) GetProductService(productID int) (*Product, int, error) {
 	product, err := s.Repo.getProduct(productID)
 
 	if err != nil {
