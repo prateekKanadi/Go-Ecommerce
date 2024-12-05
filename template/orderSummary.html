@@ -200,8 +200,8 @@
                 <tr>
                     <td>{{.ProductID}}</td> <!-- Product ID -->
                     <td>{{.Quantity}}</td> <!-- Quantity -->
-                    <td>${{.PricePerUnit}}</td> <!-- Price per unit -->
-                    <td>${{.TotalPrice}}</td> <!-- Total price for this item -->
+                    <td data-price="{{ .PricePerUnit }}"></td> <!-- Price per unit -->
+                    <td data-price="{{ .TotalPrice }}"></td> <!-- Total price for this item -->
                 </tr>
                 {{end}}
             </tbody>
@@ -209,5 +209,13 @@
         </div>
 
     </div>
+
+    <script>
+        document.querySelectorAll('td[data-price]').forEach(cell => {
+            const rawValue = parseFloat(cell.dataset.price); // Access the raw value
+            cell.textContent = `$${rawValue.toFixed(2)}`; // Format and display it
+        });
+    </script>
+
 </body>
 </html>

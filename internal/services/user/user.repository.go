@@ -251,10 +251,6 @@ func hashPassword(password string) (string, error) {
 	return string(hashed), nil
 }
 
-type AddressRepository struct {
-	db *sql.DB
-}
-
 func (repo *UserRepository) GetAddressByUserId(userId int) (Address, error) {
 	var address Address
 	row := repo.db.QueryRow(`

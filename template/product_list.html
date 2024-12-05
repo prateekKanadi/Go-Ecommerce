@@ -228,7 +228,7 @@
                 <tr>
                     <td>{{ .ProductName }}</td>
                     <td>{{ .ProductBrand }}</td>
-                    <td>${{ .PricePerUnit }}</td>
+                    <td data-price="{{ .PricePerUnit }}"></td>
                     <td>
                         <!-- Add to cart button -->
                         <form action="/prod/cart/{{ .ProductID }}" method="POST" class="add-to-cart-form">
@@ -301,6 +301,11 @@
             const popup = document.getElementById('popup');
             popup.style.display = 'none';
         }
+
+        document.querySelectorAll('td[data-price]').forEach(cell => {
+            const rawValue = parseFloat(cell.dataset.price); // Access the raw value
+            cell.textContent = `$${rawValue.toFixed(2)}`; // Format and display it
+        });
     </script>
 </body>
 </html>
