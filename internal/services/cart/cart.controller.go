@@ -75,7 +75,8 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 			if isAnon {
 				var cartTotal float64
 				var items []session.CartItem
-				// cartListObj := &session.Cart{}
+
+				// iterate over items slice
 				for i, item := range cart.Items {
 					if (item.Quantity) > 0 {
 						product, res, err := s.ProductService.GetProductService(item.ProductID)
@@ -157,8 +158,6 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 		//extracting isAnon flag from session
 		isAnon := sess.Values["isAnon"].(bool)
 
-		log.Println("cart-sess.Values[\"user\"]: ", sess.Values["user"])
-
 		// Validate user
 		user, ok := sess.Values["user"].(*session.User)
 		if !ok || user == nil {
@@ -212,16 +211,23 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 				}
 			}
 
-			log.Println("cart-productId", productID)
-			log.Println("cart-cartID", cartID)
-
 			if isAnon {
-				cartItemID, exists := (*IDCountMap)[productID]
+				_, exists := (*IDCountMap)[productID]
 				if exists {
-					if isFormQuantityNotNull {
-						cart.Items[cartItemID].Quantity = quantity
-					} else {
-						cart.Items[cartItemID].Quantity += quantity
+					// Value to search for
+					targetValue := productID
+
+					// Iterate over the items slice
+					for i, item := range cart.Items {
+						if item.ProductID == targetValue {
+							if isFormQuantityNotNull {
+								cart.Items[i].Quantity = quantity
+							} else {
+								cart.Items[i].Quantity += quantity
+							}
+							log.Println("Cart updated for Cart-Item: ", item.ID)
+							break
+						}
 					}
 
 					//updating values in session
@@ -230,8 +236,8 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 					//generate cartItemID
 					cartItemID := len(cart.Items)
 
-					//map the productId with index of cart-items slice (cartItemID)
-					(*IDCountMap)[productID] = cartItemID
+					//update IDCountMap
+					(*IDCountMap)[productID] += 1
 
 					//initialize Cartitem object
 					item := session.CartItem{
@@ -248,7 +254,7 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 					//updating values in session
 					sess.Values["cart"] = &cart
 					sess.Values["IDCountMap"] = &IDCountMap
-					fmt.Println("New Cart-Item added :", cart.Items[cartItemID])
+					fmt.Println("New Cart-Item added :", cartItemID)
 				}
 				// saving session
 				err = sess.Save(r, w)
@@ -305,8 +311,6 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 		//extracting isAnon flag from session
 		isAnon := sess.Values["isAnon"].(bool)
 
-		log.Println("cart-sess.Values[\"user\"]: ", sess.Values["user"])
-
 		// Validate user
 		user, ok := sess.Values["user"].(*session.User)
 		if !ok || user == nil {
@@ -348,9 +352,6 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 				return
 			}
 
-			log.Println("cart-cartItemID", cartItemID)
-			log.Println("cart-cartID", cartID)
-
 			if isAnon {
 				// Value to search for
 				targetValue := cartItemID
@@ -358,18 +359,14 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 				// Variable to hold the key
 				var keyFound int
 				var found bool
+				var deletedItem session.CartItem
 
+				// Iterate over the items slice
 				for i, item := range cart.Items {
 					if item.ID == targetValue {
 						cart.Items[i].Quantity = -1
-						break
-					}
-				}
-
-				// Iterate over the map
-				for key, value := range *IDCountMap {
-					if value == targetValue {
-						keyFound = key
+						deletedItem = cart.Items[i]
+						keyFound = cart.Items[i].ProductID
 						found = true
 						break
 					}
@@ -377,7 +374,7 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 
 				// Check if a key was found
 				if found {
-					fmt.Printf("Key for value %d is %d\n", targetValue, keyFound)
+					fmt.Printf("{Name: %s; Quantity: %d} Item deleted successfully \n", deletedItem.ProductName, deletedItem.Quantity)
 					delete(*IDCountMap, keyFound)
 				} else {
 					fmt.Printf("Value %d not found in the map\n", targetValue)

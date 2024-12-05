@@ -19,7 +19,6 @@ const (
 
 // SetupRoutes :
 func SetupOrderRoutes(r *mux.Router, s *OrderService) {
-	fmt.Println("Request came for initiate checkout")
 	// -------------------------PROD----------------------
 	orderUrlPath := fmt.Sprintf("/%s/%s", prodBasePath, orderSummaryPath)
 	orderCheckoutRouter := r.PathPrefix(orderUrlPath).Subrouter()

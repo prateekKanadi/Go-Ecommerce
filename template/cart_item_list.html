@@ -223,13 +223,23 @@
 
         <div style="text-align: center; margin-top: 20px;">
             <a href="/prod/products" class="btn">Continue Shopping</a>
-            <form action="/prod/checkout" method="GET" style="display: inline;">
-                {{ if eq .CartTotal 0.0 }}
-                    <button type="submit" class="btn-disabled" disabled>Proceed to Checkout</button>
-                {{ else }}
-                    <button type="submit" class="btn">Proceed to Checkout</button>
-                {{ end }}
-            </form>
+            {{ if $.isAnon }}
+                <form action="/" method="GET" style="display: inline;">
+                    {{ if eq .CartTotal 0.0 }}
+                        <button type="submit" class="btn-disabled" disabled>Proceed to Checkout</button>
+                    {{ else }}
+                        <button type="submit" class="btn">Proceed to Checkout</button>
+                    {{ end }}
+                </form>
+            {{ else }}
+                <form action="/prod/checkout" method="GET" style="display: inline;">
+                    {{ if eq .CartTotal 0.0 }}
+                        <button type="submit" class="btn-disabled" disabled>Proceed to Checkout</button>
+                    {{ else }}
+                        <button type="submit" class="btn">Proceed to Checkout</button>
+                    {{ end }}
+                </form>
+            {{ end }}            
         </div>
     </div>
 
