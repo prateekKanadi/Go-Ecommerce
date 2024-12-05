@@ -91,6 +91,11 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 						cart.Items[i].TotalPrice = totalPrice
 						cartTotal += totalPrice
 						items = append(items, cart.Items[i])
+                        initialRoundOf := totalPrice 
+						// Amount rounded off to 2 decimal places
+						roundedoffTotal := fmt.Sprintf("%.2f", initialRoundOf)
+						finalRoundedOffFloat, err := strconv.ParseFloat(roundedoffTotal, 64)
+						items[len(items)-1].TotalPrice = finalRoundedOffFloat
 					}
 				}
 				cart.CartTotal = cartTotal
