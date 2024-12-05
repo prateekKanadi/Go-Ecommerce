@@ -223,7 +223,7 @@
 
         <div style="text-align: center; margin-top: 20px;">
             <a href="/prod/products" class="btn">Continue Shopping</a>
-            <form action="/prod/checkout" method="POST" style="display: inline;">
+            <form action="/prod/checkout" method="GET" style="display: inline;">
                 {{ if eq .CartTotal 0.0 }}
                     <button type="submit" class="btn-disabled" disabled>Proceed to Checkout</button>
                 {{ else }}

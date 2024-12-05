@@ -56,7 +56,7 @@ func (repo *CartRepository) removeCartItem(cartID, cartItemID int) error {
 }
 
 // get all products from cart_items JOIN products table
-func (repo *CartRepository) getAllCartItems(cartID int) (*Cart, error) {
+func (repo *CartRepository) GetAllCartItems(cartID int) (*Cart, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	query := `
