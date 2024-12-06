@@ -23,10 +23,10 @@
         header {
             width: 100%;
             background-color: #fff;
-            padding: 15px 20px;  /* Adjusted padding */
+            padding: 15px 20px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             display: flex;
-            justify-content: flex-start; /* Align buttons to the left */
+            justify-content: flex-start;
             align-items: center;
             position: fixed;
             top: 0;
@@ -37,19 +37,19 @@
         .welcome-message {
             font-size: 1.2em;
             color: #5a67d8;
-            margin-right: 700px;  /* Space between welcome message and buttons */
-            margin-bottom: 15px; /* Added space between the welcome message and buttons */
+            margin-right: 700px;
+            margin-bottom: 15px;
         }
 
         .btn-container {
             display: flex;
-            gap: 12px;  /* Increased gap between buttons for better spacing */
-            margin-left: 20px; /* Ensured buttons are not flush against the edge */
-            flex-wrap: wrap; /* Ensures buttons wrap if they overflow */
+            gap: 12px;
+            margin-left: 20px;
+            flex-wrap: wrap;
         }
 
         .btn {
-            padding: 8px 15px; /* Reduced padding to fit buttons */
+            padding: 8px 15px;
             background-color: #5a67d8;
             color: #fff;
             border-radius: 5px;
@@ -72,16 +72,6 @@
             background-color: #e2e8f0;
         }
 
-        /* Adjust position of the logout button */
-        form button[type="submit"] {
-            margin-left: 0px; /* Removed extra left margin */
-        }
-
-        /* Adjust container to prevent overflowing */
-        header .btn-container {
-            overflow: hidden; /* Ensure no overflow */
-        }
-
         /* Container styling for the product list */
         .product-list-container {
             background-color: #fff;
@@ -90,7 +80,7 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             width: 90%;
             max-width: 800px;
-            margin-top: 100px; /* Adjusted for header */
+            margin-top: 100px;
         }
 
         .product-list-container h1 {
@@ -187,6 +177,12 @@
             background-color: #e2e8f0;
         }
 
+        /* Style for buttons in the same line */
+        .action-buttons {
+            display: flex;
+            gap: 12px;  /* Space between buttons */
+        }
+
     </style>
 </head>
 <body>
@@ -201,11 +197,12 @@
                 <a href="/" class="btn" title="View Home Page">Home</a>                
             {{ else }}
                 <a href="/prod/users/dashboard" class="btn" title="View My Products">Dashboard</a>
+                <a href="/prod/cart" class="btn" title="View My Cart">My Cart</a>       
                 <form action="/prod/auth/logout" method="POST" style="display: inline;">
                     <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
                 </form>
             {{ end }}
-            <a href="/prod/cart" class="btn" title="View My Cart">My Cart</a>            
+     
         </div>
     </header>
 
@@ -229,7 +226,7 @@
                     <td>{{ .ProductName }}</td>
                     <td>{{ .ProductBrand }}</td>
                     <td data-price="{{ .PricePerUnit }}"></td>
-                    <td>
+                    <td class="action-buttons">
                         <!-- Add to cart button -->
                         <form action="/prod/cart/{{ .ProductID }}" method="POST" class="add-to-cart-form">
                             <button type="submit" class="btn" style="background-color: #783fb1;">Add to cart</button>
@@ -246,11 +243,9 @@
             </tbody>
         </table>
 
-        <a href="/prod/products" class="btn" {{ if not $.IsAdmin }}disabled{{ end }}>Add New Product</a>
         {{ if $.isAnon }}
             <a href="/" class="btn btn-back">Back to Home</a>                
         {{ else }}
-            <!-- Button to go back to Dashboard page -->
             <a href="/prod/users/dashboard" class="btn btn-back">Back to Dashboard</a>
         {{ end }}        
     </div>
@@ -266,22 +261,16 @@
     <!-- JavaScript to handle method switching -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // For Add to cart button (simulating add to cart request)
             const addToCartForms = document.querySelectorAll('.add-to-cart-form');
-
-            // Attach a submit event listener to each form
             addToCartForms.forEach(function (form) {
                 form.addEventListener('submit', function (event) {
-                    event.preventDefault(); // Prevent the default form submission
-
-                    // Send AJAX request
+                    event.preventDefault();
                     const productID = form.getAttribute('action').split('/').pop();
                     fetch(`/prod/cart/${productID}`, {
                         method: 'POST',
                     })
                     .then(response => response.json())
                     .then(data => {
-                        // Show popup
                         if (data.success) {
                             showPopup();
                         }
@@ -290,22 +279,18 @@
             });
         });
 
-        // Function to show the popup
         function showPopup() {
             const popup = document.getElementById('popup');
             popup.style.display = 'block';
         }
 
-        // Function to close the popup
         function closePopup() {
             const popup = document.getElementById('popup');
             popup.style.display = 'none';
         }
 
         document.querySelectorAll('td[data-price]').forEach(cell => {
-            const rawValue = parseFloat(cell.dataset.price); // Access the raw value
-            cell.textContent = `$${rawValue.toFixed(2)}`; // Format and display it
+            const rawValue = parseFloat(cell.dataset.price);
+            cell.textContent = `$${rawValue.toFixed(2)}`;
         });
     </script>
-</body>
-</html>
