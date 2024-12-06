@@ -49,6 +49,19 @@
             margin: 0;
         }
 
+        /* Order Success Message */
+        .order-success {
+            background-color: #38a169;
+            color: white;
+            padding: 15px;
+            width: 100%;
+            text-align: center;
+            font-size: 1.1em;
+            border-radius: 5px;
+            margin-top: 120px; /* Space from header */
+            margin-bottom: 20px;
+        }
+
         /* Container styling */
         .order-summary-container {
             background-color: #fff;
@@ -57,7 +70,7 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             width: 90%;
             max-width: 900px;
-            margin-top: 120px; /* Adjusted for header */
+            margin-top: 40px; /* Adjusted for success message */
         }
 
         .order-summary-container h1 {
@@ -156,6 +169,12 @@
             </form>
         </div>
     </header>
+
+    <!-- Order Success Message -->
+    <div class="order-success">
+        <p>Success! Your order has been placed successfully.</p>
+        <p><strong>Order ID:</strong> {{ .Order.OrderID }}</p>
+    </div>
 
     <!-- Order Summary Section -->
     <div class="order-summary-container">
