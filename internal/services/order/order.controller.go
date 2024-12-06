@@ -13,16 +13,18 @@ import (
 )
 
 const (
-	prodBasePath     = "prod"
-	orderSummaryPath = "orderSummary"
+	prodBasePath = "prod"
+	orderPath    = "order"
 )
 
 // SetupRoutes :
 func SetupOrderRoutes(r *mux.Router, s *OrderService) {
 	// -------------------------PROD----------------------
-	orderUrlPath := fmt.Sprintf("/%s/%s", prodBasePath, orderSummaryPath)
+	orderUrlPath := fmt.Sprintf("/%s/%s", prodBasePath, orderPath)
 	orderCheckoutRouter := r.PathPrefix(orderUrlPath).Subrouter()
-	orderCheckoutRouter.HandleFunc("", initiateOrderHandler(s))
+	orderCheckoutRouter.HandleFunc("/orderSummary", initiateOrderHandler(s))
+	orderCheckoutRouter.HandleFunc("/orderHistory", orderHistoryHandler(s))
+
 }
 
 func initiateOrderHandler(s *OrderService) http.HandlerFunc {
@@ -84,5 +86,55 @@ func initiateOrderHandler(s *OrderService) http.HandlerFunc {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
 
+	}
+}
+
+func orderHistoryHandler(s *OrderService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Order History Page Flow")
+
+		sess, err := session.GetSessionFromContext(r)
+		if sess == nil || err != nil {
+			log.Println("Session not found:", err)
+			http.Error(w, "Session not found", http.StatusUnauthorized)
+			return
+		}
+
+		user, ok := sess.Values["user"].(*session.User)
+		if !ok {
+			log.Println("Failed to cast session value to User")
+			http.Error(w, "Failed to retrieve user information", http.StatusUnauthorized)
+			return
+		}
+
+		userID := user.UserID
+		orders, err := s.Repo.GetAllOrdersAndOrderItemsByUserID(userID)
+
+		switch r.Method {
+		case http.MethodGet:
+			tmpl, err := template.ParseFiles("template/orderHistory.html")
+			if err != nil {
+				log.Println("Error loading template:", err)
+				http.Error(w, "Error loading order history page", http.StatusInternalServerError)
+				return
+			}
+
+			data := map[string]interface{}{
+				"Orders": orders,
+			}
+
+			err = tmpl.Execute(w, data)
+			if err != nil {
+				log.Println("Error rendering template:", err)
+				http.Error(w, "Error rendering order history page", http.StatusInternalServerError)
+				return
+			}
+
+		case http.MethodOptions:
+			w.WriteHeader(http.StatusOK)
+
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
 	}
 }
