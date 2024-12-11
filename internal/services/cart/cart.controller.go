@@ -430,6 +430,7 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 			}
 
 			http.Redirect(w, r, "/prod/cart", http.StatusFound)
+			return
 		case http.MethodOptions:
 			return
 		default:

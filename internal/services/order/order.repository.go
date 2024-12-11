@@ -50,17 +50,7 @@ func (repo *OrderRepository) getOrderDetailsWithId(orderId int) (*Order, error) 
 	return order, nil
 }
 
-func (repo *OrderRepository) createOrder(userID int, deliveryMode string, paymentMode string, orderValue float64, orderTotal float64) (int, error) {
-
-	//userRepo := &user.UserRepository{db: repo.db}
-
-	// Get the user's address by their userID
-	//address, err := userRepo.GetAddressByUserId(userID)
-	address, err := repo.GetAddressAsString(userID)
-	//if err != nil {
-	//	log.Printf("Error fetching address for user %d: %v", userID, err)
-	//}
-	//shippingAddress := checkout.CheckoutRepository.getAddressDetailsOfUser(userID)
+func (repo *OrderRepository) createOrder(userID int, deliveryMode string, paymentMode string, orderValue float64, orderTotal float64,shippingAddress string) (int, error) {
 
 	query := `
 		INSERT INTO orders (userId, createdAt, updatedAt, deliveryMode, paymentMode, orderValue, shippingAddress, orderTotal)
@@ -75,7 +65,7 @@ func (repo *OrderRepository) createOrder(userID int, deliveryMode string, paymen
 		deliveryMode,
 		paymentMode,
 		orderValue,
-		address,
+		shippingAddress,
 		orderTotal)
 	if err != nil {
 		log.Println(err.Error())
@@ -261,3 +251,102 @@ func (repo *OrderRepository) GetAllOrdersAndOrderItemsByUserID(userID int) ([]Or
 
 	return orders, nil
 }
+
+func( repo *OrderRepository) GetOrdersAndOrderItemsByOrderID(orderId int) (Order, error){
+	order := Order{}
+	orderItems := []OrderItem{}
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	query := `
+        SELECT
+            o.OrderID,
+            o.UserID,
+            o.DeliveryMode,
+            o.PaymentMode,
+            o.OrderValue,
+            o.ShippingAddress,
+            o.OrderTotal,
+            oi.ProductID,
+            oi.Quantity,
+            oi.PricePerUnit,
+            oi.TotalPrice
+        FROM
+            orders o
+        JOIN
+            order_items oi ON o.OrderID = oi.OrderID
+        WHERE
+            o.OrderID = ?`
+
+	
+	rows,err := repo.db.QueryContext(ctx, query, orderId)
+
+
+	if err != nil {
+		return Order{},err
+	}
+	defer rows.Close()
+
+	var orderMap = make(map[int]*Order)
+
+	for rows.Next() {
+		var orderID, userID, productID, quantity int
+		var deliveryMode, paymentMode, shippingAddress string
+		var orderValue, orderTotal, pricePerUnit, totalPrice float64
+
+		if err := rows.Scan(
+			&orderID,
+			&userID,
+			&deliveryMode,
+			&paymentMode,
+			&orderValue,
+			&shippingAddress,
+			&orderTotal,
+			&productID,
+			&quantity,
+			&pricePerUnit,
+			&totalPrice,
+		); err != nil {
+			return Order{}, err
+		}
+	
+
+		if _, exists := orderMap[orderID]; !exists {
+			order = Order{
+				OrderID:         orderID,
+				UserID:          userID,
+				DeliveryMode:    deliveryMode,
+				PaymentMode:     paymentMode,
+				OrderValue:      orderValue,
+				ShippingAddress: shippingAddress,
+				OrderTotal:      orderTotal,
+			}
+		}
+
+		item := OrderItem{
+			ProductID:    productID,
+			Quantity:     quantity,
+			PricePerUnit: pricePerUnit,
+			TotalPrice:   totalPrice,
+		}
+
+		orderItems = append(orderItems, item)
+
+		order.Items = orderItems
+
+
+		// orderMap[orderID].Items = append(orderMap[orderID].Items, item)
+	}
+
+	// for _, order := range orderMap {
+	// 	orders = append(orders, *order)
+	// }
+
+	// if len(orders) == 0 {
+	// 	return nil, fmt.Errorf("no orders found for userID %d", orderId)
+	// }
+
+	
+	return order, nil
+}
+

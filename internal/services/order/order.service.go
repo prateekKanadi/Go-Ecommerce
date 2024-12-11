@@ -22,10 +22,8 @@ func NewOrderService(userService *user.UserService, cartService *cart.CartServic
 	}
 }
 
-func (s *OrderService) createOrderService(userID int, deliveryMode string, paymentMode string, orderValue float64, orderTotal float64) (int, int, error) {
-	//address, err := s.UserService.Repo.GetAddressByUserId(userID)
-	//addressStr := utils.ToString(address.HouseNo, address.City, )
-	orderId, err := s.Repo.createOrder(userID, deliveryMode, paymentMode, orderValue, orderTotal)
+func (s *OrderService) createOrderService(userID int, deliveryMode string, paymentMode string, orderValue float64, orderTotal float64, shippingAddress string) (int, int, error) {
+	orderId, err := s.Repo.createOrder(userID, deliveryMode, paymentMode, orderValue, orderTotal,shippingAddress)
 	if err != nil {
 		log.Printf("Error fetching order: %v", err)
 		return orderId, http.StatusInternalServerError, err
@@ -46,6 +44,7 @@ func (s *OrderService) createOrderItemsService(orderId int, userId int, orderDet
 
 	return orderDetails, http.StatusOK, nil
 }
+
 func (s *OrderService) getOrderService(orderId int) (Order, int, error) {
 	order, err := s.Repo.getOrderDetailsWithId(orderId)
 	if err != nil {
@@ -55,3 +54,14 @@ func (s *OrderService) getOrderService(orderId int) (Order, int, error) {
 
 	return *order, http.StatusOK, nil
 }
+
+// func (s *OrderService) getOrderItemDetails(orderId int) ([]OrderItem, int, error){
+
+// 	orderItems, err := s.Repo.getOrderItemDetails(orderId)
+// 	if err != nil {
+// 		log.Printf("Error fetching order: %v", err)
+// 		return orderItems, http.StatusInternalServerError, err
+// 	}
+
+// 	return orderItems, http.StatusOK, nil
+// }
