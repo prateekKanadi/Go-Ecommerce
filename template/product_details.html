@@ -150,6 +150,22 @@
         .popup .btn:hover {
             background-color: #e2e8f0;
         }
+
+
+        /* Additional styles for image */
+        .product-details img {
+            display: block;
+            margin: 20px auto; /* Center the image */
+            max-width: 85%; /* Ensure image fits within the container */
+            height: auto; /* Maintain aspect ratio */
+            border-radius: 8px; /* Add rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add subtle shadow */
+            transition: transform 0.3s ease; /* Smooth hover zoom effect */
+        }
+
+        .product-details img:hover {
+            transform: scale(1.05); /* Slight zoom on hover */
+        }
     </style>
 </head>
 <body>
@@ -196,6 +212,9 @@
             <div>
                 <label>Stock Quantity:</label>
                 <span class="value">{{ .Product.StockQuantity }}</span>
+            </div>
+            <div>
+                <img src="/images/sample-image.jpg" alt="Sample Image" />
             </div>
         </div>
 
