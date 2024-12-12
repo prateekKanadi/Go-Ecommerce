@@ -143,7 +143,6 @@ func initiateCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 			return
 
 		case http.MethodPost:
-
 			fmt.Println("Change address POST request being handled")
 			// Take the updated address
 			houseNo := r.FormValue("houseNo")
