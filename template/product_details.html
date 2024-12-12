@@ -51,33 +51,73 @@
         /* Container styling */
         .product-details-container {
             background-color: #fff;
-            padding: 40px;
+            padding: 40px 20px;
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-            width: 90%;
-            max-width: 800px;
-            margin-top: 100px;
+            width: 60%;
+            max-width: 900px;
+            margin: 80px auto 0;
+            text-align: center; /* Center-aligns the title */
         }
 
         .product-details-container h1 {
             color: #5a67d8;
-            font-size: 2em;
+            font-size: 2.5em;
             font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .product-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .left-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .product-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product-image img:hover {
+            transform: scale(1.05); /* Scale up the image slightly */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Enhance shadow on hover */
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
             text-align: center;
-            margin-bottom: 20px;
         }
 
-        /* Details Section */
-        .product-details {
-            margin-bottom: 20px;
-        }
-
-        .product-details div {
-            margin-bottom: 15px;
+        .right-column {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: left;
+            margin-left: 10px; /* Reduced left margin for tighter alignment */
+            margin-right: 0; /* Removed any unnecessary right margin */
         }
 
         .product-details label {
             font-weight: bold;
+            display: inline-block;
+            margin-bottom: 5px;
         }
 
         .product-details .value {
@@ -151,21 +191,6 @@
             background-color: #e2e8f0;
         }
 
-
-        /* Additional styles for image */
-        .product-details img {
-            display: block;
-            margin: 20px auto; /* Center the image */
-            max-width: 85%; /* Ensure image fits within the container */
-            height: auto; /* Maintain aspect ratio */
-            border-radius: 8px; /* Add rounded corners */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add subtle shadow */
-            transition: transform 0.3s ease; /* Smooth hover zoom effect */
-        }
-
-        .product-details img:hover {
-            transform: scale(1.05); /* Slight zoom on hover */
-        }
     </style>
 </head>
 <body>
@@ -191,39 +216,45 @@
 
     <div class="product-details-container">
         <h1>Product Details</h1>
-
-        <div class="product-details">
-            <div>
-                <label>Product Name:</label>
-                <span class="value">{{ .Product.ProductName }}</span>
+        <div class="product-content">
+            <!-- Left Column: Image -->
+            <div class="left-column">
+                <div class="product-image">
+                    <img src="/images/sample-image.jpg" alt="Sample Image" />
+                </div>
+                <div class="button-container">
+                    <button class="btn btn-add-to-cart" id="add-to-cart-btn">Add to Cart</button>
+                    <a href="/prod/products" class="btn btn-back">Back to Dashboard</a>
+                </div>
             </div>
-            <div>
-                <label>Product Brand:</label>
-                <span class="value">{{ .Product.ProductBrand }}</span>
-            </div>
-            <div>
-                <label>Price:</label>
-                <span class="value">${{ .Product.PricePerUnit }}</span>
-            </div>
-            <div>
-                <label>Description:</label>
-                <span class="value">{{ .Product.Description }}</span>
-            </div>
-            <div>
-                <label>Stock Quantity:</label>
-                <span class="value">{{ .Product.StockQuantity }}</span>
-            </div>
-            <div>
-                <img src="/images/sample-image.jpg" alt="Sample Image" />
+            <!-- Right Column: Product Details -->
+            <div class="right-column">
+                <div class="product-details">
+                    <div>
+                        <label>Product Name:</label>
+                        <span class="value">{{ .Product.ProductName }}</span>
+                    </div>
+                    <div>
+                        <label>Product Brand:</label>
+                        <span class="value">{{ .Product.ProductBrand }}</span>
+                    </div>
+                    <div>
+                        <label>Price:</label>
+                        <span class="value">${{ .Product.PricePerUnit }}</span>
+                    </div>
+                    <div>
+                        <label>Description:</label>
+                        <span class="value">{{ .Product.Description }}</span>
+                    </div>
+                    <div>
+                        <label>Stock Quantity:</label>
+                        <span class="value">{{ .Product.StockQuantity }}</span>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <!-- Add to Cart Button -->
-        <button class="btn btn-add-to-cart" id="add-to-cart-btn">Add to Cart</button>
-
-        <!-- Go Back Button -->
-        <a href="/prod/products" class="btn btn-back">Back to Products</a>
     </div>
+    
 
     <!-- Popup Modal -->
     <div id="popup" class="popup">
