@@ -334,18 +334,7 @@ func( repo *OrderRepository) GetOrdersAndOrderItemsByOrderID(orderId int) (Order
 
 		order.Items = orderItems
 
-
-		// orderMap[orderID].Items = append(orderMap[orderID].Items, item)
 	}
-
-	// for _, order := range orderMap {
-	// 	orders = append(orders, *order)
-	// }
-
-	// if len(orders) == 0 {
-	// 	return nil, fmt.Errorf("no orders found for userID %d", orderId)
-	// }
-
 	
 	return order, nil
 }
