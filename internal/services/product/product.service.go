@@ -28,6 +28,16 @@ func (s *ProductService) getAllProductsService() ([]Product, int, error) {
 	return productList, http.StatusOK, nil
 }
 
+func (s *ProductService) getAllSimilarProductsService(product *Product) ([]Product, int, error) {
+	similarProductList, err := s.Repo.getAllSimilarProducts(product)
+	if err != nil {
+		log.Printf("Error fetching similar products: %v", err)
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return similarProductList, http.StatusOK, nil
+}
+
 func (s *ProductService) GetProductService(productID int) (*Product, int, error) {
 	product, err := s.Repo.getProduct(productID)
 

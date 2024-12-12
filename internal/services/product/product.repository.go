@@ -33,7 +33,10 @@ func (repo *ProductRepository) getProduct(productID int) (*Product, error) {
 		&product.ProductName,
 		&product.ProductBrand,
 		&product.Description,
-		&product.StockQuantity)
+		&product.StockQuantity,
+		&product.Category,
+		&product.SubCategory,
+		&product.ImageURL)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
@@ -41,18 +44,6 @@ func (repo *ProductRepository) getProduct(productID int) (*Product, error) {
 		return nil, err
 	}
 	return product, nil
-}
-
-func (repo *ProductRepository) removeProduct(productID int) error {
-	whereClause := fmt.Sprintf("%s = ?", PRODUCT_ID)
-	query := utils.BuildDeleteQuery(TABLE_NAME, whereClause)
-
-	_, err := repo.db.Exec(query, productID)
-	if err != nil {
-		log.Println(err.Error())
-		return err
-	}
-	return nil
 }
 
 func (repo *ProductRepository) getAllProducts() ([]Product, error) {
@@ -71,11 +62,53 @@ func (repo *ProductRepository) getAllProducts() ([]Product, error) {
 			&product.ProductName,
 			&product.ProductBrand,
 			&product.Description,
-			&product.StockQuantity)
+			&product.StockQuantity,
+			&product.Category,
+			&product.SubCategory,
+			&product.ImageURL)
 
 		products = append(products, product)
 	}
 	return products, nil
+}
+
+func (repo *ProductRepository) getAllSimilarProducts(product *Product) ([]Product, error) {
+	whereClause := fmt.Sprintf("category = ? AND %s != ?", PRODUCT_ID)
+	query := utils.BuildSelectQuery(TABLE_NAME, &Product{}, whereClause)
+	results, err := repo.db.Query(query, product.Category, product.ProductID)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	defer results.Close()
+	products := make([]Product, 0)
+	for results.Next() {
+		var product Product
+		results.Scan(&product.ProductID,
+			&product.PricePerUnit,
+			&product.ProductName,
+			&product.ProductBrand,
+			&product.Description,
+			&product.StockQuantity,
+			&product.Category,
+			&product.SubCategory,
+			&product.ImageURL)
+
+		products = append(products, product)
+	}
+	return products, nil
+}
+
+func (repo *ProductRepository) removeProduct(productID int) error {
+	whereClause := fmt.Sprintf("%s = ?", PRODUCT_ID)
+	query := utils.BuildDeleteQuery(TABLE_NAME, whereClause)
+
+	_, err := repo.db.Exec(query, productID)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+	return nil
 }
 
 func (repo *ProductRepository) updateProduct(product Product) error {

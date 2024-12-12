@@ -165,7 +165,14 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 				return
 			}
 
-			err = tmpl.Execute(w, map[string]interface{}{"Product": product, "IsAdmin": user.IsAdmin, "isAnon": isAnon})
+			similarProductList, res, err := s.getAllSimilarProductsService(product)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, err.Error(), res)
+				return
+			}
+
+			err = tmpl.Execute(w, map[string]interface{}{"similarProductList": similarProductList, "Product": product, "IsAdmin": user.IsAdmin, "isAnon": isAnon})
 			if err != nil {
 				log.Println("Template execution error:", err)
 				http.Error(w, "Error rendering product details page", http.StatusInternalServerError)

@@ -49,7 +49,7 @@
         }
 
         /* Container styling */
-        .product-details-container {
+        .product-details-container, .similar-products-container {
             background-color: #fff;
             padding: 40px 20px;
             border-radius: 10px;
@@ -60,7 +60,7 @@
             text-align: center; /* Center-aligns the title */
         }
 
-        .product-details-container h1 {
+        .product-details-container h1, .similar-products-container h2 {
             color: #5a67d8;
             font-size: 2.5em;
             font-weight: 600;
@@ -191,6 +191,55 @@
             background-color: #e2e8f0;
         }
 
+        /* Similar Products Section */
+        .similar-products-list {
+            display: flex;
+            justify-content: flex-start;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+
+        .similar-product-item {
+            flex-shrink: 0;
+            width: 30%;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .similar-product-link {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .similar-product-image {
+            width: 100%;
+            height: auto;
+            border-bottom: 2px solid #eee;
+            transition: transform 0.3s ease;
+        }
+
+        .similar-product-image:hover {
+            transform: scale(1.05);
+        }
+
+        .similar-product-info {
+            padding: 15px;
+        }
+
+        .similar-product-info h3 {
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .similar-product-info p {
+            color: #555;
+            font-size: 1em;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -220,11 +269,11 @@
             <!-- Left Column: Image -->
             <div class="left-column">
                 <div class="product-image">
-                    <img src="/images/sample-image.jpg" alt="Sample Image" />
+                    <img src="{{ .Product.ImageURL }}" alt="{{ .ProductName }}" />
                 </div>
                 <div class="button-container">
                     <button class="btn btn-add-to-cart" id="add-to-cart-btn">Add to Cart</button>
-                    <a href="/prod/products" class="btn btn-back">Back to Dashboard</a>
+                    <a href="/prod/products" class="btn btn-back">Back to Products</a>
                 </div>
             </div>
             <!-- Right Column: Product Details -->
@@ -255,6 +304,31 @@
         </div>
     </div>
     
+    <!-- Similar Products Section -->
+    <div class="similar-products-container">
+        <h2>Similar Products</h2>
+        <div class="similar-products-list">
+            {{ if .similarProductList }}
+                {{ range .similarProductList }}
+                    <div class="similar-product-item">
+                        <a href="/prod/products/{{ .ProductID }}" class="similar-product-link">
+                            <img src="{{ .ImageURL }}" alt="{{ .ProductName }}" class="similar-product-image" />
+                            <div class="similar-product-info">
+                                <h3>{{ .ProductName }}</h3>
+                                <p>{{ .ProductBrand }}</p>
+                                <p>${{ .PricePerUnit }}</p>
+                            </div>
+                        </a>
+                    </div>
+                {{ else }}
+                    <p>No similar products found.</p>
+                {{ end }}
+            {{ else }}
+                <p>Sorry, we couldn't find any similar products.</p>
+            {{ end }}
+        </div>
+    </div>
+
 
     <!-- Popup Modal -->
     <div id="popup" class="popup">
