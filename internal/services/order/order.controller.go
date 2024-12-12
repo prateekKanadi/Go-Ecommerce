@@ -24,8 +24,6 @@ func SetupOrderRoutes(r *mux.Router, s *OrderService) {
 	orderCheckoutRouter := r.PathPrefix(orderUrlPath).Subrouter()
 	orderCheckoutRouter.HandleFunc("/orderSummary", initiateOrderHandler(s))
 	orderCheckoutRouter.HandleFunc("/orderHistory", orderHistoryHandler(s))
-	// orderCheckoutRouter.HandleFunc("/orderSummary",initiateOrderHandler(s)).Methods(http.MethodGet)
-
 }
 
 func initiateOrderHandler(s *OrderService) http.HandlerFunc {
@@ -69,6 +67,11 @@ func initiateOrderHandler(s *OrderService) http.HandlerFunc {
 			deliveryMode := r.FormValue("deliveryMode")
 			paymentMode := r.FormValue("paymentMode")
 
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
 			// Address Details Start
 			houseNo := r.FormValue("HouseNo")
 			landmark := r.FormValue("Landmark")
@@ -80,25 +83,74 @@ func initiateOrderHandler(s *OrderService) http.HandlerFunc {
 			shippingAddress := fmt.Sprintf("House No: %s , Landmark: %s , City: %s , State: %s , Pincode: %s , Phone Number: %s", houseNo, landmark, city, state, pincode, contactNo)
 			// Address Details End
 
-			// Order Creation in DB
-			orderId, res, err := s.createOrderService(userID, deliveryMode, paymentMode, orderValue, orderTotal, shippingAddress)
-			orderDetail, res, err := s.getOrderService(orderId)
-			_, res, err = s.createOrderItemsService(orderId, userID, orderDetail)
-
-			if err != nil {
-				log.Println(err)
-				http.Error(w, err.Error(), res)
+			// Get cart_items details --- START---
+			// Validate cart
+			cart, ok := sess.Values["cart"].(*session.Cart)
+			if !ok || cart == nil {
+				http.Error(w, `{"success": false, "error": "Cart not found"}`, http.StatusBadRequest)
 				return
 			}
-			//
 
-			//Redirect to order summary
-			redirectURL := fmt.Sprintf("/%s/%s/orderSummary?orderId=%d", prodBasePath, orderPath, orderId)
-			http.Redirect(w, r, redirectURL, http.StatusSeeOther)
-			return
+			//Get cart ID from session
+			cartID := cart.CartID
+			Cart, err := s.CartService.Repo.GetAllCartItems(cartID)
 
-			// redirectString := fmt.Sprintf("/prod/order/orderSummary")
-			// http.Redirect(w, r, redirectString, http.StatusSeeOther)
+			fmt.Println("Cart Items length is : ", len(Cart.Items))
+			lenCartItems := len(Cart.Items)
+
+			// Get cart_items details --- END ---
+
+			// Order Creation in DB
+			// --Validate that cart is NOT EMPTY--
+			if lenCartItems > 0 {
+				orderId, res, err := s.createOrderService(userID, deliveryMode, paymentMode, orderValue, orderTotal, shippingAddress)
+				orderDetail, res, err := s.getOrderService(orderId)
+				_, res, err = s.createOrderItemsService(orderId, userID, orderDetail)
+
+				if err != nil {
+					log.Println(err)
+					http.Error(w, err.Error(), res)
+					return
+				}
+				//
+
+				//Redirect to order summary
+				redirectURL := fmt.Sprintf("/%s/%s/orderSummary?orderId=%d", prodBasePath, orderPath, orderId)
+				http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+				return
+			}
+
+			 htmlMessage := `
+			 <!DOCTYPE html>
+			 <html lang="en">
+			 <head>
+				 <meta charset="UTF-8">
+				 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+				 <title>Redirecting...</title>
+				 <style>
+					 body {
+						 font-family: Arial, sans-serif;
+						 text-align: center;
+						 margin-top: 50px;
+					 }
+				 </style>
+				 <script>
+					 setTimeout(function() {
+						 window.location.href = "/prod/users/dashboard";
+					 }, 5000); // Redirect after 5 seconds
+				 </script>
+			 </head>
+			 <body>
+				 <h1>Oops, your cart is empty!</h1>
+				 <p>You will be redirected to the dashboard in 5 seconds...</p>
+			 </body>
+			 </html>
+			 `
+			 w.Header().Set("Content-Type", "text/html")
+			 fmt.Fprint(w, htmlMessage)
+			 log.Println("Rendered intermediate message for empty cart with delayed redirect")
+			 return
+
 
 		case http.MethodGet:
 
@@ -109,9 +161,8 @@ func initiateOrderHandler(s *OrderService) http.HandlerFunc {
 				http.Error(w, "Missing orderId parameter", http.StatusBadRequest)
 				return
 			}
-		
+
 			orderId, err := strconv.Atoi(orderIdStr)
-			// OrderDetails, res, err := s.createOrderItemsService(orderId, userID, orderDetail)
 			order, err := s.Repo.GetOrdersAndOrderItemsByOrderID(orderId)
 
 			if err != nil {
@@ -119,9 +170,6 @@ func initiateOrderHandler(s *OrderService) http.HandlerFunc {
 				return
 			}
 
-			// fmt.Println("Number of orders is ",len(orders))
-			// fmt.Println("Fetching the order at position ",len(orders)-1)
-			
 			err = tmpl.Execute(w, map[string]interface{}{"Order": order})
 			if err != nil {
 				log.Println("Template execution error:", err)
