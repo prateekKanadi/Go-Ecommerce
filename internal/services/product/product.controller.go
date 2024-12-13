@@ -64,8 +64,8 @@ func productsProdHandler(s *ProductService) http.HandlerFunc {
 				http.Error(w, "Error loading product list page", http.StatusInternalServerError)
 				return
 			}
-
-			productList, res, err := s.getAllProductsService()
+			currency := sess.Values["currency"].(string)
+			productList, res, err := s.getAllProductsService(currency)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, err.Error(), res)
@@ -148,7 +148,8 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		product, res, err := s.GetProductService(productID)
+		currency := sess.Values["currency"].(string)
+		product, res, err := s.GetProductService(productID, currency)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, err.Error(), res)
@@ -223,9 +224,16 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 
 func productsHandler(s *ProductService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		sess, err := session.GetSessionFromContext(r)
+		if sess == nil {
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		switch r.Method {
 		case http.MethodGet:
-			productList, res, err := s.getAllProductsService()
+			currency := sess.Values["currency"].(string)
+			productList, res, err := s.getAllProductsService(currency)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, err.Error(), res)
@@ -292,7 +300,14 @@ func productHandler(s *ProductService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		product, res, err := s.GetProductService(productID)
+		sess, err := session.GetSessionFromContext(r)
+		if sess == nil {
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		currency := sess.Values["currency"].(string)
+		product, res, err := s.GetProductService(productID, currency)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, err.Error(), res)

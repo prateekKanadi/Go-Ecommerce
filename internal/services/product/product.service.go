@@ -18,8 +18,8 @@ func NewProductService(repo *ProductRepository) *ProductService {
 	}
 }
 
-func (s *ProductService) getAllProductsService() ([]Product, int, error) {
-	productList, err := s.Repo.getAllProducts()
+func (s *ProductService) getAllProductsService(currency string) ([]Product, int, error) {
+	productList, err := s.Repo.getAllProducts(currency)
 	if err != nil {
 		log.Printf("Error fetching products: %v", err)
 		return nil, http.StatusInternalServerError, err
@@ -28,8 +28,8 @@ func (s *ProductService) getAllProductsService() ([]Product, int, error) {
 	return productList, http.StatusOK, nil
 }
 
-func (s *ProductService) GetProductService(productID int) (*Product, int, error) {
-	product, err := s.Repo.getProduct(productID)
+func (s *ProductService) GetProductService(productID int, currency string) (*Product, int, error) {
+	product, err := s.Repo.getProduct(productID, currency)
 
 	if err != nil {
 		return nil, http.StatusInternalServerError, err

@@ -75,11 +75,12 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 			if isAnon {
 				var cartTotal float64
 				var items []session.CartItem
+				currency := sess.Values["currency"].(string)
 
 				// iterate over items slice
 				for i, item := range cart.Items {
 					if (item.Quantity) > 0 {
-						product, res, err := s.ProductService.GetProductService(item.ProductID)
+						product, res, err := s.ProductService.GetProductService(item.ProductID, currency)
 						if err != nil {
 							log.Println(err)
 							http.Error(w, err.Error(), res)
@@ -91,7 +92,7 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 						cart.Items[i].TotalPrice = totalPrice
 						cartTotal += totalPrice
 						items = append(items, cart.Items[i])
-                        initialRoundOf := totalPrice 
+						initialRoundOf := totalPrice
 						// Amount rounded off to 2 decimal places
 						roundedoffTotal := fmt.Sprintf("%.2f", initialRoundOf)
 						finalRoundedOffFloat, err := strconv.ParseFloat(roundedoffTotal, 64)
