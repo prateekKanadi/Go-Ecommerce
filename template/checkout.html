@@ -233,6 +233,16 @@ body {
             <p ><strong>Total : $</strong> <span id="total"><strong>110</strong></span></p>
             <form id="checkout-form" action="/prod/order/orderSummary" method="POST" style="display: inline;">
                 <input type="hidden" name="orderTotal" id="orderTotal">
+
+                <!-- Address details Start-->
+                <input type="hidden" name="HouseNo" value="{{ .Address.HouseNo }}">
+                <input type="hidden" name="Landmark" value="{{ .Address.Landmark }}">
+                <input type="hidden" name="City" value="{{ .Address.City }}">
+                <input type="hidden" name="State" value="{{ .Address.State }}">
+                <input type="hidden" name="Pincode" value="{{ .Address.Pincode }}">
+                <input type="hidden" name="Contact" value="{{ .Address.PhoneNumber }}">
+                <!-- Address details End-->
+
                 <input type="hidden" name="orderValue" value="{{.CheckoutData}}">
                 <input type="hidden" name="deliveryMode" id="deliveryMode" value="10">
                 <input type="hidden" name="paymentMode" value="CASH ON DELIVERY">
