@@ -7,6 +7,9 @@ CREATE TABLE `ecommercedb`.`products` (
   `productBrand` VARCHAR(255) NOT NULL,
   `description` VARCHAR(255) NOT NULL DEFAULT "This is a sample description",
   `stockQuantity` INT NOT NULL DEFAULT 10,
+  `category` VARCHAR(255) NOT NULL DEFAULT "household",
+  `subCategory` VARCHAR(255) NOT NULL DEFAULT "household",
+  `imageURL` VARCHAR(255) NOT NULL DEFAULT "/images/sample-image.jpg",
   PRIMARY KEY (`productId`));
 
 INSERT INTO `ecommercedb`.`products` (`pricePerUnit`, `productName`, `productBrand`) VALUES (497.45,"sticky note","Johns-Jenkins");  
