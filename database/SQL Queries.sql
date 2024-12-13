@@ -93,3 +93,13 @@ CREATE TABLE `ecommercedb`.`order_items` (
     FOREIGN KEY (`orderId`) REFERENCES `ecommercedb`.`orders`(`orderId`) ON DELETE CASCADE,
     FOREIGN KEY (`productId`) REFERENCES `ecommercedb`.`products`(`productId`) ON DELETE CASCADE  -- Foreign key to the products table
 );
+
+CREATE TABLE `ecommercedb`.`productPrices` (
+    productId INT NOT NULL,        
+    price_usd DECIMAL(10, 2) NOT NULL, 
+    price_eur DECIMAL(10, 2) NOT NULL, 
+    price_gbp DECIMAL(10, 2) NOT NULL,
+    PRIMARY KEY (productId),  
+    FOREIGN KEY (productId) REFERENCES `ecommercedb`.`products`(productId)
+    ON DELETE CASCADE       
+);

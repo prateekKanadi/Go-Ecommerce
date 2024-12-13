@@ -6,5 +6,6 @@ type User struct {
 	Password string `json:"password"`
 	IsAdmin  int    `json:"isAdmin"`
 	Name     string `json:"name"`
+	Currency string `json:"currency"`
 	Address
 }
