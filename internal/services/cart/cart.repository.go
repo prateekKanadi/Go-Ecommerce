@@ -22,13 +22,20 @@ func NewCartRepository(db *sql.DB) *CartRepository {
 }
 
 // ------------CART-ITEM RELATED------------
-func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int) error {
-	// Upsert query: Insert if the product doesn't exist in the cart, or update the quantity if it does
-	query := `
+func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int, isFormQuantityNotNull bool) error {
+	var query string
+	if isFormQuantityNotNull {
+		query = `INSERT INTO cart_items (cart_id, product_id, quantity)
+	VALUES (?, ?, ?)
+	ON DUPLICATE KEY UPDATE quantity = VALUES(quantity), updated_at = CURRENT_TIMESTAMP
+`
+	} else {
+		query = `
 		INSERT INTO cart_items (cart_id, product_id, quantity)
 		VALUES (?, ?, ?)
 		ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity), updated_at = CURRENT_TIMESTAMP
 	`
+	}
 	_, err := repo.db.Exec(query, cartID, productID, quantity)
 	if err != nil {
 		return fmt.Errorf("failed to add/update cart item: %v", err)
@@ -36,9 +43,89 @@ func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int)
 	return nil
 }
 
-// get all products from cart_items JOIN products table
-func (repo *CartRepository) getAllCartItem() error {
+// --------------------REMOVE-CART-ITEM--------------------
+func (repo *CartRepository) removeCartItem(cartID, cartItemID int) error {
+
+	var query string
+	query = `DELETE FROM cart_items WHERE cart_id=? AND id=?`
+	_, err := repo.db.Exec(query, cartID, cartItemID)
+	if err != nil {
+		return fmt.Errorf("failed to delete cart item: %v", err)
+	}
 	return nil
+}
+
+// get all products from cart_items JOIN products table
+func (repo *CartRepository) GetAllCartItems(cartID int) (*Cart, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	query := `
+        SELECT 
+            ci.ID AS item_id,
+            ci.cart_id,
+            ci.product_id,
+            ci.quantity,
+            ci.created_at AS item_created_at,
+            ci.updated_at AS item_updated_at,
+            p.productName,
+            p.productBrand,
+            p.description,
+            p.pricePerUnit
+        FROM 
+            cart_items ci
+        LEFT JOIN 
+            products p ON ci.product_id = p.productId
+        WHERE 
+            ci.cart_id = ?`
+
+	rows, err := repo.db.QueryContext(ctx, query, cartID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []CartItem
+	var cartTotal float64
+	var cart Cart
+	for rows.Next() {
+		var item CartItem
+		var productName, productBrand, description string
+		var pricePerUnit float64
+		err := rows.Scan(
+			&item.ID,
+			&item.CartID,
+			&item.ProductID,
+			&item.Quantity,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+			&productName,
+			&productBrand,
+			&description,
+			&pricePerUnit,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		item.ProductName = productName
+		item.ProductBrand = productBrand
+		item.Description = description
+		item.PricePerUnit = pricePerUnit
+		totalPrice := ((float64)(item.Quantity) * pricePerUnit)
+		item.TotalPrice = float64(totalPrice)
+		cartTotal += totalPrice
+
+		items = append(items, item)
+	}
+	cart.Items = items
+	cart.CartTotal = cartTotal
+
+	if len(items) == 0 {
+		return &cart, nil // No items found for this cart
+	}
+
+	log.Println("Cart items with product details fetched from database")
+	return &cart, nil
 }
 
 // ------------CART RELATED------------

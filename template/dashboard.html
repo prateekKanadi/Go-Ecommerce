@@ -19,6 +19,69 @@
             color: #333;
         }
 
+        /* Header styling */
+        header {
+            width: 100%;
+            background-color: #fff;
+            padding: 15px 20px;  /* Adjusted padding */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: flex-start; /* Align buttons to the left */
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .welcome-message {
+            font-size: 1.2em;
+            color: #5a67d8;
+            margin-right: 330px;  /* Space between welcome message and buttons */
+            margin-bottom: 15px; /* Added space between the welcome message and buttons */
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;  /* Increased gap between buttons for better spacing */
+            margin-left: 20px; /* Ensured buttons are not flush against the edge */
+            flex-wrap: wrap; /* Ensures buttons wrap if they overflow */
+        }
+
+        .btn {
+            padding: 8px 15px; /* Reduced padding to fit buttons */
+            background-color: #5a67d8;
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #4c51bf;
+        }
+
+        .btn-secondary {
+            background-color: #edf2f7;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+
+        /* Adjust position of the logout button */
+        form button[type="submit"] {
+            margin-left: 0px; /* Removed extra left margin */
+        }
+
+        /* Adjust container to prevent overflowing */
+        header .btn-container {
+            overflow: hidden; /* Ensure no overflow */
+        }
+
         /* Dashboard container styling */
         .dashboard-container {
             background-color: #fff;
@@ -26,20 +89,20 @@
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             width: 100%;
-            max-width: 400px;
+            max-width: 900px;
             text-align: center;
-            margin-bottom: 40px; /* Adds space between container and footer */
+            margin-top: 100px; /* Added space for header */
         }
 
         .dashboard-container h1 {
             margin-bottom: 20px;
-            font-size: 2em;
+            font-size: 2.5em;
             color: #5a67d8;
             font-weight: 600;
         }
 
         .dashboard-container p {
-            font-size: 1.1em;
+            font-size: 1.2em;
             margin-bottom: 30px;
             color: #555;
         }
@@ -85,21 +148,33 @@
 </head>
 <body>
 
+    <!-- Header Section -->
+    <header>
+        <div class="welcome-message">
+            Welcome, {{ .Email }}!
+        </div>
+        <div class="btn-container">
+            <a href="/prod/products" class="btn" title="View My Products">Products</a>
+            <a href="/prod/cart" class="btn" title="View My Cart">My Cart</a>
+            <a href="/prod/auth/address/update" class="btn" title="Update Address">Update Address</a>
+            <a href="/prod/order/orderHistory" class="btn" title="Update Address">Order History</a>
+            <!-- New Logout Button -->
+            <form action="/prod/auth/logout" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <!-- Dashboard Container -->
     <div class="dashboard-container">
         <h1>Welcome, {{ .Email }}!</h1> <!-- Displaying the user's email -->
-        <p>You have successfully logged in to your dashboard.</p>
-        <p>User ID: {{ .UserID }}</p> <!-- Additional User Data -->
-
-        <a href="/profile" class="btn" title="View Profile">View Profile</a>
-        <a href="/prod/products" class="btn" title="View My Products">My Products</a>
-        <a href="/settings" class="btn btn-secondary" title="Account Settings">Settings</a>
-
-        <form action="/prod/auth/logout" method="POST" style="display: inline;">
-            <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
-        </form>
-
+        <p>You have successfully logged in</p>
+        
+        <!-- New Products Button below the Dashboard Container -->
+        <a href="/prod/products" class="btn" title="View My Products">View Products</a>
     </div>
 
+    <!-- Footer Section -->
     <footer>&copy; 2023 Your Company</footer>
 
 </body>

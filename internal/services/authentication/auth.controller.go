@@ -35,6 +35,7 @@ func SetupAuthRoutes(r *mux.Router, s *AuthService) {
 	prodAuthRouter.HandleFunc("/login", loginProdHandler(s))
 	prodAuthRouter.HandleFunc("/register", registerProdHandler(s))
 	prodAuthRouter.HandleFunc("/logout", logoutProdHandler(s))
+	prodAuthRouter.HandleFunc("/address/update", updateAddressProdHandler(s))
 }
 
 func registerProdHandler(s *AuthService) http.HandlerFunc {
@@ -75,6 +76,7 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 			email := r.FormValue("email")
 			password := r.FormValue("password")
 			confirmPassword := r.FormValue("confirm_password")
+			name := r.FormValue("name")
 
 			// email and pass empty validation
 			if email == "" || password == "" {
@@ -92,8 +94,16 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 				return
 			}
 
+			existingUser, res, err := s.UserService.GetUserByEmailService(email)
+			if existingUser != nil && res == http.StatusOK && err == nil {
+				err := errors.New("User already Exist")
+				log.Println(err)
+				tmpl.Execute(w, map[string]string{"Error": err.Error()})
+				return
+			}
+
 			//register user
-			newUser := user.User{Email: email, Password: password}
+			newUser := user.User{Email: email, Password: password, Name: name}
 			userID, res, err := s.registerUserService(newUser)
 
 			if err != nil {
@@ -117,6 +127,7 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 
 			sess.Values["user"] = &userObj
 			sess.Values["userId"] = user.UserID
+			sess.Values["isAnon"] = false
 
 			time.Sleep(10 * time.Microsecond)
 			// Now, create a cart for the user
@@ -128,11 +139,41 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 				return
 			}
 
-			//storing cart in session
-			cartObj := session.Cart{
-				CartID: cartID}
+			//-------------------storing cart in session---------------------
+			// Validate cart
+			cart, ok := sess.Values["cart"].(*session.Cart)
+			if !ok || cart == nil {
+				http.Error(w, `{"success": false, "error": "Cart not found"}`, http.StatusBadRequest)
+				return
+			}
+			cart.CartID = cartID
 
-			sess.Values["cart"] = &cartObj
+			// cart-items available in session (ANON-USER-FLOW)
+			if len(cart.Items) > 0 {
+				// Now, add cart-items (if any) from anon-user session
+				for _, item := range cart.Items {
+					if item.Quantity > 0 {
+						time.Sleep(10 * time.Microsecond)
+						// Call the addOrUpdateCartItemService method for each item
+						status, err := s.CartService.AddOrUpdateCartItemService(cart.CartID, item.ProductID, item.Quantity, true)
+						if err != nil {
+							// Log the error and continue with the next item
+							log.Printf("Error adding/updating cart item (CartID: %d, ProductID: %d, Quantity: %d): %v",
+								cart.CartID, item.ProductID, item.Quantity, err)
+							http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), status)
+							return
+						}
+						log.Printf("Successfully added/updated cart item (CartID: %d, ProductID: %d, Quantity: %d)",
+							cart.CartID, item.ProductID, item.Quantity)
+					}
+				}
+				sess.Values["cart"] = &cart
+			} else {
+				cartObj := &session.Cart{
+					CartID: cartID, Items: []session.CartItem{}}
+
+				sess.Values["cart"] = &cartObj
+			}
 
 			// saving session
 			err = sess.Save(r, w)
@@ -142,6 +183,31 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+
+			//Address changes
+			houseNo := r.FormValue("houseNo")
+			landmark := r.FormValue("landmark")
+			city := r.FormValue("city")
+			state := r.FormValue("state")
+			pincode := r.FormValue("pincode")
+			phoneNumber := r.FormValue("phoneNumber")
+
+			address := user.Address
+			address.HouseNo = houseNo
+			address.Landmark = landmark
+			address.City = city
+			address.State = state
+			address.Pincode = pincode
+			address.PhoneNumber = phoneNumber
+
+			addId, err := s.UserService.AddAddressByUser(userID, address)
+
+			if err != nil {
+				log.Println("Error creating Address:", err)
+				http.Error(w, err.Error(), status)
+				return
+			}
+			fmt.Printf("%v Address save", addId)
 
 			// If register is successful, redirect
 			// Redirect to dashboard page on successful login
@@ -211,6 +277,7 @@ func loginProdHandler(s *AuthService) http.HandlerFunc {
 				return
 			}
 
+			// Start storing the user object in the session
 			//storing user in session
 			user, res, err := s.UserService.GetUserByEmailService(email)
 
@@ -226,7 +293,9 @@ func loginProdHandler(s *AuthService) http.HandlerFunc {
 
 			sess.Values["user"] = &userObj
 			sess.Values["userId"] = user.UserID
+			sess.Values["isAnon"] = false
 
+			// Extract the cart that was stored for the user ..and
 			//storing cart in session
 			cartID, err := s.UserService.Repo.GetCartForUser(user.UserID)
 			if err != nil {
@@ -403,6 +472,104 @@ func loginHandler(s *AuthService) http.HandlerFunc {
 			return
 		case http.MethodOptions:
 			return
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}
+}
+
+type AddressFormData struct {
+	Address user.Address
+	Error   string
+}
+
+func updateAddressProdHandler(s *AuthService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the template file (adjust path if necessary)
+		tmpl, err := template.ParseFiles("template/updateAddress.html")
+		if err != nil {
+			log.Println("Template parsing error:", err)
+			http.Error(w, "Error loading update address page", http.StatusInternalServerError)
+			return
+		}
+
+		sess, err := session.GetSessionFromContext(r)
+		if sess == nil {
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Fetch user from session
+		userID := sess.Values["userId"]
+		if userID == nil {
+			http.Error(w, "User not logged in", http.StatusUnauthorized)
+			return
+		}
+
+		var address user.Address
+
+		// Fetch existing address details for the user
+		address, err = s.UserService.GetAddressByUserId(userID.(int))
+		if err != nil {
+			log.Println("Error fetching address:", err)
+		}
+
+		// Prepare data for the template
+		data := AddressFormData{
+			Address: address,
+		}
+
+		switch r.Method {
+		case http.MethodGet:
+			// Render the template with the user's current address values
+			err = tmpl.Execute(w, data)
+			if err != nil {
+				log.Println("Template execution error:", err)
+				http.Error(w, "Error rendering update address page", http.StatusInternalServerError)
+			}
+
+		case http.MethodPost:
+			// Parse the form data
+			err := r.ParseForm()
+			if err != nil {
+				data.Error = "Error parsing form data"
+				tmpl.Execute(w, data)
+				return
+			}
+
+			// Extract the new address details from the form
+			houseNo := r.FormValue("houseNo")
+			landmark := r.FormValue("landmark")
+			city := r.FormValue("city")
+			state := r.FormValue("state")
+			pincode := r.FormValue("pincode")
+			phoneNumber := r.FormValue("phoneNumber")
+
+			// Update the address object
+			address.HouseNo = houseNo
+			address.Landmark = landmark
+			address.City = city
+			address.State = state
+			address.Pincode = pincode
+			address.PhoneNumber = phoneNumber
+
+			// Call the service to update the address in the database
+			err = s.UserService.UpdateAddressByUserId(userID.(int), address)
+			if err != nil {
+				data.Error = "Error updating address"
+				tmpl.Execute(w, data)
+				return
+			}
+
+			// Redirect to a success page (e.g., user dashboard)
+			log.Println("Address updated successfully")
+			http.Redirect(w, r, "/prod/users/dashboard", http.StatusSeeOther)
+
+		case http.MethodOptions:
+			// Handle OPTIONS request (no-op for this case)
+			return
+
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}

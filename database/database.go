@@ -14,7 +14,7 @@ func SetupDatabase(config *configuration.Config) (*sql.DB, error) {
 	var err error
 
 	//  Build the connection string
-	connStr := fmt.Sprintf("%s:%s@tcp(%s)/%s", config.Database.User, config.Database.Password, config.Database.URL, config.Database.DbName)
+	connStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true", config.Database.User, config.Database.Password, config.Database.URL, config.Database.DbName)
 
 	// Open a connection to the database
 	dbConn, err := sql.Open("mysql", connStr) // root:root@tcp(127.0.0.1:3306)/ecommercedb

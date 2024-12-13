@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cart</title>
+    <style>
+        /* General styling */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+            flex-direction: column;
+        }
+
+        /* Header styling */
+        header {
+            width: 100%;
+            background-color: #fff;
+            padding: 15px 20px;  /* Adjusted padding */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: flex-start; /* Align buttons to the left */
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .welcome-message {
+            font-size: 1.2em;
+            color: #5a67d8;
+            margin-right: 800px;  /* Space between welcome message and buttons */
+            margin-bottom: 15px; /* Added space between the welcome message and buttons */
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;  /* Increased gap between buttons for better spacing */
+            margin-left: 20px; /* Ensured buttons are not flush against the edge */
+            flex-wrap: wrap; /* Ensures buttons wrap if they overflow */
+        }
+
+        .btn {
+            padding: 8px 15px; /* Reduced padding to fit buttons */
+            background-color: #5a67d8;  /* Set all buttons to this color */
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #4c51bf;
+        }
+
+        .btn-secondary {
+            background-color: #edf2f7;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+
+        form button[type="submit"] {
+            margin-left: 0px;
+        }
+
+        header .btn-container {
+            overflow: hidden;
+        }
+
+        /* Cart Container styling */
+        .cart-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 800px;
+            margin-top: 100px; /* Adjusted for header */
+        }
+
+        .cart-container h1 {
+            color: #5a67d8;
+            font-size: 2em;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Table styling (for rows matching product listing) */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #5a67d8;
+            color: #fff;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1; /* Hover effect for rows */
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px; /* Space between remove and update buttons */
+            align-items: center;
+        }
+
+        .action-buttons form {
+            display: inline-block;
+            margin-right: 0;
+        }
+
+        /* Buttons inside action section */
+        .btn {
+            padding: 8px 12px;
+            font-size: 0.9em; /* Smaller font size to fit better */
+        }
+
+        /* Cart Summary */
+        .cart-summary {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .cart-summary span {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Disabled button styling */
+        .btn-disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <div class="welcome-message">
+            My Cart Page
+        </div>
+        <div class="btn-container">
+            {{ if $.isAnon }}
+                <a href="/" class="btn" title="View Home Page">Home</a>                
+            {{ else }}
+                <a href="/prod/users/dashboard" class="btn" title="View My Products">Dashboard</a>
+                <form action="/prod/auth/logout" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
+                </form>
+            {{ end }}
+            <a href="/prod/products" class="btn" title="View My Products">Products</a>
+        </div>
+    </header>
+
+    <!-- Cart Container -->
+    <div class="cart-container">
+        <h1>My Cart</h1>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Price per Unit</th>
+                    <th>Total Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range .CartItems }}
+                <tr>
+                    <td>{{ .ProductName }}</td>
+                    <td>{{ .Quantity }}</td>
+                    <td data-price="{{ .PricePerUnit }}"></td>
+                    <td data-price="{{ .TotalPrice }}"></td>                    
+
+                    <td class="action-buttons">
+                        <form action="/prod/cart/{{ .ID }}/remove" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-secondary">Remove</button>
+                        </form>
+                        <form action="/prod/cart/{{ .ProductID }}" method="POST" style="display: inline;">
+                            <input type="number" name="quantity" value="{{ .Quantity }}" min="1" style="width: 50px; text-align: center;" />
+                            <button type="submit" class="btn">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {{ else }}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #555;">Your cart is empty.</td>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
+
+        <div class="cart-summary">
+            <p>Total: <span>${{ .CartTotal }}</span></p>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/prod/products" class="btn">Continue Shopping</a>
+            {{ if $.isAnon }}
+                <form action="/" method="GET" style="display: inline;">
+                    {{ if eq .CartTotal 0.0 }}
+                        <button type="submit" class="btn-disabled" disabled>Proceed to Checkout</button>
+                    {{ else }}
+                        <button type="submit" class="btn">Proceed to Checkout</button>
+                    {{ end }}
+                </form>
+            {{ else }}
+                <form action="/prod/checkout" method="GET" style="display: inline;">
+                    {{ if eq .CartTotal 0.0 }}
+                        <button type="submit" class="btn-disabled" disabled>Proceed to Checkout</button>
+                    {{ else }}
+                        <button type="submit" class="btn">Proceed to Checkout</button>
+                    {{ end }}
+                </form>
+            {{ end }}            
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('td[data-price]').forEach(cell => {
+            const rawValue = parseFloat(cell.dataset.price); // Access the raw value
+            cell.textContent = `$${rawValue.toFixed(2)}`; // Format and display it
+        });
+    </script>
+
+</body>
+</html>

@@ -12,10 +12,40 @@
             margin: 0;
             padding: 0;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             color: #333;
+        }
+
+        /* Header styling */
+        header {
+            width: 100%;
+            background-color: #fff;
+            padding: 15px 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .welcome-message {
+            font-size: 1.2em;
+            color: #5a67d8;
+            margin-right: 700px;
+            margin-bottom: 15px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;
+            margin-left: 20px;
+            flex-wrap: wrap;
         }
 
         /* Container styling */
@@ -26,6 +56,7 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             width: 90%;
             max-width: 800px;
+            margin-top: 100px;
         }
 
         .product-details-container h1 {
@@ -79,9 +110,68 @@
         .btn-back:hover {
             background-color: #c53030;
         }
+
+        /* Add to Cart Button */
+        .btn-add-to-cart {
+            background-color: #783fb1;
+        }
+
+        .btn-add-to-cart:hover {
+            background-color: #6b2a99;
+        }
+
+        /* Popup Modal */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            z-index: 1001;
+        }
+
+        .popup .popup-content {
+            background-color: #4CAF50;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .popup .btn {
+            background-color: #fff;
+            color: #4CAF50;
+            margin-top: 15px;
+        }
+
+        .popup .btn:hover {
+            background-color: #e2e8f0;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Header Section -->
+    <header>
+        <div class="welcome-message">
+            Product Details Page
+        </div>
+        <div class="btn-container">
+            {{ if $.isAnon }}
+                <a href="/" class="btn" title="View Home Page">Home</a>                
+            {{ else }}
+                <a href="/prod/users/dashboard" class="btn" title="View My Products">Dashboard</a>
+                <form action="/prod/auth/logout" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
+                </form>
+            {{ end }}       
+            <a href="/prod/cart" class="btn" title="View My Cart">My Cart</a>           
+     
+        </div>
+    </header>
 
     <div class="product-details-container">
         <h1>Product Details</h1>
@@ -109,45 +199,63 @@
             </div>
         </div>
 
-        <!-- Button to go back to My Products page -->
-        <a href="/prod/products" class="btn btn-back">Back to Products</a>
-        {{ if $.IsAdmin }}
-            <!-- Edit button (conditionally disabled for non-admin users) -->
-            <form action="/prod/products/{{ .ProductID }}" method="POST" style="display: inline;" class="edit-form">
-                <button type="submit" class="btn">Edit</button>
-            </form>
-            <!-- Delete button (conditionally disabled for non-admin users) -->
-            <form action="/prod/products/{{ .ProductID }}" method="POST" style="display: inline;" class="delete-form">
-                <button type="submit" class="btn" style="background-color: #e53e3e;">Delete</button>
-            </form>
-        {{ else }}
-            <a href="#" class="btn" style="background-color: #ccc;" disabled>Edit</a>
-            <a href="#" class="btn" style="background-color: #ccc;" disabled>Delete</a>
-        {{ end }}
+        <!-- Add to Cart Button -->
+        <button class="btn btn-add-to-cart" id="add-to-cart-btn">Add to Cart</button>
 
+        <!-- Go Back Button -->
+        <a href="/prod/products" class="btn btn-back">Back to Products</a>
     </div>
 
-    <!-- JavaScript to handle method switching -->
+    <!-- Popup Modal -->
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <p>Product added successfully to your cart!</p>
+            <button class="btn" id="close-popup-btn">Close</button> <!-- Added ID for close button -->
+        </div>
+    </div>
+
+    <!-- JavaScript to handle Add to Cart -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // For Edit button (simulating PUT request)
-            const editForms = document.querySelectorAll('.edit-form');
-            editForms.forEach(function (form) {
-                form.addEventListener('submit', function (event) {
-                    event.preventDefault();
-                    form.method = 'PUT'; // Change method to PUT for Edit
-                    form.submit(); // Submit with PUT method
+            const addToCartBtn = document.getElementById('add-to-cart-btn');
+            const productID = "{{ .Product.ProductID }}";  // Assuming the product ID is injected into the template
+            const popup = document.getElementById('popup');
+            const closePopupBtn = document.getElementById('close-popup-btn'); // Target close button by ID
+
+            // Add event listener for the Add to Cart button
+            addToCartBtn.addEventListener('click', function () {
+                // Send AJAX request to add product to the cart
+                fetch(`/prod/cart/${productID}`, {
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the response and show popup if successful
+                    if (data.success) {
+                        showPopup();
+                    } else {
+                        alert("Failed to add product to cart.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error adding product to cart:", error);
+                    alert("An error occurred. Please try again.");
                 });
             });
 
-            // For Delete button (simulating DELETE request)
-            const deleteForms = document.querySelectorAll('.delete-form');
-            deleteForms.forEach(function (form) {
-                form.addEventListener('submit', function (event) {
-                    event.preventDefault();
-                    form.method = 'DELETE'; // Change method to DELETE for Delete
-                    form.submit(); // Submit with DELETE method
-                });
+            // Function to show the popup
+            function showPopup() {
+                popup.style.display = 'block';
+            }
+
+            // Function to close the popup
+            function closePopup() {
+                popup.style.display = 'none';
+            }
+
+            // Add event listener to the Close button to close the popup
+            closePopupBtn.addEventListener('click', function () {
+                closePopup(); // Close the popup when the close button is clicked
             });
         });
     </script>

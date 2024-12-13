@@ -142,11 +142,6 @@ func (repo *UserRepository) updateUser(user User) error {
 		return err_e
 	}
 
-	// if err_p != nil {
-	// 	log.Println(err_p.Error())
-	// 	return err_p
-	// }
-
 	return nil
 }
 
@@ -159,9 +154,11 @@ func (repo *UserRepository) addUser(user User) (int, error) {
 
 	result, err := repo.db.Exec(`INSERT INTO users  
 	(email,
-	password) VALUES (?, ?)`,
+	password,
+	name) VALUES (?, ?, ?)`,
 		user.Email,
-		hashedPass)
+		hashedPass,
+		user.Name)
 	if err != nil {
 		log.Println(err.Error())
 		return 0, err
@@ -180,6 +177,8 @@ func (repo *UserRepository) addUser(user User) (int, error) {
 func (repo *UserRepository) RegisterUser(user User) (int, error) {
 	return repo.addUser(user)
 }
+
+/* Login user authentication */
 func (repo *UserRepository) LoginUser(user User) (int, error) {
 	existingUser, err := repo.getUserByEmail(user.Email)
 	if err != nil {
@@ -250,4 +249,93 @@ func hashPassword(password string) (string, error) {
 
 	// Convert the hashed password back to a string
 	return string(hashed), nil
+}
+
+func (repo *UserRepository) GetAddressByUserId(userId int) (Address, error) {
+	var address Address
+	row := repo.db.QueryRow(`
+        SELECT 
+            userId, 
+            houseNo, 
+            landmark, 
+            city, 
+            state, 
+            pincode, 
+            phoneNumber 
+        FROM address 
+        WHERE userId = ?`, userId)
+	err := row.Scan(
+		&address.UserID,
+		&address.HouseNo,
+		&address.Landmark,
+		&address.City,
+		&address.State,
+		&address.Pincode,
+		&address.PhoneNumber,
+	)
+
+	if err == sql.ErrNoRows {
+		return address, fmt.Errorf("no address found for userId %d: %v", userId, err)
+	} else if err != nil {
+		log.Println(err)
+		return address, err
+	}
+	return address, nil
+}
+
+func (repo *UserRepository) UpdateAddressByUserId(userId int, address Address) error {
+	_, err := repo.db.Exec(`
+		UPDATE address 
+		SET 
+			houseNo = ?, 
+			landmark = ?, 
+			city = ?, 
+			state = ?, 
+			pincode = ?, 
+			phoneNumber = ? 
+		WHERE userId = ?`,
+		address.HouseNo,
+		address.Landmark,
+		address.City,
+		address.State,
+		address.Pincode,
+		address.PhoneNumber,
+		userId)
+	if err != nil {
+		log.Println("Error updating address:", err)
+		return fmt.Errorf("failed to update address for userId %d: %v", userId, err)
+	}
+
+	return nil
+}
+
+func (repo *UserRepository) AddAddressByUser(userId int, address Address) (int, error) {
+	// Execute the SQL INSERT query to add a new address for the given userId.
+	result, err := repo.db.Exec(`
+		INSERT INTO address 
+		(userId, houseNo, landmark, city, state, pincode, phoneNumber) 
+		VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		userId,
+		address.HouseNo,
+		address.Landmark,
+		address.City,
+		address.State,
+		address.Pincode,
+		address.PhoneNumber)
+
+	// If there was an error executing the query, return the error.
+	if err != nil {
+		log.Println("Error adding address:", err)
+		return 0, fmt.Errorf("failed to add address for userId %d: %v", userId, err)
+	}
+
+	// Get the last inserted ID to return the newly created address's ID.
+	insertedId, err := result.LastInsertId()
+	if err != nil {
+		log.Println("Error fetching last insert ID:", err)
+		return 0, fmt.Errorf("failed to fetch the last insert ID: %v", err)
+	}
+
+	// Return the newly inserted address ID (int).
+	return int(insertedId), nil
 }

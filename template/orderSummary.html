@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Summary</title>
+    <style>
+        /* Body styling */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Header styling */
+        header {
+            width: 100%;
+            background-color: #fff;
+            padding: 15px 20px;  /* Adjusted padding */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .welcome-message {
+            font-size: 1.2em;
+            color: #5a67d8;
+            margin-right: 20px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;  /* Increased gap between buttons for better spacing */
+        }
+
+        .btn-container form {
+            margin: 0;
+        }
+
+        /* Order Success Message */
+        .order-success {
+            background-color: #38a169;
+            color: white;
+            padding: 15px;
+            width: 100%;
+            text-align: center;
+            font-size: 1.1em;
+            border-radius: 5px;
+            margin-top: 120px; /* Space from header */
+            margin-bottom: 20px;
+        }
+
+        /* Container styling */
+        .order-summary-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 900px;
+            margin-top: 40px; /* Adjusted for success message */
+        }
+
+        .order-summary-container h1 {
+            color: #5a67d8;
+            font-size: 2em;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .order-summary {
+            margin-bottom: 20px;
+        }
+
+        .order-summary div {
+            margin-bottom: 15px;
+        }
+
+        .order-summary label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .order-summary .value {
+            color: #555;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #f1f1f1;
+            color: #5a67d8;
+        }
+
+        table td {
+            background-color: #fafafa;
+        }
+
+        /* Button styling */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #5a67d8;
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1em;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #4c51bf;
+        }
+
+        /* Go Back Button */
+        .btn-back {
+            background-color: #e53e3e;
+        }
+
+        .btn-back:hover {
+            background-color: #c53030;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <div class="welcome-message">
+            Order Summary Page
+        </div>
+        <div class="btn-container">
+            <a href="/prod/users/dashboard" class="btn" title="View My Products">Dashboard</a>
+            <form action="/prod/auth/logout" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <!-- Order Success Message -->
+    <div class="order-success">
+        <p>Success! Your order has been placed successfully.</p>
+        <p><strong>Order ID:</strong> {{ .Order.OrderID }}</p>
+    </div>
+
+    <!-- Order Summary Section -->
+    <div class="order-summary-container">
+        <h1>Order Summary</h1>
+
+        <div class="order-summary">
+            <div>
+                <label>Order Number:</label>
+                <span class="value">{{ .Order.OrderID }}</span>
+            </div>
+            <div>
+                <label>Order Date:</label>
+                <span class="value">{{ .Order.CreatedAt }}</span>
+            </div>
+            <div>
+                <label>Shipping Address:</label>
+                <span class="value">{{ .Order.ShippingAddress }}</span>
+            </div>
+            <div>
+                <label>Shipping Method:</label>
+                <span class="value">{{ .Order.DeliveryMode }}</span>
+            </div>
+            <div>
+                <label>Payment Method:</label>
+                <span class="value">{{ .Order.PaymentMode }}</span>
+            </div>
+            <div>
+                <label>Total Price:</label>
+                <span class="value">${{ .Order.OrderTotal }}</span>
+            </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product ID</th>
+                    <th>Quantity</th>
+                    <th>Price Per Unit</th>
+                    <th>Total Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Order.Items}} <!-- Loop through order items -->
+                <tr>
+                    <td>{{.ProductID}}</td> <!-- Product ID -->
+                    <td>{{.Quantity}}</td> <!-- Quantity -->
+                    <td data-price="{{ .PricePerUnit }}"></td> <!-- Price per unit -->
+                    <td data-price="{{ .TotalPrice }}"></td> <!-- Total price for this item -->
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        </div>
+
+    </div>
+
+    <script>
+        document.querySelectorAll('td[data-price]').forEach(cell => {
+            const rawValue = parseFloat(cell.dataset.price); // Access the raw value
+            cell.textContent = `$${rawValue.toFixed(2)}`; // Format and display it
+        });
+    </script>
+
+</body>
+</html>
