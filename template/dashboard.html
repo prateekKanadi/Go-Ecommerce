@@ -157,7 +157,7 @@
             <a href="/prod/products" class="btn" title="View My Products">Products</a>
             <a href="/prod/cart" class="btn" title="View My Cart">My Cart</a>
             <a href="/prod/auth/address/update" class="btn" title="Update Address">Update Address</a>
-            <a href="/prod/order/orderHistory" class="btn" title="Update Address">Order History</a>
+            <a href="/prod/order/orderHistory" class="btn" title="Order History">Order History</a>
             <!-- New Logout Button -->
             <form action="/prod/auth/logout" method="POST" style="display: inline;">
                 <button type="submit" class="btn btn-secondary" title="Logout">Logout</button>
@@ -169,7 +169,22 @@
     <div class="dashboard-container">
         <h1>Welcome, {{ .Email }}!</h1> <!-- Displaying the user's email -->
         <p>You have successfully logged in</p>
-        
+
+        <!-- Displaying Current Currency -->
+        <p><strong>Current Currency: </strong>{{ .Currency }}</p>
+
+        <!-- Currency Selection Form -->
+        <form method="post" action="/prod/currency">
+            <label for="currency">Select Currency:</label>
+            <select name="currency" id="currency">
+                <option value="USD" {{ if eq .Currency "USD" }}selected{{ end }}>USD</option>
+                <option value="EUR" {{ if eq .Currency "EUR" }}selected{{ end }}>EUR</option>
+                <option value="GBP" {{ if eq .Currency "GBP" }}selected{{ end }}>GBP</option>
+                <!-- Add more currencies as needed -->
+            </select>
+            <button type="submit" class="btn">Update Currency</button>
+        </form>
+
         <!-- New Products Button below the Dashboard Container -->
         <a href="/prod/products" class="btn" title="View My Products">View Products</a>
     </div>

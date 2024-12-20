@@ -23,7 +23,7 @@ func NewOrderService(userService *user.UserService, cartService *cart.CartServic
 }
 
 func (s *OrderService) createOrderService(userID int, deliveryMode string, paymentMode string, orderValue float64, orderTotal float64, shippingAddress string) (int, int, error) {
-	orderId, err := s.Repo.createOrder(userID, deliveryMode, paymentMode, orderValue, orderTotal,shippingAddress)
+	orderId, err := s.Repo.createOrder(userID, deliveryMode, paymentMode, orderValue, orderTotal, shippingAddress)
 	if err != nil {
 		log.Printf("Error fetching order: %v", err)
 		return orderId, http.StatusInternalServerError, err
@@ -31,10 +31,10 @@ func (s *OrderService) createOrderService(userID int, deliveryMode string, payme
 
 	return orderId, http.StatusOK, nil
 }
-func (s *OrderService) createOrderItemsService(orderId int, userId int, orderDetail Order) (Order, int, error) {
+func (s *OrderService) createOrderItemsService(orderId int, userId int, orderDetail Order, currency string) (Order, int, error) {
 	cartID, err := s.UserService.Repo.GetCartForUser(userId)
 
-	cartList, err := s.CartService.Repo.GetAllCartItems(cartID)
+	cartList, err := s.CartService.Repo.GetAllCartItems(cartID, currency)
 
 	orderDetails, err := s.Repo.createOrderItems(cartList, orderId, orderDetail)
 	if err != nil {

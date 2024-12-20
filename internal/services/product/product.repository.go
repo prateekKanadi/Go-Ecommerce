@@ -21,82 +21,66 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 	return &ProductRepository{db: db}
 }
 
-func (repo *ProductRepository) getProduct(productID int) (*Product, error) {
+func (repo *ProductRepository) getProduct(productID int, currency string) (*Product, error) {
 	product := &Product{}
-	whereClause := fmt.Sprintf("%s = ?", PRODUCT_ID)
-	query := utils.BuildSelectQuery(TABLE_NAME, product, whereClause)
 
+	// Ensure the currency is one of the valid options
+	if currency != "USD" && currency != "EUR" && currency != "GBP" {
+		return nil, fmt.Errorf("invalid currency: %s", currency)
+	}
+
+	// Build the SQL query dynamically based on the currency
+	var priceColumn string
+	switch currency {
+	case "USD":
+		priceColumn = "pp.price_usd"
+	case "EUR":
+		priceColumn = "pp.price_eur"
+	case "GBP":
+		priceColumn = "pp.price_gbp"
+	}
+
+	// Join products table with productPrices table to fetch the price based on the selected currency
+	query := fmt.Sprintf(`
+		SELECT p.productId, p.productName, p.productBrand, p.description, p.stockQuantity, %s,
+			p.category, p.subCategory, p.imageURL
+		FROM products p
+		JOIN productPrices pp ON p.productId = pp.productId
+		WHERE p.productId = ?
+	`, priceColumn)
+
+	// Fetch the product data from the database
 	row := repo.db.QueryRow(query, productID)
 	err := row.Scan(
 		&product.ProductID,
-		&product.PricePerUnit,
 		&product.ProductName,
 		&product.ProductBrand,
 		&product.Description,
 		&product.StockQuantity,
+		&product.PricePerUnit, // Only the price for the selected currency is scanned here
 		&product.Category,
 		&product.SubCategory,
-		&product.ImageURL)
+		&product.ImageURL,
+	)
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return nil, nil // No product found
 	} else if err != nil {
-		log.Println(err)
+		log.Println("Error fetching product:", err)
 		return nil, err
 	}
+
+	// Depending on the currency, set the correct price
+	switch currency {
+	case "USD":
+		product.PricePerUnitUSD = product.PricePerUnit
+	case "EUR":
+		product.PricePerUnitEUR = product.PricePerUnit
+	case "GBP":
+		product.PricePerUnitGBP = product.PricePerUnit
+	}
+
+	log.Println("Product retrieved successfully:", product)
 	return product, nil
-}
-
-func (repo *ProductRepository) getAllProducts() ([]Product, error) {
-	query := utils.BuildSelectQuery(TABLE_NAME, &Product{}, "")
-	results, err := repo.db.Query(query)
-	if err != nil {
-		log.Println(err.Error())
-		return nil, err
-	}
-	defer results.Close()
-	products := make([]Product, 0)
-	for results.Next() {
-		var product Product
-		results.Scan(&product.ProductID,
-			&product.PricePerUnit,
-			&product.ProductName,
-			&product.ProductBrand,
-			&product.Description,
-			&product.StockQuantity,
-			&product.Category,
-			&product.SubCategory,
-			&product.ImageURL)
-
-		products = append(products, product)
-	}
-	return products, nil
-}
-
-func (repo *ProductRepository) getAllSimilarProducts(product *Product) ([]Product, error) {
-	whereClause := fmt.Sprintf("category = ? AND %s != ?", PRODUCT_ID)
-	query := utils.BuildSelectQuery(TABLE_NAME, &Product{}, whereClause)
-	results, err := repo.db.Query(query, product.Category, product.ProductID)
-	if err != nil {
-		log.Println(err.Error())
-		return nil, err
-	}
-	defer results.Close()
-	products := make([]Product, 0)
-	for results.Next() {
-		var product Product
-		results.Scan(&product.ProductID,
-			&product.PricePerUnit,
-			&product.ProductName,
-			&product.ProductBrand,
-			&product.Description,
-			&product.StockQuantity,
-			&product.Category,
-			&product.SubCategory,
-			&product.ImageURL)
-
-		products = append(products, product)
-	}
-	return products, nil
 }
 
 func (repo *ProductRepository) removeProduct(productID int) error {
@@ -109,6 +93,142 @@ func (repo *ProductRepository) removeProduct(productID int) error {
 		return err
 	}
 	return nil
+}
+
+func (repo *ProductRepository) getAllProducts(currency string) ([]Product, error) {
+
+	// Ensure the currency is one of the valid options
+	if currency != "USD" && currency != "EUR" && currency != "GBP" {
+		return nil, fmt.Errorf("invalid currency: %s", currency)
+	}
+
+	// Build the SQL query dynamically based on the currency
+	var priceColumn string
+	switch currency {
+	case "USD":
+		priceColumn = "pp.price_usd"
+	case "EUR":
+		priceColumn = "pp.price_eur"
+	case "GBP":
+		priceColumn = "pp.price_gbp"
+	}
+
+	query := fmt.Sprintf(`
+        SELECT p.productId, p.productName, p.productBrand, p.description, p.stockQuantity, %s,
+            p.category, p.subCategory, p.imageURL
+        FROM products p
+        JOIN productPrices pp ON p.productId = pp.productId
+    `, priceColumn)
+
+	results, err := repo.db.Query(query)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	defer results.Close()
+
+	products := make([]Product, 0)
+
+	for results.Next() {
+		var product Product
+		// Scan the product fields and the selected price field based on currency
+		err := results.Scan(
+			&product.ProductID,
+			&product.ProductName,
+			&product.ProductBrand,
+			&product.Description,
+			&product.StockQuantity,
+			&product.PricePerUnit, // The PricePerUnit field for the selected currency
+			&product.Category,
+			&product.SubCategory,
+			&product.ImageURL)
+		if err != nil {
+			log.Println("Error scanning row: ", err.Error())
+			return nil, err
+		}
+		// Depending on the currency, set the correct price
+		switch currency {
+		case "USD":
+			product.PricePerUnitUSD = product.PricePerUnit
+		case "EUR":
+			product.PricePerUnitEUR = product.PricePerUnit
+		case "GBP":
+			product.PricePerUnitGBP = product.PricePerUnit
+		}
+
+		// Append the product to the list
+		products = append(products, product)
+	}
+
+	return products, nil
+}
+
+func (repo *ProductRepository) getAllSimilarProducts(product *Product, currency string) ([]Product, error) {
+	// Ensure the currency is one of the valid options
+	if currency != "USD" && currency != "EUR" && currency != "GBP" {
+		return nil, fmt.Errorf("invalid currency: %s", currency)
+	}
+
+	// Build the SQL query dynamically based on the currency
+	var priceColumn string
+	switch currency {
+	case "USD":
+		priceColumn = "pp.price_usd"
+	case "EUR":
+		priceColumn = "pp.price_eur"
+	case "GBP":
+		priceColumn = "pp.price_gbp"
+	}
+
+	//whereClause := fmt.Sprintf("category = ? AND %s != ?", PRODUCT_ID)
+	query := fmt.Sprintf(`
+		SELECT p.productId, p.productName, p.productBrand, p.description, p.stockQuantity, %s,
+		       p.category, p.subCategory, p.imageURL
+		FROM products p
+		JOIN productPrices pp ON p.productId = pp.productId
+		WHERE p.category = ? AND p.productId != ?
+	`, priceColumn)
+
+	results, err := repo.db.Query(query, product.Category, product.ProductID)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	defer results.Close()
+
+	products := make([]Product, 0)
+	for results.Next() {
+		var similarProduct Product
+		err := results.Scan(
+			&similarProduct.ProductID,
+			&similarProduct.ProductName,
+			&similarProduct.ProductBrand,
+			&similarProduct.Description,
+			&similarProduct.StockQuantity,
+			&similarProduct.PricePerUnit, // The price for the selected currency
+			&similarProduct.Category,
+			&similarProduct.SubCategory,
+			&similarProduct.ImageURL,
+		)
+		if err != nil {
+			log.Println("Error scanning row: ", err.Error())
+			return nil, err
+		}
+
+		// Depending on the currency, set the correct price
+		switch currency {
+		case "USD":
+			similarProduct.PricePerUnitUSD = similarProduct.PricePerUnit
+		case "EUR":
+			similarProduct.PricePerUnitEUR = similarProduct.PricePerUnit
+		case "GBP":
+			similarProduct.PricePerUnitGBP = similarProduct.PricePerUnit
+		}
+
+		products = append(products, similarProduct)
+	}
+
+	return products, nil
 }
 
 func (repo *ProductRepository) updateProduct(product Product) error {

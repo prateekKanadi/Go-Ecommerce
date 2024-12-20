@@ -93,7 +93,8 @@ func initiateOrderHandler(s *OrderService) http.HandlerFunc {
 
 			//Get cart ID from session
 			cartID := cart.CartID
-			Cart, err := s.CartService.Repo.GetAllCartItems(cartID)
+			currency := sess.Values["currency"].(string)
+			Cart, err := s.CartService.Repo.GetAllCartItems(cartID, currency)
 
 			fmt.Println("Cart Items length is : ", len(Cart.Items))
 			lenCartItems := len(Cart.Items)
@@ -105,7 +106,8 @@ func initiateOrderHandler(s *OrderService) http.HandlerFunc {
 			if lenCartItems > 0 {
 				orderId, res, err := s.createOrderService(userID, deliveryMode, paymentMode, orderValue, orderTotal, shippingAddress)
 				orderDetail, res, err := s.getOrderService(orderId)
-				_, res, err = s.createOrderItemsService(orderId, userID, orderDetail)
+				currency := sess.Values["currency"].(string)
+				_, res, err = s.createOrderItemsService(orderId, userID, orderDetail, currency)
 
 				if err != nil {
 					log.Println(err)
@@ -120,7 +122,7 @@ func initiateOrderHandler(s *OrderService) http.HandlerFunc {
 				return
 			}
 
-			 htmlMessage := `
+			htmlMessage := `
 			 <!DOCTYPE html>
 			 <html lang="en">
 			 <head>
@@ -146,11 +148,10 @@ func initiateOrderHandler(s *OrderService) http.HandlerFunc {
 			 </body>
 			 </html>
 			 `
-			 w.Header().Set("Content-Type", "text/html")
-			 fmt.Fprint(w, htmlMessage)
-			 log.Println("Rendered intermediate message for empty cart with delayed redirect")
-			 return
-
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprint(w, htmlMessage)
+			log.Println("Rendered intermediate message for empty cart with delayed redirect")
+			return
 
 		case http.MethodGet:
 

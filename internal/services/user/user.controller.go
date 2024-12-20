@@ -16,12 +16,12 @@ import (
 )
 
 const (
-	usersBasePath = "users"
-	prodBasePath  = "prod"
-	apiBasePath   = "api"
+	usersBasePath    = "users"
+	prodBasePath     = "prod"
+	apiBasePath      = "api"
+	currencyBasePath = "currency"
 )
 
-// SetupRoutes :
 func SetupUserRoutes(r *mux.Router, s *UserService) {
 	apiUrlPath := fmt.Sprintf("/%s/%s", apiBasePath, usersBasePath)
 	userRouter := r.PathPrefix(apiUrlPath).Subrouter()
@@ -38,6 +38,69 @@ func SetupUserRoutes(r *mux.Router, s *UserService) {
 	// r.HandleFunc(fmt.Sprintf("/%s/%s/{id}", apiVersion, usersBasePath), userProdHandler)
 	// r.HandleFunc(fmt.Sprintf("/%s/%s/resetPass", apiVersion, usersBasePath), resetPassProdHandler).Methods("POST")
 	prodUsersRouter.HandleFunc("/dashboard", userDashboardHandler(s)).Methods(http.MethodGet)
+
+	r.HandleFunc("/prod/currency", currencyHandler(s))
+}
+
+func currencyHandler(s *UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Retrieve the session from the request
+		sess, err := session.GetSessionFromContext(r)
+		userId, err := session.GetSessionUserID(sess)
+		if err != nil {
+			log.Println("UserId is not set in session", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		user, res, err := s.getUserService(userId)
+		userEmail := user.Email
+
+		if err != nil {
+			log.Println("error : ", err)
+			http.Error(w, err.Error(), res)
+			return
+		}
+
+		// Default currency
+		currency := "USD"
+
+		// Handle the form submission for changing the currency
+		if r.Method == http.MethodPost {
+			// Get the selected currency from the form
+			currency = r.FormValue("currency")
+			if currency == "" {
+				currency = "USD" // Default to USD if no currency is selected
+			}
+
+			// Store the currency in the session
+			sess.Values["currency"] = currency
+			err = sess.Save(r, w)
+			if err != nil {
+				log.Println("Error saving session:", err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+
+		// Render the template with the selected currency
+		tmpl, err := template.ParseFiles("template/dashboard.html")
+		if err != nil {
+			http.Error(w, "Error loading dashboard page", http.StatusInternalServerError)
+			log.Println("Template parsing error:", err)
+			return
+		}
+
+		// Pass the currency info to the template
+		err = tmpl.Execute(w, map[string]interface{}{
+			"Currency": currency,
+			"Email":    userEmail, // Optional: You can pass email or any other user-related data
+		})
+		if err != nil {
+			http.Error(w, "Error rendering dashboard page", http.StatusInternalServerError)
+			log.Println("Template execution error:", err)
+			return
+		}
+	}
 }
 
 func userDashboardHandler(s *UserService) http.HandlerFunc {
