@@ -95,12 +95,12 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
         }
 
         th, td {
             padding: 15px;
             text-align: left;
+            vertical-align: top;
             border-bottom: 1px solid #ddd;
         }
 
@@ -139,6 +139,7 @@
 
         /* Go Back Button */
         .btn-back {
+            margin-top: 20px;    
             background-color: #e53e3e;
         }
 
@@ -177,12 +178,31 @@
             background-color: #e2e8f0;
         }
 
-        /* Style for buttons in the same line */
-        .action-buttons {
+        /* Ensure action buttons cell height matches the image height */
+        td.action-buttons {
+            gap: 12px;
             display: flex;
-            gap: 12px;  /* Space between buttons */
+            flex-direction: row;
+            justify-content: space-between; /* Space out buttons evenly */
+            align-items: center; /* Center align buttons */
+            padding-bottom: 10px; /* Adds space between buttons and bottom border */
+            height: 100%; /* Ensure it uses available height */
+            border-bottom: none;
         }
 
+        /* Match the height of the image dynamically */
+        td.action-buttons .btn {
+            margin-bottom: auto; /* Allow natural spacing */
+        }
+
+        /* Product Image Styling */
+        .product-image {
+            display: block; /* Ensures consistent alignment */
+            margin: 0 auto;
+            width: auto;
+            max-height: 150px;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -202,7 +222,6 @@
                 </form>
             {{ end }}
             <a href="/prod/cart" class="btn" title="View My Cart">My Cart</a>  
-     
         </div>
     </header>
 
@@ -213,6 +232,7 @@
         <table>
             <thead>
                 <tr>
+                    <th>Product Image</th>
                     <th>Product Name</th>
                     <th>Product Brand</th>
                     <th>Price</th>
@@ -223,6 +243,7 @@
                 <!-- Example of how products will be displayed -->
                 {{ range .Products }}
                 <tr>
+                    <td><img src="{{ .ImageURL }}" alt="{{ .ProductName }}" class="product-image" /></td>
                     <td>{{ .ProductName }}</td>
                     <td>{{ .ProductBrand }}</td>
                     <td data-price="{{ .PricePerUnit }}"></td>
@@ -237,7 +258,7 @@
                 </tr>
                 {{ else }}
                 <tr>
-                    <td colspan="4" style="text-align: center; color: #555;">No products found.</td>
+                    <td colspan="5" style="text-align: center; color: #555;">No products found.</td>
                 </tr>
                 {{ end }}
             </tbody>
@@ -294,3 +315,5 @@
             cell.textContent = `$${rawValue.toFixed(2)}`;
         });
     </script>
+</body>
+</html>

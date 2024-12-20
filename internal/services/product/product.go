@@ -10,4 +10,7 @@ type Product struct {
 	PricePerUnitUSD float64 `json:"price_usd"`
 	PricePerUnitEUR float64 `json:"price_eur"`
 	PricePerUnitGBP float64 `json:"price_gbp"`
+	Category        string  `json:"category"`
+	SubCategory     string  `json:"subCategory"`
+	ImageURL        string  `json:"imageURL"`
 }

@@ -31,6 +31,9 @@ func main() {
 	//Creating Mux Router
 	r := mux.NewRouter()
 
+	// Static file server for images
+	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", http.FileServer(http.Dir("./resources/images/"))))
+
 	//Registering Middlewares
 	middleware.RegisterMiddleWares(r, setupRes)
 
