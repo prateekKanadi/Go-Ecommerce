@@ -135,7 +135,8 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 					return
 				}
 			} else {
-				cartListObj, res, err := s.getAllCartItemsService(cartID)
+				currency := sess.Values["currency"].(string)
+				cartListObj, res, err := s.getAllCartItemsService(cartID, currency)
 				if err != nil {
 					log.Println(err)
 					http.Error(w, err.Error(), res)

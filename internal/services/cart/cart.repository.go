@@ -56,7 +56,7 @@ func (repo *CartRepository) removeCartItem(cartID, cartItemID int) error {
 }
 
 // get all products from cart_items JOIN products table
-func (repo *CartRepository) GetAllCartItems(cartID int) (*Cart, error) {
+func (repo *CartRepository) GetAllCartItems(cartID int, currency string) (*Cart, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	query := `
@@ -70,11 +70,15 @@ func (repo *CartRepository) GetAllCartItems(cartID int) (*Cart, error) {
             p.productName,
             p.productBrand,
             p.description,
-            p.pricePerUnit
+            pp.price_usd,
+            pp.price_eur,
+            pp.price_gbp
         FROM 
             cart_items ci
         LEFT JOIN 
             products p ON ci.product_id = p.productId
+        LEFT JOIN 
+            productPrices pp ON ci.product_id = pp.productId
         WHERE 
             ci.cart_id = ?`
 
@@ -87,10 +91,12 @@ func (repo *CartRepository) GetAllCartItems(cartID int) (*Cart, error) {
 	var items []CartItem
 	var cartTotal float64
 	var cart Cart
+
 	for rows.Next() {
 		var item CartItem
 		var productName, productBrand, description string
-		var pricePerUnit float64
+		var priceUSD, priceEUR, priceGBP float64
+
 		err := rows.Scan(
 			&item.ID,
 			&item.CartID,
@@ -101,7 +107,9 @@ func (repo *CartRepository) GetAllCartItems(cartID int) (*Cart, error) {
 			&productName,
 			&productBrand,
 			&description,
-			&pricePerUnit,
+			&priceUSD,
+			&priceEUR,
+			&priceGBP,
 		)
 		if err != nil {
 			return nil, err
@@ -110,13 +118,30 @@ func (repo *CartRepository) GetAllCartItems(cartID int) (*Cart, error) {
 		item.ProductName = productName
 		item.ProductBrand = productBrand
 		item.Description = description
-		item.PricePerUnit = pricePerUnit
-		totalPrice := ((float64)(item.Quantity) * pricePerUnit)
-		item.TotalPrice = float64(totalPrice)
+
+		// Select price based on the requested currency
+		var selectedPrice float64
+		switch currency {
+		case "USD":
+			selectedPrice = priceUSD
+		case "EUR":
+			selectedPrice = priceEUR
+		case "GBP":
+			selectedPrice = priceGBP
+		default:
+			return nil, fmt.Errorf("unsupported currency: %s", currency)
+		}
+
+		item.PricePerUnit = selectedPrice
+
+		// Calculate total price for the item based on quantity
+		totalPrice := float64(item.Quantity) * selectedPrice
+		item.TotalPrice = totalPrice
 		cartTotal += totalPrice
 
 		items = append(items, item)
 	}
+
 	cart.Items = items
 	cart.CartTotal = cartTotal
 

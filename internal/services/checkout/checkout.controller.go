@@ -36,7 +36,6 @@ func SetupCheckoutRoutes(r *mux.Router, s *CheckoutService) {
 	prodCheckoutRouter.HandleFunc(updateAddressBasePath, updateAddressAtCheckoutProdHandler(s))
 }
 
-
 // Update Address at checkout Handler function
 func updateAddressAtCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 
@@ -99,11 +98,11 @@ func initiateCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 		}
 
 		tmpl, err := template.ParseFiles("template/checkout.html")
-			if err != nil {
-				log.Println("Template parsing error:", err)
-				http.Error(w, "Error loading product list page", http.StatusInternalServerError)
-				return
-			}
+		if err != nil {
+			log.Println("Template parsing error:", err)
+			http.Error(w, "Error loading product list page", http.StatusInternalServerError)
+			return
+		}
 
 		user := sess.Values["user"].(*session.User)
 		cart := sess.Values["cart"].(*session.Cart)
@@ -119,7 +118,8 @@ func initiateCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 
 		// Fetch Cart related data from cart table
 		var cartId = cart.CartID
-		cartData, err := s.getCartDetailsOfUser(cartId)
+		currency := sess.Values["currency"].(string)
+		cartData, err := s.getCartDetailsOfUser(cartId, currency)
 		fmt.Println("Details of cart fetched perfectly ...")
 		if err != nil {
 			log.Println(err)
@@ -128,12 +128,12 @@ func initiateCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 		}
 
 		fmt.Println("Cart Total is ", cartData.CartTotal)
-		
+
 		// Amount rounded off to 2 decimal places
 		roundedoffTotal := fmt.Sprintf("%.2f", cartData.CartTotal)
 		fmt.Println("Round off Total is ", roundedoffTotal)
 		switch r.Method {
-		case http.MethodGet:	
+		case http.MethodGet:
 			err = tmpl.Execute(w, map[string]interface{}{"Address": addressDetails, "CheckoutData": roundedoffTotal})
 			if err != nil {
 				log.Println("Template execution error:", err)
@@ -153,16 +153,16 @@ func initiateCheckoutProdHandler(s *CheckoutService) http.HandlerFunc {
 			phoneNumber := r.FormValue("phoneNumber")
 
 			addressData := User.Address{
-				HouseNo: houseNo,
-				Landmark: landmark,
-				City: city,
-				State: state,
-				Pincode: pincode,
+				HouseNo:     houseNo,
+				Landmark:    landmark,
+				City:        city,
+				State:       state,
+				Pincode:     pincode,
 				PhoneNumber: phoneNumber,
 			}
 
-			fmt.Println("All the data is received ",houseNo, landmark, city , pincode , state , phoneNumber)
-			err = tmpl.Execute(w,map[string]interface{}{"Address":addressData, "CheckoutData": cartData.CartTotal})
+			fmt.Println("All the data is received ", houseNo, landmark, city, pincode, state, phoneNumber)
+			err = tmpl.Execute(w, map[string]interface{}{"Address": addressData, "CheckoutData": cartData.CartTotal})
 
 			if err != nil {
 				log.Println("Template execution error:", err)

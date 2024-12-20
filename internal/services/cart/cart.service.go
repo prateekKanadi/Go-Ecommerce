@@ -49,8 +49,8 @@ func (s *CartService) removeCartItem(cartID, cartItemID int) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (s *CartService) getAllCartItemsService(cartID int) (*Cart, int, error) {
-	cartList, err := s.Repo.GetAllCartItems(cartID)
+func (s *CartService) getAllCartItemsService(cartID int, currency string) (*Cart, int, error) {
+	cartList, err := s.Repo.GetAllCartItems(cartID, currency)
 	if err != nil {
 		log.Printf("Error fetching cart items: %v", err)
 		return nil, http.StatusInternalServerError, err
