@@ -128,6 +128,7 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 			sess.Values["user"] = &userObj
 			sess.Values["userId"] = user.UserID
 			sess.Values["isAnon"] = false
+			sess.Values["currency"] = "USD"
 
 			time.Sleep(10 * time.Microsecond)
 			// Now, create a cart for the user
@@ -294,6 +295,7 @@ func loginProdHandler(s *AuthService) http.HandlerFunc {
 			sess.Values["user"] = &userObj
 			sess.Values["userId"] = user.UserID
 			sess.Values["isAnon"] = false
+			sess.Values["currency"] = "USD"
 
 			// Extract the cart that was stored for the user ..and
 			//storing cart in session

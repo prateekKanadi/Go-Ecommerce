@@ -114,4 +114,5 @@ func InitAnonUserSession(sess *sessions.Session) {
 	sess.Values["IDCountMap"] = &IDCountMap
 	sess.Values["user"] = &user
 	sess.Values["cart"] = &cart
+	sess.Values["currency"] = "USD"
 }
