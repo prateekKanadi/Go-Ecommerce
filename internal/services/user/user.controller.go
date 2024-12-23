@@ -134,6 +134,7 @@ func userDashboardHandler(s *UserService) http.HandlerFunc {
 			return
 		}
 		log.Println(utils.ToString(*user))
+		currency := sess.Values["currency"].(string)
 
 		// Parse the template file (adjust path if necessary)
 		tmpl, err := template.ParseFiles("template/dashboard.html")
@@ -146,7 +147,7 @@ func userDashboardHandler(s *UserService) http.HandlerFunc {
 		switch r.Method {
 		case http.MethodGet:
 			// Execute the template, sending data if needed (or nil if not)
-			err = tmpl.Execute(w, user)
+			err = tmpl.Execute(w, map[string]interface{}{"User": user, "Currency": currency})
 			if err != nil {
 				http.Error(w, "Error rendering dashboard page", http.StatusInternalServerError)
 				log.Println("Template execution error:", err)

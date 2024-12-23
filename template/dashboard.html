@@ -151,7 +151,7 @@
     <!-- Header Section -->
     <header>
         <div class="welcome-message">
-            Welcome, {{ .Email }}!
+            Welcome, {{ .User.Email }}!
         </div>
         <div class="btn-container">
             <a href="/prod/products" class="btn" title="View My Products">Products</a>
@@ -167,7 +167,7 @@
 
     <!-- Dashboard Container -->
     <div class="dashboard-container">
-        <h1>Welcome, {{ .Email }}!</h1> <!-- Displaying the user's email -->
+        <h1>Welcome, {{ .User.Email }}!</h1> <!-- Displaying the user's email -->
         <p>You have successfully logged in</p>
 
         <!-- Displaying Current Currency -->
