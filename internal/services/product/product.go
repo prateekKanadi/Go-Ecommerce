@@ -17,3 +17,11 @@ type ProductPrice struct {
 	CurrencyCode string  `json:"currencyCode"`
 	Amount       float64 `json:"price"`
 }
+
+type VariantProduct struct {
+	VariantID   string `json:"variantId"`
+	ProductID   int    `json:"productId"`
+	VariantName string `json:"variantName"`
+	Color       string `json:"color"`
+	Product
+}

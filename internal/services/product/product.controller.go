@@ -65,7 +65,7 @@ func productsProdHandler(s *ProductService) http.HandlerFunc {
 				return
 			}
 			currency := sess.Values["currency"].(string)
-			productList, res, err := s.getAllProductsService(currency)
+			productList, res, err := s.getAllVariantProductsService(currency)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, err.Error(), res)

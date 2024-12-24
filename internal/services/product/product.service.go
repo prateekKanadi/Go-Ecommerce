@@ -27,6 +27,17 @@ func (s *ProductService) getAllProductsService(currency string) ([]Product, int,
 
 	return productList, http.StatusOK, nil
 }
+
+func (s *ProductService) getAllVariantProductsService(currency string) ([]VariantProduct, int, error) {
+	variantProductList, err := s.Repo.getAllVariantProducts(currency)
+	if err != nil {
+		log.Printf("Error fetching products: %v", err)
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return variantProductList, http.StatusOK, nil
+}
+
 func (s *ProductService) getAllSimilarProductsService(product *Product, currency string) ([]Product, int, error) {
 	similarProductList, err := s.Repo.getAllSimilarProducts(product, currency)
 	if err != nil {

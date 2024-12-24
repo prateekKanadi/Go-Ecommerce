@@ -98,7 +98,7 @@
         }
 
         th, td {
-            padding: 15px;
+            padding: 10px;
             text-align: left;
             vertical-align: top;
             border-bottom: 1px solid #ddd;
@@ -203,6 +203,18 @@
             max-height: 150px;
             border-radius: 8px;
         }
+
+        /* Styling for the color indicator */
+        .color-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%; /* Makes it a circle */
+            margin-right: 8px; /* Adds spacing between the circle and text */
+            border: 1px solid #ccc; /* Optional: Adds a border for better visibility */
+            vertical-align: middle; /* Aligns with text */
+        }
+
     </style>
 </head>
 <body>
@@ -235,6 +247,7 @@
                     <th>Product Image</th>
                     <th>Product Name</th>
                     <th>Product Brand</th>
+                    <th>Color</th>
                     <th>Price</th>
                     <th>Actions</th>
                 </tr>
@@ -243,9 +256,17 @@
                 <!-- Example of how products will be displayed -->
                 {{ range .Products }}
                 <tr>
-                    <td><img src="{{ .ImageURL }}" alt="{{ .ProductName }}" class="product-image" /></td>
-                    <td>{{ .ProductName }}</td>
+                    <td><img src="{{ .ImageURL }}" alt="{{ .VariantName }}" class="product-image" /></td>
+                    <td>{{ .VariantName }}</td>
                     <td>{{ .ProductBrand }}</td>
+                    <td>
+                        {{ if .Color }}
+                            <span class="color-indicator" style="background-color: {{ .Color }}"></span>
+                            {{ .Color }}
+                        {{ else }}
+                            <span class="color-indicator" style="background-color: grey;"></span> No Color Available
+                        {{ end }}
+                    </td>
                     {{ range .Prices }}
                     <td>${{ .Amount }}</td>
                     {{ end }}

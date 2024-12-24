@@ -150,6 +150,83 @@ func (repo *ProductRepository) getAllProducts(currency string) ([]Product, error
 	return products, nil
 }
 
+func (repo *ProductRepository) getAllVariantProducts(currency string) ([]VariantProduct, error) {
+	// Ensure the currency is one of the valid options
+	if currency != "USD" && currency != "EUR" && currency != "GBP" {
+		return nil, fmt.Errorf("invalid currency: %s", currency)
+	}
+
+	//  Query to fetch all variant products and their prices in the selected currency
+	query := `
+	SELECT 
+		v.variantId, 
+		v.variantName,
+		v.description, 
+		v.stockQuantity,
+		v.imageURL,
+		v.color,
+		v.productId, 
+		p.productName, 
+		p.productBrand,
+		pp.price, 
+		pp.currencyCode, 
+		p.category, 
+		p.subCategory
+	FROM 
+		variantProducts v
+	JOIN 
+		products p ON v.productId = p.productId
+	JOIN 
+		productPrices pp ON p.productId = pp.productId
+	WHERE 
+		pp.currencyCode = ?
+`
+
+	results, err := repo.db.Query(query, currency)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	defer results.Close()
+
+	variantProducts := make([]VariantProduct, 0)
+
+	// Iterate through each result and map it to a product
+	for results.Next() {
+		var product Product
+		var price ProductPrice
+		var variantProduct VariantProduct
+
+		err := results.Scan(
+			&variantProduct.VariantID,
+			&variantProduct.VariantName,
+			&variantProduct.Description,
+			&variantProduct.StockQuantity,
+			&variantProduct.ImageURL,
+			&variantProduct.Color,
+			&variantProduct.ProductID,
+			&variantProduct.ProductName,
+			&variantProduct.ProductBrand,
+			&price.Amount,       // The price for the selected currency
+			&price.CurrencyCode, // The currency code
+			&variantProduct.Category,
+			&variantProduct.SubCategory,
+		)
+		if err != nil {
+			log.Println("Error scanning row: ", err.Error())
+			return nil, err
+		}
+
+		// Add the price to the variant product's prices slice
+		variantProduct.Prices = append(product.Prices, price)
+
+		// Append the product to the list
+		variantProducts = append(variantProducts, variantProduct)
+	}
+
+	return variantProducts, nil
+}
+
 func (repo *ProductRepository) getAllSimilarProducts(product *Product, currency string) ([]Product, error) {
 	// Ensure the currency is one of the valid options
 	if currency != "USD" && currency != "EUR" && currency != "GBP" {
