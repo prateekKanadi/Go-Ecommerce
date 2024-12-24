@@ -70,19 +70,18 @@ func (repo *CartRepository) GetAllCartItems(cartID int, currency string) (*Cart,
             p.productName,
             p.productBrand,
             p.description,
-            pp.price_usd,
-            pp.price_eur,
-            pp.price_gbp
+            pp.price
         FROM 
             cart_items ci
         LEFT JOIN 
             products p ON ci.product_id = p.productId
         LEFT JOIN 
-            productPrices pp ON ci.product_id = pp.productId
+            productPrices pp ON ci.product_id = pp.productId AND pp.currencyCode = ?
         WHERE 
             ci.cart_id = ?`
 
-	rows, err := repo.db.QueryContext(ctx, query, cartID)
+	// Pass currencyCode and cartID to the query
+	rows, err := repo.db.QueryContext(ctx, query, currency, cartID)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +94,7 @@ func (repo *CartRepository) GetAllCartItems(cartID int, currency string) (*Cart,
 	for rows.Next() {
 		var item CartItem
 		var productName, productBrand, description string
-		var priceUSD, priceEUR, priceGBP float64
+		var price float64
 
 		err := rows.Scan(
 			&item.ID,
@@ -107,9 +106,7 @@ func (repo *CartRepository) GetAllCartItems(cartID int, currency string) (*Cart,
 			&productName,
 			&productBrand,
 			&description,
-			&priceUSD,
-			&priceEUR,
-			&priceGBP,
+			&price,
 		)
 		if err != nil {
 			return nil, err
@@ -118,24 +115,10 @@ func (repo *CartRepository) GetAllCartItems(cartID int, currency string) (*Cart,
 		item.ProductName = productName
 		item.ProductBrand = productBrand
 		item.Description = description
+		item.PricePerUnit = price
 
-		// Select price based on the requested currency
-		var selectedPrice float64
-		switch currency {
-		case "USD":
-			selectedPrice = priceUSD
-		case "EUR":
-			selectedPrice = priceEUR
-		case "GBP":
-			selectedPrice = priceGBP
-		default:
-			return nil, fmt.Errorf("unsupported currency: %s", currency)
-		}
-
-		item.PricePerUnit = selectedPrice
-
-		// Calculate total price for the item based on quantity
-		totalPrice := float64(item.Quantity) * selectedPrice
+		// Calculate the total price for the item based on quantity
+		totalPrice := float64(item.Quantity) * price
 		item.TotalPrice = totalPrice
 		cartTotal += totalPrice
 
