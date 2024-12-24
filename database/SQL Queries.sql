@@ -97,12 +97,11 @@ CREATE TABLE `ecommercedb`.`order_items` (
     FOREIGN KEY (`productId`) REFERENCES `ecommercedb`.`products`(`productId`) ON DELETE CASCADE  -- Foreign key to the products table
 );
 
-CREATE TABLE `ecommercedb`.`productPrices` (
-    productId INT NOT NULL,        
-    price_usd DECIMAL(10, 2) NOT NULL, 
-    price_eur DECIMAL(10, 2) NOT NULL, 
-    price_gbp DECIMAL(10, 2) NOT NULL,
-    PRIMARY KEY (productId),  
-    FOREIGN KEY (productId) REFERENCES `ecommercedb`.`products`(productId)
-    ON DELETE CASCADE       
+CREATE TABLE `inventorydb`.`productPrices` (
+    productId INT NOT NULL,                    -- Unique identifier for the product (foreign key from products table)
+    currencyCode VARCHAR(3) NOT NULL,           -- Currency code (e.g., 'USD', 'EUR', 'GBP')
+    price DECIMAL(10, 2) NOT NULL,              -- Price of the product in the specified currency
+    PRIMARY KEY (productId, currencyCode),     -- Composite primary key (productId + currencyCode)
+    FOREIGN KEY (productId) REFERENCES `inventorydb`.`products`(productId) -- productId references products table
+    ON DELETE CASCADE                           -- Ensure that if a product is deleted, its price record is also deleted
 );

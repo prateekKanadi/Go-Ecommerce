@@ -246,7 +246,9 @@
                     <td><img src="{{ .ImageURL }}" alt="{{ .ProductName }}" class="product-image" /></td>
                     <td>{{ .ProductName }}</td>
                     <td>{{ .ProductBrand }}</td>
-                    <td data-price="{{ .PricePerUnit }}"></td>
+                    {{ range .Prices }}
+                    <td>${{ .Amount }}</td>
+                    {{ end }}
                     <td class="action-buttons">
                         <!-- Add to cart button -->
                         <form action="/prod/cart/{{ .ProductID }}" method="POST" class="add-to-cart-form">
