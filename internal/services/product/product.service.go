@@ -28,10 +28,20 @@ func (s *ProductService) getAllProductsService(currency string) ([]Product, int,
 	return productList, http.StatusOK, nil
 }
 
+func (s *ProductService) getAllVariantProductsByProductIDService(variantProduct *VariantProduct, currency string) ([]VariantProduct, int, error) {
+	variantProductList, err := s.Repo.getAllVariantProductsByProductID(variantProduct, currency)
+	if err != nil {
+		log.Printf("Error fetching variant products: %v", err)
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return variantProductList, http.StatusOK, nil
+}
+
 func (s *ProductService) getAllVariantProductsService(currency string) ([]VariantProduct, int, error) {
 	variantProductList, err := s.Repo.getAllVariantProducts(currency)
 	if err != nil {
-		log.Printf("Error fetching products: %v", err)
+		log.Printf("Error fetching variant products: %v", err)
 		return nil, http.StatusInternalServerError, err
 	}
 
@@ -47,6 +57,20 @@ func (s *ProductService) getAllSimilarProductsService(product *Product, currency
 
 	return similarProductList, http.StatusOK, nil
 }
+
+func (s *ProductService) GetVariantProductService(variantID string, currency string) (*VariantProduct, int, error) {
+	variantProduct, err := s.Repo.getVariantProduct(variantID, currency)
+
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+	if variantProduct == nil {
+		return nil, http.StatusNotFound, errors.New("No variantProduct Found")
+	}
+
+	return variantProduct, http.StatusOK, nil
+}
+
 func (s *ProductService) GetProductService(productID int, currency string) (*Product, int, error) {
 	product, err := s.Repo.getProduct(productID, currency)
 

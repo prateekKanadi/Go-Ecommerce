@@ -240,6 +240,87 @@
             font-size: 1em;
             margin-top: 5px;
         }
+
+        /* Styling for the color indicator */
+        .color-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%; /* Makes it a circle */
+            margin-right: 8px; /* Adds spacing between the circle and text */
+            border: 1px solid #ccc; /* Optional: Adds a border for better visibility */
+            vertical-align: middle; /* Aligns with text */
+        }
+
+        /* Variant Products Section */
+        .variant-products-container {
+            background-color: #fff;
+            padding: 20px 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            width: 70%;
+            max-width: 500px;
+            margin: 30px auto 0;
+            text-align: center;
+        }
+
+        .variant-products-container h3 {
+            color: #5a67d8;
+            font-size: 2.5em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .variant-products-list {
+            display: flex;
+            justify-content: flex-start;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+
+        .variant-product-item {
+            flex-shrink: 0;
+            width: 50%;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .variant-product-link {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .variant-product-image {
+            width: 100%;
+            height: auto;
+            border-bottom: 2px solid #eee;
+            transition: transform 0.3s ease;
+        }
+
+        .variant-product-image:hover {
+            transform: scale(1.05);
+        }
+
+        .variant-product-info {
+            padding: 15px;
+        }
+
+        .variant-product-info h3 {
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .variant-product-info p {
+            color: #555;
+            font-size: 1em;
+            margin-top: 5px;
+        }
+
+
     </style>
 </head>
 <body>
@@ -269,7 +350,7 @@
             <!-- Left Column: Image -->
             <div class="left-column">
                 <div class="product-image">
-                    <img src="{{ .Product.ImageURL }}" alt="{{ .ProductName }}" />
+                    <img src="{{ .Product.ImageURL }}" alt="{{ .Product.VariantName }}" />
                 </div>
                 <div class="button-container">
                     <button class="btn btn-add-to-cart" id="add-to-cart-btn">Add to Cart</button>
@@ -281,7 +362,7 @@
                 <div class="product-details">
                     <div>
                         <label>Product Name:</label>
-                        <span class="value">{{ .Product.ProductName }}</span>
+                        <span class="value">{{ .Product.VariantName }}</span>
                     </div>
                     <div>
                         <label>Product Brand:</label>
@@ -289,17 +370,53 @@
                     </div>
                     <div>
                         <label>Price:</label>
-                        <span class="value">${{ .Product.PricePerUnit }}</span>
+                        <!-- <span class="value">${{ .Product.PricePerUnit }}</span> -->
+                        {{ range .Product.Prices }}
+                            <span class="value">${{ .Amount }}</span>
+                        {{ end }}
                     </div>
                     <div>
                         <label>Description:</label>
                         <span class="value">{{ .Product.Description }}</span>
                     </div>
                     <div>
-                        <label>Stock Quantity:</label>
-                        <span class="value">{{ .Product.StockQuantity }}</span>
+                        <label>Color:</label>
+                        {{ if .Product.Color }}
+                            {{ .Product.Color }}    
+                            <span class="color-indicator" style="background-color: {{ .Product.Color }}"></span>                            
+                        {{ else }}
+                            <span class="color-indicator" style="background-color: grey;"></span> No Color Available
+                        {{ end }}
                     </div>
                 </div>
+
+                <!-- Other Variants Section -->
+                <div class="variant-products-container">
+                    <h3>Other Variants</h3>
+                    <div class="variant-products-list">
+                        {{ if .variantProductList }}
+                            {{ range .variantProductList }}
+                                <div class="variant-product-item">
+                                    <a href="/prod/products/{{ .ProductID }}/{{ .VariantID }}" class="variant-product-link">
+                                        <img src="{{ .ImageURL }}" alt="{{ .VariantName }}" class="variant-product-image" />
+                                        <div class="variant-product-info">
+                                            <h3>{{ .VariantName }}</h3>
+                                            <p>{{ .ProductBrand }}</p>
+                                            {{ range .Prices }}
+                                                <p>${{ .Amount }}</p>                                
+                                            {{ end }}
+                                        </div>
+                                    </a>
+                                </div>
+                            {{ else }}
+                                <p>No variant products found.</p>
+                            {{ end }}
+                        {{ else }}
+                            <p>Sorry, we couldn't find any variant products.</p>
+                        {{ end }}
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -316,7 +433,9 @@
                             <div class="similar-product-info">
                                 <h3>{{ .ProductName }}</h3>
                                 <p>{{ .ProductBrand }}</p>
-                                <p>${{ .PricePerUnit }}</p>
+                                {{ range .Prices }}
+                                    <p>${{ .Amount }}</p>                                
+                                {{ end }}
                             </div>
                         </a>
                     </div>

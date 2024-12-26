@@ -33,7 +33,7 @@ func SetupProductRoutes(r *mux.Router, s *ProductService) {
 	prodUsersRouter := r.PathPrefix(prodUrlPath).Subrouter()
 
 	prodUsersRouter.HandleFunc("", productsProdHandler(s))
-	prodUsersRouter.HandleFunc("/{id}", productProdHandler(s))
+	prodUsersRouter.HandleFunc("/{id}/{vid}", productProdHandler(s))
 }
 
 func productsProdHandler(s *ProductService) http.HandlerFunc {
@@ -141,6 +141,7 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 		}
 
 		vars := mux.Vars(r)
+		variantID := vars["vid"]
 		productID, err := strconv.Atoi(vars["id"])
 
 		if err != nil {
@@ -165,6 +166,20 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 				http.Error(w, "Error loading product details page", http.StatusInternalServerError)
 				return
 			}
+			log.Println("Variant Id : ", variantID)
+			variantProduct, res, err := s.GetVariantProductService(variantID, currency)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, err.Error(), res)
+				return
+			}
+
+			variantProductList, res, err := s.getAllVariantProductsByProductIDService(variantProduct, currency)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, err.Error(), res)
+				return
+			}
 
 			similarProductList, res, err := s.getAllSimilarProductsService(product, currency)
 			if err != nil {
@@ -173,7 +188,7 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 				return
 			}
 
-			err = tmpl.Execute(w, map[string]interface{}{"similarProductList": similarProductList, "Product": product, "IsAdmin": user.IsAdmin, "isAnon": isAnon})
+			err = tmpl.Execute(w, map[string]interface{}{"similarProductList": similarProductList, "variantProductList": variantProductList, "Product": variantProduct, "IsAdmin": user.IsAdmin, "isAnon": isAnon})
 			if err != nil {
 				log.Println("Template execution error:", err)
 				http.Error(w, "Error rendering product details page", http.StatusInternalServerError)

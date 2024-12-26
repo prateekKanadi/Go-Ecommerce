@@ -75,12 +75,13 @@
         /* Container styling for the product list */
         .product-list-container {
             background-color: #fff;
-            padding: 40px;
+            padding: 40px 120px;
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             width: 90%;
             max-width: 800px;
             margin-top: 100px;
+            margin-bottom: 30px;
         }
 
         .product-list-container h1 {
@@ -276,7 +277,7 @@
                             <button type="submit" class="btn" style="background-color: #783fb1;">Add to cart</button>
                         </form>
                         
-                        <a href="/prod/products/{{ .ProductID }}" class="btn" style="background-color: #48bb78;">View</a>
+                        <a href="/prod/products/{{ .ProductID }}/{{ .VariantID }}" class="btn" style="background-color: #48bb78;">View</a>
                     </td>
                 </tr>
                 {{ else }}
