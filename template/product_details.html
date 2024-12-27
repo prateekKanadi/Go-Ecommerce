@@ -428,10 +428,10 @@
             {{ if .similarProductList }}
                 {{ range .similarProductList }}
                     <div class="similar-product-item">
-                        <a href="/prod/products/{{ .ProductID }}" class="similar-product-link">
-                            <img src="{{ .ImageURL }}" alt="{{ .ProductName }}" class="similar-product-image" />
+                        <a href="/prod/products/{{ .ProductID }}/{{ .VariantID }}" class="similar-product-link">
+                            <img src="{{ .ImageURL }}" alt="{{ .VariantName }}" class="similar-product-image" />
                             <div class="similar-product-info">
-                                <h3>{{ .ProductName }}</h3>
+                                <h3>{{ .VariantName }}</h3>
                                 <p>{{ .ProductBrand }}</p>
                                 {{ range .Prices }}
                                     <p>${{ .Amount }}</p>                                
@@ -464,13 +464,14 @@
         document.addEventListener('DOMContentLoaded', function () {
             const addToCartBtn = document.getElementById('add-to-cart-btn');
             const productID = "{{ .Product.ProductID }}";  // Assuming the product ID is injected into the template
+            const variantID = "{{ .Product.VariantID }}";  // Assuming the variant product ID is injected into the template
             const popup = document.getElementById('popup');
             const closePopupBtn = document.getElementById('close-popup-btn'); // Target close button by ID
 
             // Add event listener for the Add to Cart button
             addToCartBtn.addEventListener('click', function () {
                 // Send AJAX request to add product to the cart
-                fetch(`/prod/cart/${productID}`, {
+                fetch(`/prod/cart/${productID}/${variantID}`, {
                     method: 'POST',
                 })
                 .then(response => response.json())

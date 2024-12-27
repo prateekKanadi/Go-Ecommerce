@@ -48,7 +48,7 @@ func (s *ProductService) getAllVariantProductsService(currency string) ([]Varian
 	return variantProductList, http.StatusOK, nil
 }
 
-func (s *ProductService) getAllSimilarProductsService(product *Product, currency string) ([]Product, int, error) {
+func (s *ProductService) getAllSimilarProductsService(product *VariantProduct, currency string) ([]VariantProduct, int, error) {
 	similarProductList, err := s.Repo.getAllSimilarProducts(product, currency)
 	if err != nil {
 		log.Printf("Error fetching similar products: %v", err)

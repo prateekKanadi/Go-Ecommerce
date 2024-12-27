@@ -129,7 +129,8 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 			return
 		}
 
-		//extracting isAnon flag from session
+		//extracting values from session
+		currency := sess.Values["currency"].(string)
 		isAnon := sess.Values["isAnon"].(bool)
 		user, ok := sess.Values["user"].(*session.User)
 		if !ok || user == nil {
@@ -147,13 +148,6 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 		if err != nil {
 			log.Println(err)
 			http.Error(w, err.Error(), http.StatusNotFound)
-			return
-		}
-		currency := sess.Values["currency"].(string)
-		product, res, err := s.GetProductService(productID, currency)
-		if err != nil {
-			log.Println(err)
-			http.Error(w, err.Error(), res)
 			return
 		}
 
@@ -181,7 +175,7 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 				return
 			}
 
-			similarProductList, res, err := s.getAllSimilarProductsService(product, currency)
+			similarProductList, res, err := s.getAllSimilarProductsService(variantProduct, currency)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, err.Error(), res)
@@ -219,7 +213,7 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 				return
 			}
 
-			res, err = s.updateProductService(updatedProduct)
+			res, err := s.updateProductService(updatedProduct)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, err.Error(), res)

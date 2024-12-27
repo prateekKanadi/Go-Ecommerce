@@ -25,7 +25,7 @@ func SetupCartRoutes(r *mux.Router, s *CartService) {
 	prodCartRouter := r.PathPrefix(prodUrlPath).Subrouter()
 
 	prodCartRouter.HandleFunc("", cartsProdHandler(s))
-	prodCartRouter.HandleFunc("/{id}", cartProdHandler(s))
+	prodCartRouter.HandleFunc("/{id}{vid}", cartProdHandler(s))
 
 	// Remove cart items Handler
 	prodCartRouter.HandleFunc("/{id}/remove", removeCartItemProdHandler(s))
@@ -210,6 +210,9 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 
 		switch r.Method {
 		case http.MethodPost:
+			// Get variantProduct ID from URL
+			variantID := mux.Vars(r)["vid"]
+			log.Println("variantID : ", variantID)
 			// Get product ID from URL
 			productID, err := strconv.Atoi(mux.Vars(r)["id"])
 			if err != nil {
