@@ -204,7 +204,7 @@
                         <form action="/prod/cart/{{ .ID }}/remove" method="POST" style="display: inline;">
                             <button type="submit" class="btn btn-secondary">Remove</button>
                         </form>
-                        <form action="/prod/cart/{{ .ProductID }}" method="POST" style="display: inline;">
+                        <form action="/prod/cart/{{ .ProductID }}/{{ .VariantID }}" method="POST" style="display: inline;">
                             <input type="number" name="quantity" value="{{ .Quantity }}" min="1" style="width: 50px; text-align: center;" />
                             <button type="submit" class="btn">Update</button>
                         </form>
