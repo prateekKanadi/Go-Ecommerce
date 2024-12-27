@@ -20,12 +20,12 @@ type Cart struct {
 type CartItem struct {
 	ID        int       `json:"id"`
 	CartID    int       `json:"cart_id"`
-	ProductID int       `json:"product_id"`
+	VariantID string    `json:"variantId"`
 	Quantity  int       `json:"quantity"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
 	//below fields not stored in db only for ease of access
-	product.Product
+	product.VariantProduct
 	TotalPrice float64
 }

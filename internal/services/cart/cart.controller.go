@@ -212,14 +212,6 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 		case http.MethodPost:
 			// Get variantProduct ID from URL
 			variantID := mux.Vars(r)["vid"]
-			log.Println("variantID : ", variantID)
-			// Get product ID from URL
-			productID, err := strconv.Atoi(mux.Vars(r)["id"])
-			if err != nil {
-				log.Println("Invalid product ID:", err)
-				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), http.StatusNotFound)
-				return
-			}
 
 			err = r.ParseForm()
 			if err != nil {
@@ -295,7 +287,7 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 				}
 			} else {
 				// Call the AddOrUpdateCartItem method
-				status, err := s.AddOrUpdateCartItemService(cartID, productID, quantity, isFormQuantityNotNull)
+				status, err := s.AddOrUpdateCartItemService(cartID, variantID, quantity, isFormQuantityNotNull)
 				if err != nil {
 					// Handle the error (e.g., return an error response)
 					log.Println("Error adding/updating cart item:", err)
