@@ -25,10 +25,9 @@ func SetupCartRoutes(r *mux.Router, s *CartService) {
 	prodCartRouter := r.PathPrefix(prodUrlPath).Subrouter()
 
 	prodCartRouter.HandleFunc("", cartsProdHandler(s))
-	prodCartRouter.HandleFunc("/{id}{vid}", cartProdHandler(s))
-
 	// Remove cart items Handler
 	prodCartRouter.HandleFunc("/{id}/remove", removeCartItemProdHandler(s))
+	prodCartRouter.HandleFunc("/{id}/{vid}", cartProdHandler(s))
 }
 
 func cartsProdHandler(s *CartService) http.HandlerFunc {

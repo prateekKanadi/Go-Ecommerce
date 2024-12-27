@@ -273,7 +273,7 @@
                     {{ end }}
                     <td class="action-buttons">
                         <!-- Add to cart button -->
-                        <form action="/prod/cart/{{ .ProductID }}" method="POST" class="add-to-cart-form">
+                        <form action="/prod/cart/{{ .ProductID }}/{{ .VariantID }}" method="POST" class="add-to-cart-form">
                             <button type="submit" class="btn" style="background-color: #783fb1;">Add to cart</button>
                         </form>
                         
@@ -310,8 +310,10 @@
             addToCartForms.forEach(function (form) {
                 form.addEventListener('submit', function (event) {
                     event.preventDefault();
-                    const productID = form.getAttribute('action').split('/').pop();
-                    fetch(`/prod/cart/${productID}`, {
+                    const actionParts = form.getAttribute('action').split('/');
+                    const variantID = actionParts[actionParts.length - 1]; // Last part of the URL
+                    const productID = actionParts[actionParts.length - 2]; // Second to last part of the URL                    
+                    fetch(`/prod/cart/${productID}/${variantID}`, {
                         method: 'POST',
                     })
                     .then(response => response.json())

@@ -160,7 +160,6 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 				http.Error(w, "Error loading product details page", http.StatusInternalServerError)
 				return
 			}
-			log.Println("Variant Id : ", variantID)
 			variantProduct, res, err := s.GetVariantProductService(variantID, currency)
 			if err != nil {
 				log.Println(err)
