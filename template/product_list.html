@@ -75,12 +75,63 @@
         /* Container styling for the product list */
         .product-list-container {
             background-color: #fff;
-            padding: 40px;
+            padding: 10px ;
+            padding-right: 120px;
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             width: 90%;
             max-width: 800px;
             margin-top: 100px;
+            margin-bottom: 30px;
+            height: 500px; /* Set a fixed height */
+            overflow-y: auto; /* Enable vertical scrolling */
+            position: relative;
+        }
+
+        .sticky-title {
+            position: sticky;
+            top: 0;
+            background-color: #fff;
+            z-index: 10;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            width: 100%; /* Match the width of the container */
+            box-sizing: border-box; /* Include padding in the width */
+        }
+
+        .sticky-header th {
+            position: sticky;
+            top: 80px; /* Adjust based on the height of the title */
+            background-color: #5a67d8;
+            z-index: 5;
+            padding: 10px; /* Add padding to align with the title */
+            box-sizing: border-box; /* Include padding in the width */
+        }
+
+        /* Scrollbar styling for WebKit browsers */
+        .product-list-container::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .product-list-container::-webkit-scrollbar-track {
+            background: linear-gradient(180deg, #f1f1f1, #e2e8f0);
+            border-radius: 10px;
+        }
+
+        .product-list-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #888, #555);
+            border-radius: 10px;
+            border: 3px solid #f1f1f1;
+        }
+
+        .product-list-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #555, #333);
+        }
+
+        /* Scrollbar styling for Firefox */
+        .product-list-container {
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f1f1f1;
         }
 
         .product-list-container h1 {
@@ -95,10 +146,11 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            max-width: 100%; /* Added max-width */
         }
 
         th, td {
-            padding: 15px;
+            padding: 10px;
             text-align: left;
             vertical-align: top;
             border-bottom: 1px solid #ddd;
@@ -203,6 +255,18 @@
             max-height: 150px;
             border-radius: 8px;
         }
+
+        /* Styling for the color indicator */
+        .color-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%; /* Makes it a circle */
+            margin-right: 8px; /* Adds spacing between the circle and text */
+            border: 1px solid #ccc; /* Optional: Adds a border for better visibility */
+            vertical-align: middle; /* Aligns with text */
+        }
+
     </style>
 </head>
 <body>
@@ -227,14 +291,15 @@
 
     <!-- Product List Container -->
     <div class="product-list-container">
-        <h1>My Products</h1>
+        <h1 class="sticky-title">My Products</h1>
 
         <table>
-            <thead>
+            <thead class="sticky-header">
                 <tr>
                     <th>Product Image</th>
                     <th>Product Name</th>
                     <th>Product Brand</th>
+                    <th>Color</th>
                     <th>Price</th>
                     <th>Actions</th>
                 </tr>
@@ -243,19 +308,27 @@
                 <!-- Example of how products will be displayed -->
                 {{ range .Products }}
                 <tr>
-                    <td><img src="{{ .ImageURL }}" alt="{{ .ProductName }}" class="product-image" /></td>
-                    <td>{{ .ProductName }}</td>
+                    <td><img src="{{ .ImageURL }}" alt="{{ .VariantName }}" class="product-image" /></td>
+                    <td>{{ .VariantName }}</td>
                     <td>{{ .ProductBrand }}</td>
+                    <td>
+                        {{ if .Color }}
+                            <span class="color-indicator" style="background-color: {{ .Color }}"></span>
+                            {{ .Color }}
+                        {{ else }}
+                            <span class="color-indicator" style="background-color: grey;"></span> No Color Available
+                        {{ end }}
+                    </td>
                     {{ range .Prices }}
                     <td>${{ .Amount }}</td>
                     {{ end }}
                     <td class="action-buttons">
                         <!-- Add to cart button -->
-                        <form action="/prod/cart/{{ .ProductID }}" method="POST" class="add-to-cart-form">
+                        <form action="/prod/cart/{{ .ProductID }}/{{ .VariantID }}" method="POST" class="add-to-cart-form">
                             <button type="submit" class="btn" style="background-color: #783fb1;">Add to cart</button>
                         </form>
                         
-                        <a href="/prod/products/{{ .ProductID }}" class="btn" style="background-color: #48bb78;">View</a>
+                        <a href="/prod/products/{{ .ProductID }}/{{ .VariantID }}" class="btn" style="background-color: #48bb78;">View</a>
                     </td>
                 </tr>
                 {{ else }}
@@ -288,8 +361,10 @@
             addToCartForms.forEach(function (form) {
                 form.addEventListener('submit', function (event) {
                     event.preventDefault();
-                    const productID = form.getAttribute('action').split('/').pop();
-                    fetch(`/prod/cart/${productID}`, {
+                    const actionParts = form.getAttribute('action').split('/');
+                    const variantID = actionParts[actionParts.length - 1]; // Last part of the URL
+                    const productID = actionParts[actionParts.length - 2]; // Second to last part of the URL                    
+                    fetch(`/prod/cart/${productID}/${variantID}`, {
                         method: 'POST',
                     })
                     .then(response => response.json())

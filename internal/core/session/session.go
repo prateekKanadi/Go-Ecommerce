@@ -29,6 +29,7 @@ type (
 		ID           int
 		CartID       int
 		ProductID    int
+		VariantID    string
 		Quantity     int
 		ProductName  string
 		PricePerUnit float64
@@ -36,7 +37,7 @@ type (
 	}
 
 	// Declare a custom type for the map
-	IDCountMap map[int]int
+	IDCountMap map[string]int
 )
 
 func Init(config *configuration.Config) (*sessions.CookieStore, error) {

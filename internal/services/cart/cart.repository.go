@@ -22,21 +22,21 @@ func NewCartRepository(db *sql.DB) *CartRepository {
 }
 
 // ------------CART-ITEM RELATED------------
-func (repo *CartRepository) addOrUpdateCartItem(cartID, productID, quantity int, isFormQuantityNotNull bool) error {
+func (repo *CartRepository) addOrUpdateCartItem(cartID int, variantID string, quantity int, isFormQuantityNotNull bool) error {
 	var query string
 	if isFormQuantityNotNull {
-		query = `INSERT INTO cart_items (cart_id, product_id, quantity)
+		query = `INSERT INTO cart_items (cart_id, variantId, quantity)
 	VALUES (?, ?, ?)
 	ON DUPLICATE KEY UPDATE quantity = VALUES(quantity), updated_at = CURRENT_TIMESTAMP
 `
 	} else {
 		query = `
-		INSERT INTO cart_items (cart_id, product_id, quantity)
+		INSERT INTO cart_items (cart_id, variantId, quantity)
 		VALUES (?, ?, ?)
 		ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity), updated_at = CURRENT_TIMESTAMP
 	`
 	}
-	_, err := repo.db.Exec(query, cartID, productID, quantity)
+	_, err := repo.db.Exec(query, cartID, variantID, quantity)
 	if err != nil {
 		return fmt.Errorf("failed to add/update cart item: %v", err)
 	}
@@ -63,20 +63,25 @@ func (repo *CartRepository) GetAllCartItems(cartID int, currency string) (*Cart,
         SELECT 
             ci.ID AS item_id,
             ci.cart_id,
-            ci.product_id,
+            ci.variantId,
             ci.quantity,
             ci.created_at AS item_created_at,
             ci.updated_at AS item_updated_at,
-            p.productName,
+            v.variantName,
             p.productBrand,
-            p.description,
+            v.description,
+			v.stockQuantity,
+			v.imageURL,
+			v.color,
             pp.price
         FROM 
             cart_items ci
         LEFT JOIN 
-            products p ON ci.product_id = p.productId
+            variantProducts v ON ci.variantId = v.variantId
+		LEFT JOIN 
+            products p ON v.productId = p.productId
         LEFT JOIN 
-            productPrices pp ON ci.product_id = pp.productId AND pp.currencyCode = ?
+            productPrices pp ON v.productId = pp.productId AND pp.currencyCode = ?
         WHERE 
             ci.cart_id = ?`
 
@@ -93,28 +98,27 @@ func (repo *CartRepository) GetAllCartItems(cartID int, currency string) (*Cart,
 
 	for rows.Next() {
 		var item CartItem
-		var productName, productBrand, description string
 		var price float64
 
 		err := rows.Scan(
 			&item.ID,
 			&item.CartID,
-			&item.ProductID,
+			&item.VariantID,
 			&item.Quantity,
 			&item.CreatedAt,
 			&item.UpdatedAt,
-			&productName,
-			&productBrand,
-			&description,
+			&item.ProductName,
+			&item.ProductBrand,
+			&item.Description,
+			&item.StockQuantity,
+			&item.ImageURL,
+			&item.Color,
 			&price,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		item.ProductName = productName
-		item.ProductBrand = productBrand
-		item.Description = description
 		item.PricePerUnit = price
 
 		// Calculate the total price for the item based on quantity
@@ -133,164 +137,5 @@ func (repo *CartRepository) GetAllCartItems(cartID int, currency string) (*Cart,
 	}
 
 	log.Println("Cart items with product details fetched from database")
-	return &cart, nil
-}
-
-// ------------CART RELATED------------
-func (repo *CartRepository) getCartByID(cartID int) (*Cart, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-	query := `
-        SELECT
-            c.ID AS cart_id,
-            c.UserID,
-            c.CreatedAt AS cart_created_at,
-            c.UpdatedAt AS cart_updated_at,
-            ci.ID AS item_id,
-            ci.CartID,
-            ci.ProductID,
-            ci.Quantity,
-            ci.CreatedAt AS item_created_at,
-            ci.UpdatedAt AS item_updated_at
-        FROM
-            carts c
-        LEFT JOIN
-            cart_items ci ON c.ID = ci.CartID
-        WHERE
-            c.ID = ?`
-
-	rows, err := repo.db.QueryContext(ctx, query, cartID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var cart Cart
-	var items []CartItem
-
-	for rows.Next() {
-		var cartID, userID, itemID, productID, quantity int
-		var cartCreatedAt, cartUpdatedAt, itemCreatedAt, itemUpdatedAt time.Time
-
-		err := rows.Scan(
-			&cartID,
-			&userID,
-			&cartCreatedAt,
-			&cartUpdatedAt,
-			&itemID,
-			&cartID,
-			&productID,
-			&quantity,
-			&itemCreatedAt,
-			&itemUpdatedAt,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		if cart.ID == 0 {
-			cart.ID = cartID
-			cart.UserID = userID
-			cart.CreatedAt = cartCreatedAt
-			cart.UpdatedAt = cartUpdatedAt
-		}
-
-		item := CartItem{
-			ID:        itemID,
-			CartID:    cartID,
-			ProductID: productID,
-			Quantity:  quantity,
-			CreatedAt: itemCreatedAt,
-			UpdatedAt: itemUpdatedAt,
-		}
-		items = append(items, item)
-	}
-
-	if len(items) > 0 {
-		cart.Items = items
-	} else {
-		return nil, fmt.Errorf("no cart found with cartID %d: %v", cartID, err)
-	}
-
-	log.Println("Cart data coming from database")
-	return &cart, nil
-}
-
-func (repo *CartRepository) getCartByUserID(userID int) (*Cart, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-
-	query := `
-        SELECT
-            c.ID AS cart_id,
-            c.UserID,
-            c.CreatedAt AS cart_created_at,
-            c.UpdatedAt AS cart_updated_at,
-            ci.ID AS item_id,
-            ci.CartID,
-            ci.ProductID,
-            ci.Quantity,
-            ci.CreatedAt AS item_created_at,
-            ci.UpdatedAt AS item_updated_at
-        FROM
-            carts c
-        LEFT JOIN
-            cart_items ci ON c.ID = ci.CartID
-        WHERE
-            c.UserID = ?`
-
-	rows, err := repo.db.QueryContext(ctx, query, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var cart Cart
-	var items []CartItem
-
-	for rows.Next() {
-		var cartID, userID, itemID, productID, quantity int
-		var cartCreatedAt, cartUpdatedAt, itemCreatedAt, itemUpdatedAt time.Time
-
-		err := rows.Scan(
-			&cartID,
-			&userID,
-			&cartCreatedAt,
-			&cartUpdatedAt,
-			&itemID,
-			&cartID,
-			&productID,
-			&quantity,
-			&itemCreatedAt,
-			&itemUpdatedAt,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		if cart.ID == 0 {
-			cart.ID = cartID
-			cart.UserID = userID
-			cart.CreatedAt = cartCreatedAt
-			cart.UpdatedAt = cartUpdatedAt
-		}
-
-		item := CartItem{
-			ID:        itemID,
-			CartID:    cartID,
-			ProductID: productID,
-			Quantity:  quantity,
-			CreatedAt: itemCreatedAt,
-			UpdatedAt: itemUpdatedAt,
-		}
-		items = append(items, item)
-	}
-	if len(items) > 0 {
-		cart.Items = items
-	} else {
-		return nil, fmt.Errorf("no cart found with userID %d: %v", userID, err) // No cart found or no items in the cart for the given user
-	}
-
-	log.Println("Cart data for user coming from database")
 	return &cart, nil
 }

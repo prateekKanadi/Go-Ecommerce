@@ -25,10 +25,9 @@ func SetupCartRoutes(r *mux.Router, s *CartService) {
 	prodCartRouter := r.PathPrefix(prodUrlPath).Subrouter()
 
 	prodCartRouter.HandleFunc("", cartsProdHandler(s))
-	prodCartRouter.HandleFunc("/{id}", cartProdHandler(s))
-
 	// Remove cart items Handler
 	prodCartRouter.HandleFunc("/{id}/remove", removeCartItemProdHandler(s))
+	prodCartRouter.HandleFunc("/{id}/{vid}", cartProdHandler(s))
 }
 
 func cartsProdHandler(s *CartService) http.HandlerFunc {
@@ -80,14 +79,15 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 				// iterate over items slice
 				for i, item := range cart.Items {
 					if (item.Quantity) > 0 {
-						product, res, err := s.ProductService.GetProductService(item.ProductID, currency)
+						// product, res, err := s.ProductService.GetProductService(item.ProductID, currency)
+						product, res, err := s.ProductService.GetVariantProductService(item.VariantID, currency)
 						if err != nil {
 							log.Println(err)
 							http.Error(w, err.Error(), res)
 							return
 						}
-						cart.Items[i].ProductName = product.ProductName
-						cart.Items[i].PricePerUnit = product.PricePerUnit
+						cart.Items[i].ProductName = product.VariantName
+						cart.Items[i].PricePerUnit = product.Prices[0].Amount
 						totalPrice := cart.Items[i].PricePerUnit * float64(item.Quantity)
 						cart.Items[i].TotalPrice = totalPrice
 						cartTotal += totalPrice
@@ -210,13 +210,8 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 
 		switch r.Method {
 		case http.MethodPost:
-			// Get product ID from URL
-			productID, err := strconv.Atoi(mux.Vars(r)["id"])
-			if err != nil {
-				log.Println("Invalid product ID:", err)
-				http.Error(w, fmt.Sprintf(`{"success": false, "error": "%v"}`, err), http.StatusNotFound)
-				return
-			}
+			// Get variantProduct ID from URL
+			variantID := mux.Vars(r)["vid"]
 
 			err = r.ParseForm()
 			if err != nil {
@@ -238,14 +233,14 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 			}
 
 			if isAnon {
-				_, exists := (*IDCountMap)[productID]
+				_, exists := (*IDCountMap)[variantID]
 				if exists {
 					// Value to search for
-					targetValue := productID
+					targetValue := variantID
 
 					// Iterate over the items slice
 					for i, item := range cart.Items {
-						if item.ProductID == targetValue {
+						if item.VariantID == targetValue {
 							if isFormQuantityNotNull {
 								cart.Items[i].Quantity = quantity
 							} else {
@@ -263,13 +258,13 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 					cartItemID := len(cart.Items)
 
 					//update IDCountMap
-					(*IDCountMap)[productID] += 1
+					(*IDCountMap)[variantID] += 1
 
 					//initialize Cartitem object
 					item := session.CartItem{
 						ID:           cartItemID,
 						CartID:       cartID,
-						ProductID:    productID,
+						VariantID:    variantID,
 						Quantity:     quantity,
 						ProductName:  "",
 						PricePerUnit: 0.0,
@@ -292,7 +287,7 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 				}
 			} else {
 				// Call the AddOrUpdateCartItem method
-				status, err := s.AddOrUpdateCartItemService(cartID, productID, quantity, isFormQuantityNotNull)
+				status, err := s.AddOrUpdateCartItemService(cartID, variantID, quantity, isFormQuantityNotNull)
 				if err != nil {
 					// Handle the error (e.g., return an error response)
 					log.Println("Error adding/updating cart item:", err)
@@ -383,7 +378,7 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 				targetValue := cartItemID
 
 				// Variable to hold the key
-				var keyFound int
+				var keyFound string
 				var found bool
 				var deletedItem session.CartItem
 
@@ -392,7 +387,7 @@ func removeCartItemProdHandler(s *CartService) http.HandlerFunc {
 					if item.ID == targetValue {
 						cart.Items[i].Quantity = -1
 						deletedItem = cart.Items[i]
-						keyFound = cart.Items[i].ProductID
+						keyFound = cart.Items[i].VariantID
 						found = true
 						break
 					}

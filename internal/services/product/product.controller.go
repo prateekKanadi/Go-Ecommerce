@@ -33,7 +33,7 @@ func SetupProductRoutes(r *mux.Router, s *ProductService) {
 	prodUsersRouter := r.PathPrefix(prodUrlPath).Subrouter()
 
 	prodUsersRouter.HandleFunc("", productsProdHandler(s))
-	prodUsersRouter.HandleFunc("/{id}", productProdHandler(s))
+	prodUsersRouter.HandleFunc("/{id}/{vid}", productProdHandler(s))
 }
 
 func productsProdHandler(s *ProductService) http.HandlerFunc {
@@ -65,7 +65,7 @@ func productsProdHandler(s *ProductService) http.HandlerFunc {
 				return
 			}
 			currency := sess.Values["currency"].(string)
-			productList, res, err := s.getAllProductsService(currency)
+			productList, res, err := s.getAllVariantProductsService(currency)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, err.Error(), res)
@@ -129,7 +129,8 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 			return
 		}
 
-		//extracting isAnon flag from session
+		//extracting values from session
+		currency := sess.Values["currency"].(string)
 		isAnon := sess.Values["isAnon"].(bool)
 		user, ok := sess.Values["user"].(*session.User)
 		if !ok || user == nil {
@@ -141,18 +142,12 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 		}
 
 		vars := mux.Vars(r)
+		variantID := vars["vid"]
 		productID, err := strconv.Atoi(vars["id"])
 
 		if err != nil {
 			log.Println(err)
 			http.Error(w, err.Error(), http.StatusNotFound)
-			return
-		}
-		currency := sess.Values["currency"].(string)
-		product, res, err := s.GetProductService(productID, currency)
-		if err != nil {
-			log.Println(err)
-			http.Error(w, err.Error(), res)
 			return
 		}
 
@@ -165,15 +160,28 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 				http.Error(w, "Error loading product details page", http.StatusInternalServerError)
 				return
 			}
-
-			similarProductList, res, err := s.getAllSimilarProductsService(product, currency)
+			variantProduct, res, err := s.GetVariantProductService(variantID, currency)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, err.Error(), res)
 				return
 			}
 
-			err = tmpl.Execute(w, map[string]interface{}{"similarProductList": similarProductList, "Product": product, "IsAdmin": user.IsAdmin, "isAnon": isAnon})
+			variantProductList, res, err := s.getAllVariantProductsByProductIDService(variantProduct, currency)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, err.Error(), res)
+				return
+			}
+
+			similarProductList, res, err := s.getAllSimilarProductsService(variantProduct, currency)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, err.Error(), res)
+				return
+			}
+
+			err = tmpl.Execute(w, map[string]interface{}{"similarProductList": similarProductList, "variantProductList": variantProductList, "Product": variantProduct, "IsAdmin": user.IsAdmin, "isAnon": isAnon})
 			if err != nil {
 				log.Println("Template execution error:", err)
 				http.Error(w, "Error rendering product details page", http.StatusInternalServerError)
@@ -204,7 +212,7 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 				return
 			}
 
-			res, err = s.updateProductService(updatedProduct)
+			res, err := s.updateProductService(updatedProduct)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, err.Error(), res)

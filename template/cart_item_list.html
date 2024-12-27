@@ -83,12 +83,15 @@
         /* Cart Container styling */
         .cart-container {
             background-color: #fff;
-            padding: 40px;
+            padding: 40px ;
+            padding-right: 180px;
+            margin-bottom: 20px;
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             width: 90%;
             max-width: 800px;
             margin-top: 100px; /* Adjusted for header */
+            overflow: auto; /* Added overflow property */
         }
 
         .cart-container h1 {
@@ -104,6 +107,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            max-width: 100%; /* Added max-width */
         }
 
         th, td {
@@ -125,6 +129,7 @@
             display: flex;
             gap: 10px; /* Space between remove and update buttons */
             align-items: center;
+            border-bottom: none; /* Removed border from action section */
         }
 
         .action-buttons form {
@@ -156,6 +161,26 @@
             cursor: not-allowed;
             color: #e2e8f0;
         }
+
+        /* Product Image Styling */
+        .product-image {
+            display: block; /* Ensures consistent alignment */
+            margin: 0 auto;
+            width: auto;
+            max-height: 150px;
+            border-radius: 8px;
+        }
+
+        /* Styling for the color indicator */
+        .color-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%; /* Makes it a circle */
+            margin-right: 8px; /* Adds spacing between the circle and text */
+            border: 1px solid #ccc; /* Optional: Adds a border for better visibility */
+            vertical-align: middle; /* Aligns with text */
+        }
     </style>
 </head>
 <body>
@@ -185,7 +210,9 @@
         <table>
             <thead>
                 <tr>
+                    <th>Product Image</th>
                     <th>Product Name</th>
+                    <th>Color</th>
                     <th>Quantity</th>
                     <th>Price per Unit</th>
                     <th>Total Price</th>
@@ -195,7 +222,16 @@
             <tbody>
                 {{ range .CartItems }}
                 <tr>
+                    <td><img src="{{ .ImageURL }}" alt="{{ .VariantName }}" class="product-image" /></td>
                     <td>{{ .ProductName }}</td>
+                    <td>
+                        {{ if .Color }}
+                            <span class="color-indicator" style="background-color: {{ .Color }}"></span>
+                            {{ .Color }}
+                        {{ else }}
+                            <span class="color-indicator" style="background-color: grey;"></span> No Color Available
+                        {{ end }}
+                    </td>
                     <td>{{ .Quantity }}</td>
                     <td data-price="{{ .PricePerUnit }}"></td>
                     <td data-price="{{ .TotalPrice }}"></td>                    
@@ -204,7 +240,7 @@
                         <form action="/prod/cart/{{ .ID }}/remove" method="POST" style="display: inline;">
                             <button type="submit" class="btn btn-secondary">Remove</button>
                         </form>
-                        <form action="/prod/cart/{{ .ProductID }}" method="POST" style="display: inline;">
+                        <form action="/prod/cart/{{ .ProductID }}/{{ .VariantID }}" method="POST" style="display: inline;">
                             <input type="number" name="quantity" value="{{ .Quantity }}" min="1" style="width: 50px; text-align: center;" />
                             <button type="submit" class="btn">Update</button>
                         </form>

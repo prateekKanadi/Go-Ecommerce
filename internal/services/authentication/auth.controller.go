@@ -156,7 +156,7 @@ func registerProdHandler(s *AuthService) http.HandlerFunc {
 					if item.Quantity > 0 {
 						time.Sleep(10 * time.Microsecond)
 						// Call the addOrUpdateCartItemService method for each item
-						status, err := s.CartService.AddOrUpdateCartItemService(cart.CartID, item.ProductID, item.Quantity, true)
+						status, err := s.CartService.AddOrUpdateCartItemService(cart.CartID, item.VariantID, item.Quantity, true)
 						if err != nil {
 							// Log the error and continue with the next item
 							log.Printf("Error adding/updating cart item (CartID: %d, ProductID: %d, Quantity: %d): %v",
