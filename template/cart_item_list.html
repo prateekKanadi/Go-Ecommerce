@@ -162,8 +162,6 @@
             color: #e2e8f0;
         }
 
-       
-
         /* Product Image Styling */
         .product-image {
             display: block; /* Ensures consistent alignment */
@@ -171,6 +169,17 @@
             width: auto;
             max-height: 150px;
             border-radius: 8px;
+        }
+
+        /* Styling for the color indicator */
+        .color-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%; /* Makes it a circle */
+            margin-right: 8px; /* Adds spacing between the circle and text */
+            border: 1px solid #ccc; /* Optional: Adds a border for better visibility */
+            vertical-align: middle; /* Aligns with text */
         }
     </style>
 </head>
@@ -215,7 +224,14 @@
                 <tr>
                     <td><img src="{{ .ImageURL }}" alt="{{ .VariantName }}" class="product-image" /></td>
                     <td>{{ .ProductName }}</td>
-                    <td>{{ .Color }}</td>
+                    <td>
+                        {{ if .Color }}
+                            <span class="color-indicator" style="background-color: {{ .Color }}"></span>
+                            {{ .Color }}
+                        {{ else }}
+                            <span class="color-indicator" style="background-color: grey;"></span> No Color Available
+                        {{ end }}
+                    </td>
                     <td>{{ .Quantity }}</td>
                     <td data-price="{{ .PricePerUnit }}"></td>
                     <td data-price="{{ .TotalPrice }}"></td>                    

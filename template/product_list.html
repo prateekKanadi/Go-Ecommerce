@@ -75,13 +75,63 @@
         /* Container styling for the product list */
         .product-list-container {
             background-color: #fff;
-            padding: 40px 120px;
+            padding: 10px ;
+            padding-right: 120px;
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             width: 90%;
             max-width: 800px;
             margin-top: 100px;
             margin-bottom: 30px;
+            height: 500px; /* Set a fixed height */
+            overflow-y: auto; /* Enable vertical scrolling */
+            position: relative;
+        }
+
+        .sticky-title {
+            position: sticky;
+            top: 0;
+            background-color: #fff;
+            z-index: 10;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            width: 100%; /* Match the width of the container */
+            box-sizing: border-box; /* Include padding in the width */
+        }
+
+        .sticky-header th {
+            position: sticky;
+            top: 80px; /* Adjust based on the height of the title */
+            background-color: #5a67d8;
+            z-index: 5;
+            padding: 10px; /* Add padding to align with the title */
+            box-sizing: border-box; /* Include padding in the width */
+        }
+
+        /* Scrollbar styling for WebKit browsers */
+        .product-list-container::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .product-list-container::-webkit-scrollbar-track {
+            background: linear-gradient(180deg, #f1f1f1, #e2e8f0);
+            border-radius: 10px;
+        }
+
+        .product-list-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #888, #555);
+            border-radius: 10px;
+            border: 3px solid #f1f1f1;
+        }
+
+        .product-list-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #555, #333);
+        }
+
+        /* Scrollbar styling for Firefox */
+        .product-list-container {
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f1f1f1;
         }
 
         .product-list-container h1 {
@@ -96,6 +146,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            max-width: 100%; /* Added max-width */
         }
 
         th, td {
@@ -240,10 +291,10 @@
 
     <!-- Product List Container -->
     <div class="product-list-container">
-        <h1>My Products</h1>
+        <h1 class="sticky-title">My Products</h1>
 
         <table>
-            <thead>
+            <thead class="sticky-header">
                 <tr>
                     <th>Product Image</th>
                     <th>Product Name</th>
