@@ -412,7 +412,7 @@ func (repo *ProductRepository) getAllSimilarProducts(product *VariantProduct, cu
 	JOIN
 		productPrices pp ON p.productId = pp.productId
 	WHERE
-		p.category = ? AND v.variantId != ? AND pp.currencyCode = ?
+		p.category = ? AND p.productId != ? AND pp.currencyCode = ?
 `
 
 	results, err := repo.db.Query(query, product.Category, product.VariantID, currency)
