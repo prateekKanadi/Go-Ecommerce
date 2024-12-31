@@ -32,8 +32,68 @@ func SetupProductRoutes(r *mux.Router, s *ProductService) {
 	prodUrlPath := fmt.Sprintf("/%s/%s", prodBasePath, productsBasePath)
 	prodUsersRouter := r.PathPrefix(prodUrlPath).Subrouter()
 
+	prodUsersRouter.HandleFunc("/search", searchProductsHandler(s)).Methods(http.MethodGet)
 	prodUsersRouter.HandleFunc("", productsProdHandler(s))
 	prodUsersRouter.HandleFunc("/{id}/{vid}", productProdHandler(s))
+}
+
+func searchProductsHandler(s *ProductService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sess, err := session.GetSessionFromContext(r)
+		if sess == nil {
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		//extracting isAnon flag from session
+		isAnon := sess.Values["isAnon"].(bool)
+		user, ok := sess.Values["user"].(*session.User)
+		if !ok || user == nil {
+			http.Error(w, `{"success": false, "error": "User not found"}`, http.StatusBadRequest)
+			return
+		}
+		if isAnon {
+			log.Println("my products Anon userID : ", user.UserID)
+		}
+
+		switch r.Method {
+		case http.MethodGet:
+			query := r.URL.Query().Get("name")
+			if query == "" {
+				http.Error(w, "Query parameter 'name' is required", http.StatusBadRequest)
+				return
+			}
+
+			currency := sess.Values["currency"].(string)
+
+			productList, res, err := s.getAllVariantProductsBySearchService(query, currency)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, err.Error(), res)
+				return
+			}
+
+			// Render the product list to HTML
+			tmpl, err := template.ParseFiles("template/product_list.html")
+			if err != nil {
+				log.Println(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", "text/html")
+			err = tmpl.Execute(w, map[string]interface{}{"Products": productList, "IsAdmin": user.IsAdmin, "isAnon": isAnon})
+			if err != nil {
+				log.Println("Template execution error:", err)
+				http.Error(w, "Error rendering product list page", http.StatusInternalServerError)
+				return
+			}
+			return
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}
 }
 
 func productsProdHandler(s *ProductService) http.HandlerFunc {
