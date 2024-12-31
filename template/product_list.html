@@ -81,7 +81,7 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             width: 90%;
             max-width: 800px;
-            margin-top: 100px;
+            margin-top: 10px;
             margin-bottom: 30px;
             height: 500px; /* Set a fixed height */
             overflow-y: auto; /* Enable vertical scrolling */
@@ -267,6 +267,27 @@
             vertical-align: middle; /* Aligns with text */
         }
 
+        .search-container {
+            margin-top: 90px;
+            margin-right: 180px;            
+            text-align: center;
+            
+        }
+    
+        #search-bar {
+            width: 170%;
+            padding: 10px 30px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 1em;
+        }
+
+        .highlight {
+            background-color: yellow; /* Highlight color */
+            font-weight: bold; /* Optional: Make the text bold */
+            display: inline; /* Ensure it does not affect the layout */
+        }
+
     </style>
 </head>
 <body>
@@ -287,10 +308,15 @@
             {{ end }}
             <a href="/prod/cart" class="btn" title="View My Cart">My Cart</a>  
         </div>
-    </header>
+    </header>   
+    
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" id="search-bar" placeholder="Search products... (Name/Brand/Category/Sub-Category)" onkeyup="searchProducts()">
+    </div>
 
     <!-- Product List Container -->
-    <div class="product-list-container">
+    <div class="product-list-container">        
         <h1 class="sticky-title">My Products</h1>
 
         <table>
@@ -390,6 +416,43 @@
         document.querySelectorAll('td[data-price]').forEach(cell => {
             const rawValue = parseFloat(cell.dataset.price);
             cell.textContent = `$${rawValue.toFixed(2)}`;
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchBar = document.getElementById('search-bar');
+            searchBar.addEventListener('keyup', searchProducts);
+    
+            function searchProducts() {
+                const query = searchBar.value.toLowerCase();
+                fetch(`/prod/products/search?name=${query}`)
+                    .then(response => response.text())
+                    .then(data => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(data, 'text/html');
+                        const newRows = doc.querySelector('tbody').innerHTML;
+                        const productList = document.querySelector('.product-list-container tbody');
+                        productList.innerHTML = newRows; // Insert only the table rows
+
+                        // Highlight matched text
+                        if (query) {
+                            const regex = new RegExp(`(${query})`, 'gi');
+                            productList.querySelectorAll('td').forEach(td => {
+                                td.childNodes.forEach(node => {
+                                    if (node.nodeType === Node.TEXT_NODE) {
+                                        const text = node.nodeValue;
+                                        const highlightedText = text.replace(regex, '<span class="highlight">$1</span>');
+                                        const span = document.createElement('span');
+                                        span.innerHTML = highlightedText;
+                                        node.replaceWith(...span.childNodes);
+                                    }
+                                });
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching products:', error);
+                    });
+            }
         });
     </script>
 </body>

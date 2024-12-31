@@ -38,6 +38,16 @@ func (s *ProductService) getAllVariantProductsByProductIDService(variantProduct 
 	return variantProductList, http.StatusOK, nil
 }
 
+func (s *ProductService) getAllVariantProductsBySearchService(searchInput string, currency string) ([]VariantProduct, int, error) {
+	variantProductList, err := s.Repo.getAllVariantProductsBySearch(searchInput, currency)
+	if err != nil {
+		log.Printf("Error fetching variant products: %v", err)
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return variantProductList, http.StatusOK, nil
+}
+
 func (s *ProductService) getAllVariantProductsService(currency string) ([]VariantProduct, int, error) {
 	variantProductList, err := s.Repo.getAllVariantProducts(currency)
 	if err != nil {
