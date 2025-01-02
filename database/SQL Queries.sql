@@ -1,4 +1,4 @@
-CREATE DATABASE `ecommercedb` 
+CREATE DATABASE `ecommercedb`;
 
 CREATE TABLE `ecommercedb`.`products` (
   `productId` INT NOT NULL AUTO_INCREMENT,  
@@ -87,7 +87,7 @@ VALUES
 -- Product 10
 ("10A", 10, "rug_Red", "This is a Red Variant", 630.61, "Red"),
 ("10B", 10, "rug_Blue", "This is a Blue Variant", 630.61, "Blue"),
-("10C", 10, "rug_Black", "This is a Black Variant", 630.61, "Black")
+("10C", 10, "rug_Black", "This is a Black Variant", 630.61, "Black"),
 
 -- Product 11
 ("11A", 11, "headphones_Red", "This is a Red Variant", 13.67, "Red"),
@@ -130,13 +130,13 @@ CREATE TABLE `ecommercedb`.`carts` (
 CREATE TABLE `ecommercedb`.`cart_items` (
     `id` INT PRIMARY KEY AUTO_INCREMENT,
     `cart_id` INT NOT NULL,         -- Relates to the cart
-    `product_id` INT NOT NULL,      -- Relates to the product
+    `variantId` VARCHAR(255) NOT NULL,      -- Relates to the variant product
     `quantity` INT NOT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (`cart_id`) REFERENCES `ecommercedb`.`carts`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`product_id`) REFERENCES `ecommercedb`.`products`(`productId`) ON DELETE CASCADE,
-    UNIQUE KEY `unique_cart_product` (`cart_id`, `product_id`) -- Enforce uniqueness
+    FOREIGN KEY (`variantId`) REFERENCES `ecommercedb`.`variantProducts`(`variantId`) ON DELETE CASCADE,
+    UNIQUE KEY `unique_cart_product` (`cart_id`, `variantId`) -- Enforce uniqueness
 );
 
 
