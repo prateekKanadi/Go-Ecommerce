@@ -15,14 +15,19 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            flex-direction: column;
+            min-height: 100vh;
+            height: auto;
             color: #333;
         }
 
         /* Container styling */
         .login-container {
+            flex: 1;
+            margin-top: 140px;
+            margin-bottom: 30px;
             background-color: #fff;
-            padding: 30px;
+            padding: 20px;
             border-radius: 10px;
             box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
             width: 350px;
@@ -81,18 +86,84 @@
             margin-bottom: 20px;
         }
 
+        /* Header styling */
+        header {
+            width: 100%;
+            background-color: #fff;
+            padding: 15px 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .welcome-message {
+            font-size: 1.2em;
+            color: #5a67d8;
+            margin-right: 700px;
+            margin-bottom: 15px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;
+            margin-left: 80px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            background-color: #5a67d8;
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
         /* Footer styling */
         footer {
-            position: absolute;
-            bottom: 15px;
+            position: relative;                                    
+            padding: 10px 0;  
             text-align: center;
-            font-size: 0.9em;
-            color: #f4f4f4;
+            font-size: 0.9em;          
+            color: #fff;
             width: 100%;
-        }        
+            background-color: #333;
+        }   
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+        }
+    
+        .company-logo {
+            width: auto;
+            max-height: 80px;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Header Section -->
+    <header>
+        <div class="logo-container">
+            <img src="/images/company-logo.jpg" alt="Company Logo" class="company-logo">
+        </div>
+        <div class="welcome-message">
+            Login Page              
+        </div>
+        <div class="btn-container">            
+            <a href="/" class="btn" title="View Home Page">Home</a>                
+            <a href="/prod/cart" class="btn" title="View My Cart">My Cart</a>  
+        </div>
+    </header> 
 
     <div class="login-container">
         <h2>Login</h2>
@@ -108,7 +179,6 @@
         </form>
         <a href="#">Forgot your password?</a>
         <a href="/prod/auth/register">Don't have an account? Register here</a>
-        <a href="/" class="btn btn-secondary">Go to Homepage</a>
     </div>
 
     <footer>&copy; 2023 Your Company</footer>
