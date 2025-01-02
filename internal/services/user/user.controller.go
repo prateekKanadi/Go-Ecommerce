@@ -53,7 +53,6 @@ func currencyHandler(s *UserService) http.HandlerFunc {
 			return
 		}
 		user, res, err := s.getUserService(userId)
-		userEmail := user.Email
 
 		if err != nil {
 			log.Println("error : ", err)
@@ -92,8 +91,8 @@ func currencyHandler(s *UserService) http.HandlerFunc {
 
 		// Pass the currency info to the template
 		err = tmpl.Execute(w, map[string]interface{}{
+			"User":     user,
 			"Currency": currency,
-			"Email":    userEmail, // Optional: You can pass email or any other user-related data
 		})
 		if err != nil {
 			http.Error(w, "Error rendering dashboard page", http.StatusInternalServerError)
