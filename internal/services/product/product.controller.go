@@ -150,6 +150,7 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		showSimilarProducts := getConfigValue("showSimilarProducts")
 
 		switch r.Method {
 		case http.MethodGet:
@@ -180,8 +181,14 @@ func productProdHandler(s *ProductService) http.HandlerFunc {
 				http.Error(w, err.Error(), res)
 				return
 			}
-
-			err = tmpl.Execute(w, map[string]interface{}{"similarProductList": similarProductList, "variantProductList": variantProductList, "Product": variantProduct, "IsAdmin": user.IsAdmin, "isAnon": isAnon})
+			err = tmpl.Execute(w, map[string]interface{}{
+				"similarProductList":  similarProductList,
+				"variantProductList":  variantProductList,
+				"Product":             variantProduct,
+				"IsAdmin":             user.IsAdmin,
+				"isAnon":              isAnon,
+				"ShowSimilarProducts": showSimilarProducts,
+			})
 			if err != nil {
 				log.Println("Template execution error:", err)
 				http.Error(w, "Error rendering product details page", http.StatusInternalServerError)

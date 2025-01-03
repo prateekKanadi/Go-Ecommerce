@@ -1,9 +1,12 @@
 package product
 
 import (
+	"bufio"
 	"errors"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 )
 
 // ProductService handles business logic for product-related operations.
@@ -109,4 +112,29 @@ func (s *ProductService) removeProductService(productID int) (int, error) {
 		return http.StatusInternalServerError, err
 	}
 	return http.StatusOK, nil
+}
+
+func getConfigValue(key string) string {
+	file, err := os.Open("config.properties")
+	if err != nil {
+		log.Fatalf("Error opening configuration file: %v", err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, key) {
+			// Split the line into key-value pair
+			parts := strings.Split(line, "=")
+			if len(parts) > 1 {
+				return strings.TrimSpace(parts[1])
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatalf("Error reading config file: %v", err)
+	}
+	return ""
 }
