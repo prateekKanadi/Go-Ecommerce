@@ -421,31 +421,35 @@
     </div>
     
     <!-- Similar Products Section -->
-    <div class="similar-products-container">
-        <h2>Similar Products</h2>
-        <div class="similar-products-list">
-            {{ if .similarProductList }}
-                {{ range .similarProductList }}
-                    <div class="similar-product-item">
+    {{ if eq .ShowSimilarProducts "true" }}
+<div class="similar-products-container">
+    <h2>Similar Products</h2>
+    <div class="similar-products-list">
+        {{ if .similarProductList }}
+            {{ range .similarProductList }}
+                <div class="similar-product-item">
                         <a href="/prod/products/{{ .ProductID }}/{{ .VariantID }}" class="similar-product-link">
                             <img src="{{ .ImageURL }}" alt="{{ .VariantName }}" class="similar-product-image" />
-                            <div class="similar-product-info">
+                        <div class="similar-product-info">
                                 <h3>{{ .VariantName }}</h3>
-                                <p>{{ .ProductBrand }}</p>
+                            <p>{{ .ProductBrand }}</p>
                                 {{ range .Prices }}
                                     <p>${{ .Amount }}</p>                                
                                 {{ end }}
-                            </div>
-                        </a>
-                    </div>
-                {{ else }}
-                    <p>No similar products found.</p>
-                {{ end }}
+                        </div>
+                    </a>
+                </div>
             {{ else }}
-                <p>Sorry, we couldn't find any similar products.</p>
+                <p>No similar products found.</p>
             {{ end }}
-        </div>
+        {{ else }}
+            <p>Sorry, we couldn't find any similar products.</p>
+        {{ end }}
     </div>
+</div>
+{{ else }}
+    <p>Similar products section is currently disabled.</p>
+{{ end }}
 
     <br>
 
