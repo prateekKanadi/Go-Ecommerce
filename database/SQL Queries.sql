@@ -156,14 +156,14 @@ CREATE TABLE `ecommercedb`.`orders` (
 CREATE TABLE `ecommercedb`.`order_items` (
     `orderItemId` INT PRIMARY KEY AUTO_INCREMENT,
     `orderId` INT NOT NULL,
-    `productId` INT NOT NULL, 
+    `variantId` INT NOT NULL, 
     `quantity` INT NOT NULL, 
     `priceperunit` DECIMAL(10, 2) NOT NULL,
     `totalPrice` DECIMAL(10, 2) NOT NULL,
     `createdAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (`orderId`) REFERENCES `ecommercedb`.`orders`(`orderId`) ON DELETE CASCADE,
-    FOREIGN KEY (`productId`) REFERENCES `ecommercedb`.`products`(`productId`) ON DELETE CASCADE  -- Foreign key to the products table
+    FOREIGN KEY (`variantId`) REFERENCES `ecommercedb`.`variantProducts`(`variantId`) ON DELETE CASCADE  -- Foreign key to the products table
 );
 
 CREATE TABLE `ecommercedb`.`productPrices` (

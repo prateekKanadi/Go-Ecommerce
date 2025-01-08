@@ -50,7 +50,7 @@ func (repo *OrderRepository) getOrderDetailsWithId(orderId int) (*Order, error) 
 	return order, nil
 }
 
-func (repo *OrderRepository) createOrder(userID int, deliveryMode string, paymentMode string, orderValue float64, orderTotal float64,shippingAddress string) (int, error) {
+func (repo *OrderRepository) createOrder(userID int, deliveryMode string, paymentMode string, orderValue float64, orderTotal float64, shippingAddress string) (int, error) {
 
 	query := `
 		INSERT INTO orders (userId, createdAt, updatedAt, deliveryMode, paymentMode, orderValue, shippingAddress, orderTotal)
@@ -85,7 +85,7 @@ func (repo *OrderRepository) createOrderItems(cartList *cart.Cart, orderId int, 
 	for _, cartItem := range cartList.Items {
 		orderItem := OrderItem{
 			OrderID:      orderId,
-			ProductID:    cartItem.ProductID,
+			VariantID:    cartItem.VariantID,
 			Quantity:     cartItem.Quantity,
 			PricePerUnit: cartItem.PricePerUnit,
 			TotalPrice:   cartItem.TotalPrice,
@@ -94,21 +94,28 @@ func (repo *OrderRepository) createOrderItems(cartList *cart.Cart, orderId int, 
 
 		// Insert the order item into the database
 		query := `
-		INSERT INTO order_Items (orderId, productId, quantity, priceperunit, totalPrice, createdAt, updatedAt)
+		INSERT INTO order_Items (orderId, variantId, quantity, priceperunit, totalPrice, createdAt, updatedAt)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
-	`
+		`
 		// Execute the query
-		repo.db.Exec(query,
+		_, err := repo.db.Exec(query,
 			orderId,
-			orderItem.ProductID,
+			orderItem.VariantID,
 			orderItem.Quantity,
 			orderItem.PricePerUnit,
 			orderItem.TotalPrice,
 			time.Now(),
 			time.Now(),
 		)
-		query = `DELETE FROM cart_items WHERE cart_id=? AND id=?`
-		_, err := repo.db.Exec(query, cartItem.CartID, cartItem.ID)
+		if err != nil {
+			// Log the error with details if inserting the order item failed
+			log.Printf("Error inserting order item into database: %v\n", err)
+			return Order{}, fmt.Errorf("failed to insert order item for productID %d: %v", cartItem.VariantID, err)
+		}
+
+		// Now delete the cart item after it's been successfully processed
+		deleteQuery := `DELETE FROM cart_items WHERE cart_id=? AND id=?`
+		_, err = repo.db.Exec(deleteQuery, cartItem.CartID, cartItem.ID)
 		if err != nil {
 			return Order{}, fmt.Errorf("failed to delete cart item: %v", err)
 		}
@@ -179,7 +186,7 @@ func (repo *OrderRepository) GetAllOrdersAndOrderItemsByUserID(userID int) ([]Or
             o.OrderValue,
             o.ShippingAddress,
             o.OrderTotal,
-            oi.ProductID,
+			oi.VariantID,
             oi.Quantity,
             oi.PricePerUnit,
             oi.TotalPrice
@@ -199,8 +206,8 @@ func (repo *OrderRepository) GetAllOrdersAndOrderItemsByUserID(userID int) ([]Or
 	var orderMap = make(map[int]*Order)
 
 	for rows.Next() {
-		var orderID, userID, productID, quantity int
-		var deliveryMode, paymentMode, shippingAddress string
+		var orderID, userID, quantity int
+		var variantId, deliveryMode, paymentMode, shippingAddress string
 		var orderValue, orderTotal, pricePerUnit, totalPrice float64
 
 		if err := rows.Scan(
@@ -211,7 +218,7 @@ func (repo *OrderRepository) GetAllOrdersAndOrderItemsByUserID(userID int) ([]Or
 			&orderValue,
 			&shippingAddress,
 			&orderTotal,
-			&productID,
+			&variantId,
 			&quantity,
 			&pricePerUnit,
 			&totalPrice,
@@ -232,7 +239,7 @@ func (repo *OrderRepository) GetAllOrdersAndOrderItemsByUserID(userID int) ([]Or
 		}
 
 		item := OrderItem{
-			ProductID:    productID,
+			VariantID:    variantId,
 			Quantity:     quantity,
 			PricePerUnit: pricePerUnit,
 			TotalPrice:   totalPrice,
@@ -252,7 +259,7 @@ func (repo *OrderRepository) GetAllOrdersAndOrderItemsByUserID(userID int) ([]Or
 	return orders, nil
 }
 
-func( repo *OrderRepository) GetOrdersAndOrderItemsByOrderID(orderId int) (Order, error){
+func (repo *OrderRepository) GetOrdersAndOrderItemsByOrderID(orderId int) (Order, error) {
 	order := Order{}
 	orderItems := []OrderItem{}
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -267,7 +274,7 @@ func( repo *OrderRepository) GetOrdersAndOrderItemsByOrderID(orderId int) (Order
             o.OrderValue,
             o.ShippingAddress,
             o.OrderTotal,
-            oi.ProductID,
+			oi.VariantID,
             oi.Quantity,
             oi.PricePerUnit,
             oi.TotalPrice
@@ -278,20 +285,18 @@ func( repo *OrderRepository) GetOrdersAndOrderItemsByOrderID(orderId int) (Order
         WHERE
             o.OrderID = ?`
 
-	
-	rows,err := repo.db.QueryContext(ctx, query, orderId)
-
+	rows, err := repo.db.QueryContext(ctx, query, orderId)
 
 	if err != nil {
-		return Order{},err
+		return Order{}, err
 	}
 	defer rows.Close()
 
 	var orderMap = make(map[int]*Order)
 
 	for rows.Next() {
-		var orderID, userID, productID, quantity int
-		var deliveryMode, paymentMode, shippingAddress string
+		var orderID, userID, quantity int
+		var variantID, deliveryMode, paymentMode, shippingAddress string
 		var orderValue, orderTotal, pricePerUnit, totalPrice float64
 
 		if err := rows.Scan(
@@ -302,14 +307,13 @@ func( repo *OrderRepository) GetOrdersAndOrderItemsByOrderID(orderId int) (Order
 			&orderValue,
 			&shippingAddress,
 			&orderTotal,
-			&productID,
+			&variantID,
 			&quantity,
 			&pricePerUnit,
 			&totalPrice,
 		); err != nil {
 			return Order{}, err
 		}
-	
 
 		if _, exists := orderMap[orderID]; !exists {
 			order = Order{
@@ -324,7 +328,7 @@ func( repo *OrderRepository) GetOrdersAndOrderItemsByOrderID(orderId int) (Order
 		}
 
 		item := OrderItem{
-			ProductID:    productID,
+			VariantID:    variantID,
 			Quantity:     quantity,
 			PricePerUnit: pricePerUnit,
 			TotalPrice:   totalPrice,
@@ -335,7 +339,6 @@ func( repo *OrderRepository) GetOrdersAndOrderItemsByOrderID(orderId int) (Order
 		order.Items = orderItems
 
 	}
-	
+
 	return order, nil
 }
-

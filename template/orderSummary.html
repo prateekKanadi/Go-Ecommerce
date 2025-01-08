@@ -217,7 +217,7 @@
             <tbody>
                 {{range .Order.Items}} <!-- Loop through order items -->
                 <tr>
-                    <td>{{.ProductID}}</td> <!-- Product ID -->
+                    <td>{{.VariantID}}</td> <!-- Product ID -->
                     <td>{{.Quantity}}</td> <!-- Quantity -->
                     <td data-price="{{ .PricePerUnit }}"></td> <!-- Price per unit -->
                     <td data-price="{{ .TotalPrice }}"></td> <!-- Total price for this item -->
