@@ -94,13 +94,12 @@ func (repo *OrderRepository) createOrderItems(cartList *cart.Cart, orderId int, 
 
 		// Insert the order item into the database
 		query := `
-		INSERT INTO order_Items (orderId, productId, variantId, quantity, priceperunit, totalPrice, createdAt, updatedAt)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO order_Items (orderId, variantId, quantity, priceperunit, totalPrice, createdAt, updatedAt)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 		`
 		// Execute the query
 		_, err := repo.db.Exec(query,
 			orderId,
-			orderItem.ProductID,
 			orderItem.VariantID,
 			orderItem.Quantity,
 			orderItem.PricePerUnit,
@@ -111,7 +110,7 @@ func (repo *OrderRepository) createOrderItems(cartList *cart.Cart, orderId int, 
 		if err != nil {
 			// Log the error with details if inserting the order item failed
 			log.Printf("Error inserting order item into database: %v\n", err)
-			return Order{}, fmt.Errorf("failed to insert order item for productID %d: %v", cartItem.ProductID, err)
+			return Order{}, fmt.Errorf("failed to insert order item for productID %d: %v", cartItem.VariantID, err)
 		}
 
 		// Now delete the cart item after it's been successfully processed
@@ -187,7 +186,6 @@ func (repo *OrderRepository) GetAllOrdersAndOrderItemsByUserID(userID int) ([]Or
             o.OrderValue,
             o.ShippingAddress,
             o.OrderTotal,
-            oi.ProductID,
 			oi.VariantID,
             oi.Quantity,
             oi.PricePerUnit,
@@ -208,7 +206,7 @@ func (repo *OrderRepository) GetAllOrdersAndOrderItemsByUserID(userID int) ([]Or
 	var orderMap = make(map[int]*Order)
 
 	for rows.Next() {
-		var orderID, userID, productID, quantity int
+		var orderID, userID, quantity int
 		var variantId, deliveryMode, paymentMode, shippingAddress string
 		var orderValue, orderTotal, pricePerUnit, totalPrice float64
 
@@ -220,7 +218,6 @@ func (repo *OrderRepository) GetAllOrdersAndOrderItemsByUserID(userID int) ([]Or
 			&orderValue,
 			&shippingAddress,
 			&orderTotal,
-			&productID,
 			&variantId,
 			&quantity,
 			&pricePerUnit,
@@ -242,7 +239,6 @@ func (repo *OrderRepository) GetAllOrdersAndOrderItemsByUserID(userID int) ([]Or
 		}
 
 		item := OrderItem{
-			ProductID:    productID,
 			VariantID:    variantId,
 			Quantity:     quantity,
 			PricePerUnit: pricePerUnit,
@@ -278,7 +274,6 @@ func (repo *OrderRepository) GetOrdersAndOrderItemsByOrderID(orderId int) (Order
             o.OrderValue,
             o.ShippingAddress,
             o.OrderTotal,
-            oi.ProductID,
 			oi.VariantID,
             oi.Quantity,
             oi.PricePerUnit,
@@ -300,7 +295,7 @@ func (repo *OrderRepository) GetOrdersAndOrderItemsByOrderID(orderId int) (Order
 	var orderMap = make(map[int]*Order)
 
 	for rows.Next() {
-		var orderID, userID, productID, quantity int
+		var orderID, userID, quantity int
 		var variantID, deliveryMode, paymentMode, shippingAddress string
 		var orderValue, orderTotal, pricePerUnit, totalPrice float64
 
@@ -312,7 +307,6 @@ func (repo *OrderRepository) GetOrdersAndOrderItemsByOrderID(orderId int) (Order
 			&orderValue,
 			&shippingAddress,
 			&orderTotal,
-			&productID,
 			&variantID,
 			&quantity,
 			&pricePerUnit,
@@ -334,7 +328,6 @@ func (repo *OrderRepository) GetOrdersAndOrderItemsByOrderID(orderId int) (Order
 		}
 
 		item := OrderItem{
-			ProductID:    productID,
 			VariantID:    variantID,
 			Quantity:     quantity,
 			PricePerUnit: pricePerUnit,
