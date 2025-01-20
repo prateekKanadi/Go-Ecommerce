@@ -256,27 +256,19 @@
         .variant-products-container {
             background-color: #fff;
             padding: 10px 10px;
+            padding-right: 30px;
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-            width: 70%;
-            max-width: 500px;
+            height: 100px;
+            width: auto;
             margin: 10px auto 0;
             text-align: center;
-        }
-
-        .variant-products-container h2 {
-            color: #5a67d8;
-            font-size: 2em;
-            font-weight: 600;
-            margin-bottom: 10px;
-            margin-top: 10px;
-        }
+        }        
 
         .variant-products-list {
             display: flex;
             justify-content: flex-start;
-            gap: 10px;
-            overflow-x: auto;
+            gap: 20px;
             padding-bottom: 10px;
         }
 
@@ -296,8 +288,8 @@
         }
 
         .variant-product-image {
-            width: 50%;
-            height: auto;
+            width: auto;
+            height: 50px;
             border-bottom: 2px solid #eee;
             transition: transform 0.3s ease;
         }
@@ -307,7 +299,7 @@
         }
 
         .variant-product-info {
-            padding: 15px;
+            padding: 5px;
         }
 
         .variant-product-info h3 {
@@ -393,7 +385,6 @@
 
                 <!-- Other Variants Section -->
                 <div class="variant-products-container">
-                    <h2>Colors</h2>
                     <div class="variant-products-list">
                         {{ if .variantProductList }}
                             {{ range .variantProductList }}
@@ -401,9 +392,8 @@
                                     <a href="/prod/products/{{ .ProductID }}/{{ .VariantID }}" class="variant-product-link">
                                         <img src="{{ .ImageURL }}" alt="{{ .VariantName }}" class="variant-product-image" />
                                         <div class="variant-product-info">
-                                            <h3>{{ .VariantName }}</h3>
-                                            {{ .Color }}    
-                                            <span class="color-indicator" style="background-color: {{ .Color }}"></span>         
+                                            <span class="color-indicator" style="background-color: {{ .Color }}; display: inline-block;"></span>         
+                                            <h3 style="display: inline;">{{ .VariantName }}</h3>                                             
                                         </div>
                                     </a>
                                 </div>
