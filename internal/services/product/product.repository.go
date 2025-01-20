@@ -86,9 +86,7 @@ func (repo *ProductRepository) getProduct(productID int, currency string) (*Prod
 
 func (repo *ProductRepository) getVariantProduct(variantID string, currency string) (*VariantProduct, error) {
 	// Initialize variant product
-	variantProduct := &VariantProduct{
-		// Product: *product,
-	}
+	variantProduct := &VariantProduct{}
 
 	// Ensure the currency is one of the valid options
 	if currency != "USD" && currency != "EUR" && currency != "GBP" {

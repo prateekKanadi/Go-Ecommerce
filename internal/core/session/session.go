@@ -34,6 +34,8 @@ type (
 		ProductName  string
 		PricePerUnit float64
 		TotalPrice   float64
+		ImageURL     string
+		Color        string
 	}
 
 	// Declare a custom type for the map
