@@ -79,14 +79,15 @@ func cartsProdHandler(s *CartService) http.HandlerFunc {
 				// iterate over items slice
 				for i, item := range cart.Items {
 					if (item.Quantity) > 0 {
-						// product, res, err := s.ProductService.GetProductService(item.ProductID, currency)
 						product, res, err := s.ProductService.GetVariantProductService(item.VariantID, currency)
 						if err != nil {
 							log.Println(err)
 							http.Error(w, err.Error(), res)
 							return
 						}
+						cart.Items[i].ImageURL = product.ImageURL
 						cart.Items[i].ProductName = product.VariantName
+						cart.Items[i].Color = product.Color
 						cart.Items[i].PricePerUnit = product.Prices[0].Amount
 						totalPrice := cart.Items[i].PricePerUnit * float64(item.Quantity)
 						cart.Items[i].TotalPrice = totalPrice
@@ -269,6 +270,8 @@ func cartProdHandler(s *CartService) http.HandlerFunc {
 						ProductName:  "",
 						PricePerUnit: 0.0,
 						TotalPrice:   0.0, // Quantity * PricePerUnit
+						ImageURL:     "",
+						Color:        "",
 					}
 					cart.Items = append(cart.Items, item)
 
